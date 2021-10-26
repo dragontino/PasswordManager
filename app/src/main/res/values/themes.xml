@@ -1,0 +1,19 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.PasswordManager" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/raspberry</item>
+        <item name="colorPrimaryDark">@color/raspberry</item>
+        <item name="colorAccent">@color/teal_200</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Theme.PasswordManager.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.PasswordManager.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.PasswordManager.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+</resources>
