@@ -1,30 +1,62 @@
 package com.security.passwordmanager.ui.home;
 
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.security.passwordmanager.R;
+import com.security.passwordmanager.Support;
 
 public class MainFragment extends Fragment {
+
+    private RecyclerView mRecyclerView;
+    private PasswordAdapter mAdapter;
+
+    private Support mSupport;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_main, container, false);
-        RecyclerView recyclerView = root.findViewById(R.id.main_recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(new PasswordAdapter());
+        mRecyclerView = root.findViewById(R.id.main_recycler_view);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        updateUI();
 
         return root;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+        mSupport = Support.get(getActivity());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
+
+    private void updateUI() {
+        if (mAdapter == null) {
+            mAdapter = new PasswordAdapter();
+            mRecyclerView.setAdapter(mAdapter);
+        }
+        else mAdapter.notifyDataSetChanged();
     }
 
 
@@ -55,16 +87,20 @@ public class MainFragment extends Fragment {
 
     private class PasswordHolder extends RecyclerView.ViewHolder {
 
-        private TextView textView;
+        private final TextView textView;
+        private Button button;
 
         public PasswordHolder(@NonNull View itemView) {
             super(itemView);
             textView = itemView.findViewById(R.id.list_item_text_view);
-            textView.setTextColor(Color.BLACK);
+            button = itemView.findViewById(R.id.list_item_button_more);
         }
 
         public void bindPassword(String text) {
             textView.setText(text);
+            textView.setTextColor(mSupport.getFontColor());
+            textView.setBackgroundColor(mSupport.getBackgroundColor());
+            button.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
         }
     }
 }

@@ -6,8 +6,12 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_app_icon"
         android:label="@string/app_name"
-        android:theme="@style/Theme.PasswordManager">
-        <activity android:name=".PasswordActivity"></activity>
+        android:theme="@style/Theme.PasswordManager"
+        android:fullBackupContent="@xml/backup_descriptor">
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings"/>
+        <activity android:name=".PasswordActivity" />
         <activity
             android:name=".MainActivity"
             android:label="@string/main_label"
