@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
 
         headerLayout = findViewById(R.id.nav_header_main);
-//        headerLayout.setBackgroundColor(mSupport.getHeaderColor());
     }
 
     @Override
