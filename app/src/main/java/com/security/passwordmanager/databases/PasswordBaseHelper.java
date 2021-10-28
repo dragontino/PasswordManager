@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import androidx.annotation.Nullable;
 
+import com.security.passwordmanager.databases.PasswordDBSchema.DataTable;
 import com.security.passwordmanager.databases.PasswordDBSchema.SupportTable;
 
 public class PasswordBaseHelper extends SQLiteOpenHelper {
@@ -19,10 +20,19 @@ public class PasswordBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(
-                "create table " + SupportTable.NAME + "(" +
-                        "_id integer primary key autoincrement, " +
-                        SupportTable.Cols.THEME + " text)"
+        db.execSQL("create table " + SupportTable.NAME + "(" +
+                "_id integer primary key autoincrement, " +
+                SupportTable.Cols.THEME + " text)"
+        );
+
+        db.execSQL("create table " + DataTable.NAME + "(" +
+                "_id integer primary key autoincrement, " +
+                DataTable.Cols.UUID + " integer, " +
+                DataTable.Cols.URL + " text, " +
+                DataTable.Cols.NAME + " text, " +
+                DataTable.Cols.LOGIN + " text, " +
+                DataTable.Cols.PASSWORD + " text, " +
+                DataTable.Cols.COMMENT + " text)"
         );
     }
 

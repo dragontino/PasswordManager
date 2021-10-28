@@ -10,8 +10,11 @@
         android:fullBackupContent="@xml/backup_descriptor">
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"/>
-        <activity android:name=".PasswordActivity" />
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name=".PasswordActivity"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:name=".MainActivity"
             android:label="@string/main_label"

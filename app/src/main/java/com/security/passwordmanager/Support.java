@@ -74,7 +74,7 @@ public class Support {
         actionBar.setBackgroundDrawable(new ColorDrawable(headerColor));
     }
 
-    public void updateColors() {
+    private void updateColors() {
         if (isLightTheme()) {
             backgroundColor = Color.WHITE;
             fontColor = Color.BLACK;

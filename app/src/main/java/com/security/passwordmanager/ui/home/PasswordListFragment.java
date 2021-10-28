@@ -1,18 +1,15 @@
 package com.security.passwordmanager.ui.home;
 
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.security.passwordmanager.R;
 import com.security.passwordmanager.Support;
 
-public class MainFragment extends Fragment {
+public class PasswordListFragment extends Fragment {
 
     private RecyclerView mRecyclerView;
     private PasswordAdapter mAdapter;
@@ -30,7 +27,7 @@ public class MainFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_main, container, false);
+        View root = inflater.inflate(R.layout.fragment_password_list, container, false);
         mRecyclerView = root.findViewById(R.id.main_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         updateUI();
@@ -85,7 +82,7 @@ public class MainFragment extends Fragment {
 
 
 
-    private class PasswordHolder extends RecyclerView.ViewHolder {
+    private class PasswordHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final TextView textView;
         private Button button;
@@ -94,6 +91,8 @@ public class MainFragment extends Fragment {
             super(itemView);
             textView = itemView.findViewById(R.id.list_item_text_view);
             button = itemView.findViewById(R.id.list_item_button_more);
+            button.setVisibility(View.GONE);
+            textView.setOnClickListener(this);
         }
 
         public void bindPassword(String text) {
@@ -101,6 +100,11 @@ public class MainFragment extends Fragment {
             textView.setTextColor(mSupport.getFontColor());
             textView.setBackgroundColor(mSupport.getBackgroundColor());
             button.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
+        }
+
+        @Override
+        public void onClick(View v) {
+
         }
     }
 }

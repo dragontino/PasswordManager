@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginBottom="@dimen/activity_vertical_margin"
+    android:background="@color/light_gray">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:text="@string/account"/>
+
+    <EditText
+        android:id="@+id/edit_text_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/TextViewTheme"
+        android:background="@drawable/text_view_gray_style"
+        android:layout_marginHorizontal="6dp"
+        android:hint="@string/text_view_login"
+        android:inputType="textNoSuggestions"
+        android:autofillHints="@string/text_view_login" />
+
+    <EditText
+        android:id="@+id/edit_text_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/TextViewTheme"
+        android:background="@drawable/text_view_gray_style"
+        android:layout_marginHorizontal="6dp"
+        android:hint="@string/text_view_password"
+        android:inputType="textPassword"
+        android:autofillHints="@string/text_view_password"/>
+
+    <EditText
+        android:id="@+id/edit_text_comment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/TextViewTheme"
+        android:background="@drawable/text_view_gray_style"
+        android:layout_marginHorizontal="6dp"
+        android:hint="@string/comment"
+        android:inputType="text"
+        android:autofillHints="@string/comment"/>
+
+</LinearLayout>

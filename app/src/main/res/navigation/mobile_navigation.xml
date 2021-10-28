@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.security.passwordmanager.ui.home.MainFragment"
+        android:name="com.security.passwordmanager.ui.home.PasswordListFragment"
         android:label="@string/menu_main"
-        tools:layout="@layout/fragment_main" />
+        tools:layout="@layout/fragment_password_list" />
 </navigation>

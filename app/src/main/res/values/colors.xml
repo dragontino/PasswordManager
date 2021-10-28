@@ -10,4 +10,5 @@
     <color name="raspberry">#FA056B</color>
     <color name="background_dark">#212123</color>
     <color name="header_dark">#810E3E</color>
+    <color name="light_gray">#EDEEF3</color>
 </resources>

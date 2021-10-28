@@ -1,9 +1,7 @@
 <resources>
     <string name="app_name">Password Manager</string>
     <string name="main_label">Менеджер паролей</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Менеджер паролей</string>
     <string name="app_version">Версия 1.1.0 от 27 октября 2021</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Настройки</string>
@@ -11,7 +9,14 @@
     <string name="menu_main">Все записи</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
-    <string name="add_password">Создать новую запись</string>
+    <string name="add_record">Создать новую запись</string>
     <string name="title_activity_settings">Настройки</string>
     <string name="switch_theme">Тёмная тема</string>
+    <string name="url_address">Адрес сайта</string>
+    <string name="name_address">Название</string>
+    <string name="text_view_login">Логин</string>
+    <string name="text_view_password">Пароль</string>
+    <string name="account">Аккаунт</string>
+    <string name="comment">Комментарий</string>
+    <string name="add_account">Добавить аккаунт</string>
 </resources>
