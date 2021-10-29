@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(view ->
-                startActivity(PasswordActivity.newIntent(this, UUID.randomUUID())));
+                startActivity(PasswordActivity.newIntent(this, "")));
         fab.setBackgroundTintList(ColorStateList.valueOf(mSupport.getHeaderColor()));
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mSupport.updateThemeInScreen(getWindow(), getSupportActionBar());
+        mSupport.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
         fab.setBackgroundTintList(ColorStateList.valueOf(mSupport.getHeaderColor()));
         navigationView.setBackgroundColor(mSupport.getBackgroundColor());
 

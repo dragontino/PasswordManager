@@ -5,11 +5,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import androidx.annotation.Nullable;
+
 import com.security.passwordmanager.databases.DataCursorWrapper;
 import com.security.passwordmanager.databases.PasswordBaseHelper;
 import com.security.passwordmanager.databases.PasswordDBSchema;
 import com.security.passwordmanager.databases.PasswordDBSchema.DataTable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class DataLab {
@@ -31,20 +35,90 @@ public class DataLab {
         mDatabase = new PasswordBaseHelper(mContext).getWritableDatabase();
     }
 
+    public void addData(Data data) {
+        ContentValues values = getContentValues(data);
 
+        mDatabase.insert(DataTable.NAME, null, values);
+    }
+
+    public void deleteData(UUID id) {
+        mDatabase.delete(
+                DataTable.NAME,
+                DataTable.Cols.UUID + "= ?",
+                new String[]{id.toString()}
+                );
+    }
+
+    public void deleteData(String address) {
+        mDatabase.delete(
+                DataTable.NAME,
+                DataTable.Cols.URL + " = ?",
+                new String[]{address}
+        );
+    }
+
+
+    public List<Data> getDataList() {
+        DataCursorWrapper cursorWrapper = queryPasswords(null, null);
+
+        List<Data> dataList = new ArrayList<>();
+
+        cursorWrapper.moveToFirst();
+        while (!cursorWrapper.isAfterLast()) {
+            dataList.add(cursorWrapper.getData());
+            cursorWrapper.moveToNext();
+        }
+        cursorWrapper.close();
+
+        return dataList;
+    }
+
+    public List<Data> getAccountList(String url) {
+
+        List<Data> accountList = new ArrayList<>();
+
+        DataCursorWrapper cursorWrapper =
+                queryPasswords(DataTable.Cols.URL + " = ?", new String[]{url});
+
+        cursorWrapper.moveToFirst();
+
+        while (!cursorWrapper.isAfterLast()) {
+            accountList.add(cursorWrapper.getData());
+            cursorWrapper.moveToNext();
+        }
+        cursorWrapper.close();
+
+        return accountList;
+    }
+
+
+    @Nullable
     public Data getData(UUID id) {
         DataCursorWrapper cursorWrapper = queryPasswords(
                 DataTable.Cols.UUID + " = ?",
                 new String[]{id.toString()});
 
         if (cursorWrapper.getCount() == 0)
-            return null;
+            return new Data();
 
         cursorWrapper.moveToFirst();
         Data data = cursorWrapper.getData();
         cursorWrapper.close();
 
         return data;
+    }
+
+
+    public void updateData(Data data) {
+        String uuidString = data.getId().toString();
+        ContentValues values = getContentValues(data);
+
+        mDatabase.update(
+                DataTable.NAME,
+                values,
+                DataTable.Cols.UUID + " = ?",
+                new String[]{uuidString}
+                );
     }
 
 

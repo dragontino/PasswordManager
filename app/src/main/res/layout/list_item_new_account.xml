@@ -8,6 +8,7 @@
     android:background="@color/light_gray">
 
     <TextView
+        android:id="@+id/name_of_account"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@android:color/darker_gray"
@@ -24,7 +25,8 @@
         android:layout_marginHorizontal="6dp"
         android:hint="@string/text_view_login"
         android:inputType="textNoSuggestions"
-        android:autofillHints="@string/text_view_login" />
+        android:autofillHints="@string/text_view_login"
+        android:nextFocusDown="@id/edit_text_password"/>
 
     <EditText
         android:id="@+id/edit_text_password"
@@ -35,7 +37,8 @@
         android:layout_marginHorizontal="6dp"
         android:hint="@string/text_view_password"
         android:inputType="textPassword"
-        android:autofillHints="@string/text_view_password"/>
+        android:autofillHints="@string/text_view_password"
+        android:nextFocusDown="@id/edit_text_comment"/>
 
     <EditText
         android:id="@+id/edit_text_comment"

@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Window;
 
+import androidx.annotation.DrawableRes;
 import androidx.appcompat.app.ActionBar;
 
 import com.security.passwordmanager.databases.PasswordBaseHelper;
@@ -23,6 +24,7 @@ public class Support {
     private final Context mContext;
     private Settings mSettings;
     private int backgroundColor, fontColor, headerColor;
+    private @DrawableRes int backgroundRes;
 
     private static Support sSupport;
 
@@ -79,11 +81,13 @@ public class Support {
             backgroundColor = Color.WHITE;
             fontColor = Color.BLACK;
             headerColor = mContext.getColor(R.color.raspberry);
+            backgroundRes = R.drawable.text_view_style;
         }
         else {
             backgroundColor = mContext.getColor(R.color.background_dark);
             fontColor = Color.WHITE;
             headerColor = mContext.getColor(R.color.header_dark);
+            backgroundRes = R.drawable.text_view_dark_style;
         }
     }
 
@@ -99,8 +103,9 @@ public class Support {
         return headerColor;
     }
 
-
-
+    public @DrawableRes int getBackgroundRes() {
+        return backgroundRes;
+    }
 
     private void addSettings(Settings settings) {
         ContentValues contentValues = getContentValues(settings);

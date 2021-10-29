@@ -11,12 +11,21 @@ public class Data {
     private String password;
     private String comment;
 
+    public Data(UUID id, String url, String name, String login, String password, String comment) {
+        setId(id);
+        setAddress(url);
+        setName(name);
+        setLogin(login);
+        setPassword(password);
+        setComment(comment);
+    }
+
     public Data() {
         this(UUID.randomUUID());
     }
 
     public Data(UUID id) {
-        setId(id);
+        this(id, "", "", "", "", "");
     }
 
     public UUID getId() {

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,8 +15,13 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.security.passwordmanager.Data;
+import com.security.passwordmanager.DataLab;
+import com.security.passwordmanager.PasswordActivity;
 import com.security.passwordmanager.R;
 import com.security.passwordmanager.Support;
+
+import java.util.List;
 
 public class PasswordListFragment extends Fragment {
 
@@ -23,6 +29,7 @@ public class PasswordListFragment extends Fragment {
     private PasswordAdapter mAdapter;
 
     private Support mSupport;
+    private List<Data> dataList;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -49,6 +56,10 @@ public class PasswordListFragment extends Fragment {
     }
 
     private void updateUI() {
+
+        DataLab mDataLab = DataLab.get(getActivity());
+        dataList = mDataLab.getDataList();
+
         if (mAdapter == null) {
             mAdapter = new PasswordAdapter();
             mRecyclerView.setAdapter(mAdapter);
@@ -71,12 +82,13 @@ public class PasswordListFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull PasswordHolder holder, int position) {
-            holder.bindPassword("Элемент №" + (position + 1));
+            Data data = dataList.get(position);
+            holder.bindPassword(data);
         }
 
         @Override
         public int getItemCount() {
-            return 4;
+            return dataList.size();
         }
     }
 
@@ -85,7 +97,8 @@ public class PasswordListFragment extends Fragment {
     private class PasswordHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final TextView textView;
-        private Button button;
+        private final Button button;
+        private Data mData;
 
         public PasswordHolder(@NonNull View itemView) {
             super(itemView);
@@ -95,8 +108,10 @@ public class PasswordListFragment extends Fragment {
             textView.setOnClickListener(this);
         }
 
-        public void bindPassword(String text) {
-            textView.setText(text);
+        public void bindPassword(Data data) {
+            this.mData = data;
+            textView.setText(data.getName());
+            textView.append("\n" + data.getAddress());
             textView.setTextColor(mSupport.getFontColor());
             textView.setBackgroundColor(mSupport.getBackgroundColor());
             button.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
@@ -104,7 +119,7 @@ public class PasswordListFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-
+            startActivity(PasswordActivity.newIntent(getActivity(), mData.getAddress()));
         }
     }
 }

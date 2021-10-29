@@ -11,4 +11,5 @@
     <color name="background_dark">#212123</color>
     <color name="header_dark">#810E3E</color>
     <color name="light_gray">#EDEEF3</color>
+    <color name="gray">#39393C</color>
 </resources>

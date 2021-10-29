@@ -12,7 +12,7 @@ public class PasswordDBSchema {
     }
 
     public static final class DataTable {
-        public static final String NAME = "Data";
+        public static final String NAME = "DataTable";
 
         public static final class Cols {
             public static final String UUID = "Uuid";
