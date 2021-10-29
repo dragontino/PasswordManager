@@ -44,16 +44,16 @@ public class DataLab {
     public void deleteData(UUID id) {
         mDatabase.delete(
                 DataTable.NAME,
-                DataTable.Cols.UUID + "= ?",
+                DataTable.Cols.UUID + " = ?",
                 new String[]{id.toString()}
                 );
     }
 
-    public void deleteData(String address) {
+    public void deleteData(String address, String login) {
         mDatabase.delete(
                 DataTable.NAME,
-                DataTable.Cols.URL + " = ?",
-                new String[]{address}
+                DataTable.Cols.URL + " = ? and " + DataTable.Cols.LOGIN + " = ?",
+                new String[]{address, login}
         );
     }
 
@@ -92,7 +92,6 @@ public class DataLab {
     }
 
 
-    @Nullable
     public Data getData(UUID id) {
         DataCursorWrapper cursorWrapper = queryPasswords(
                 DataTable.Cols.UUID + " = ?",
@@ -111,6 +110,15 @@ public class DataLab {
 
     public void updateData(Data data) {
         String uuidString = data.getId().toString();
+
+        if (queryPasswords(
+                DataTable.Cols.UUID + " = ?",
+                new String[]{uuidString})
+                .getCount() == 0) {
+            addData(data);
+            return;
+        }
+
         ContentValues values = getContentValues(data);
 
         mDatabase.update(

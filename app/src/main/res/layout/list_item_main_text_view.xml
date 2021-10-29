@@ -9,15 +9,30 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <LinearLayout
             android:id="@+id/list_item_text_view"
             android:layout_weight="4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="23sp"
+            android:orientation="vertical"
             android:layout_margin="@dimen/activity_horizontal_margin"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/list_item_text_view_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"/>
+
+            <TextView
+                android:id="@+id/list_item_text_view_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="19sp"
+                android:textColor="@android:color/darker_gray"/>
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/list_item_button_more"

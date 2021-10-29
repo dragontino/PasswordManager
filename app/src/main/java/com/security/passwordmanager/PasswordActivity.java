@@ -19,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -36,9 +35,6 @@ public class PasswordActivity extends AppCompatActivity {
     private EditText url;
     private EditText name;
 
-    private int countAccounts;
-
-    private String address;
     private List<Data> accountList;
 
     public static Intent newIntent(Context context, String address) {
@@ -58,19 +54,19 @@ public class PasswordActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mDataLab = DataLab.get(this);
 
-        countAccounts = 1;
-
         url = findViewById(R.id.url);
         name = findViewById(R.id.name);
         Button add = findViewById(R.id.add_account);
         add.setOnClickListener(v -> {
-            countAccounts++;
+            accountList.add(new Data());
             adapter.notifyDataSetChanged();
-            recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+            recyclerView.scrollToPosition(accountList.size() - 1);
         });
 
-        address = getIntent().getStringExtra(EXTRA_ADDRESS);
+        String address = getIntent().getStringExtra(EXTRA_ADDRESS);
         accountList = mDataLab.getAccountList(address);
+        if (accountList.size() == 0)
+            accountList.add(new Data());
     }
 
     @Override
@@ -80,17 +76,12 @@ public class PasswordActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        String urlString = "", nameString = "";
 
-        if (accountList.size() > 0) {
-            urlString = accountList.get(0).getAddress();
-            nameString = accountList.get(0).getName();
-        }
-        url.setText(urlString);
-        name.setText(nameString);
+        url.setText(accountList.get(0).getAddress());
+        name.setText(accountList.get(0).getName());
 
         if (adapter == null) {
-            adapter = new AccountAdapter(accountList);
+            adapter = new AccountAdapter();
             recyclerView.setAdapter(adapter);
         }
         else adapter.notifyDataSetChanged();
@@ -152,6 +143,13 @@ public class PasswordActivity extends AppCompatActivity {
             finish();
             return true;
         }
+        else if (item.getItemId() == R.id.menu_item_delete) {
+            for (int i = 0; i < accountList.size(); i++) {
+                mDataLab.deleteData(accountList.get(i).getId());
+            }
+            finish();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -160,12 +158,6 @@ public class PasswordActivity extends AppCompatActivity {
 
 
     private class AccountAdapter extends RecyclerView.Adapter<AccountHolder> {
-
-        private final List<Data> accountList;
-
-        public AccountAdapter(List<Data> accountList) {
-            this.accountList = accountList;
-        }
 
         @NonNull
         @Override
@@ -189,7 +181,6 @@ public class PasswordActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            if (accountList.size() == 0) return countAccounts;
             return accountList.size();
         }
     }

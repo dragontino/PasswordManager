@@ -21,4 +21,5 @@
     <string name="add_account">Добавить аккаунт</string>
     <string name="password_label">Сайт</string>
     <string name="menu_item_save">Сохранить</string>
+    <string name="delete_password">Удалить пароль</string>
 </resources>

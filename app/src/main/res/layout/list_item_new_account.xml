@@ -7,14 +7,21 @@
     android:layout_marginBottom="@dimen/activity_vertical_margin"
     android:background="@color/light_gray">
 
-    <TextView
-        android:id="@+id/name_of_account"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="15sp"
-        android:gravity="center"
-        android:text="@string/account"/>
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/name_of_account"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="15sp"
+            android:gravity="center"
+            android:text="@string/account"/>
+
+    </LinearLayout>
 
     <EditText
         android:id="@+id/edit_text_login"

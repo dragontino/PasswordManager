@@ -1,13 +1,14 @@
 package com.security.passwordmanager.ui.home;
 
+import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.security.passwordmanager.Data;
 import com.security.passwordmanager.DataLab;
 import com.security.passwordmanager.PasswordActivity;
+import com.security.passwordmanager.PasswordInfoActivity;
 import com.security.passwordmanager.R;
 import com.security.passwordmanager.Support;
 
@@ -96,30 +98,42 @@ public class PasswordListFragment extends Fragment {
 
     private class PasswordHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        private final TextView textView;
+        private LinearLayout text_view;
+        private final TextView textView_name, textView_url;
         private final Button button;
         private Data mData;
 
         public PasswordHolder(@NonNull View itemView) {
             super(itemView);
-            textView = itemView.findViewById(R.id.list_item_text_view);
+            text_view = itemView.findViewById(R.id.list_item_text_view);
+            textView_name = itemView.findViewById(R.id.list_item_text_view_name);
+            textView_url = itemView.findViewById(R.id.list_item_text_view_url);
             button = itemView.findViewById(R.id.list_item_button_more);
-            button.setVisibility(View.GONE);
-            textView.setOnClickListener(this);
+            text_view.setOnClickListener(this);
+            button.setOnClickListener(this);
         }
 
         public void bindPassword(Data data) {
             this.mData = data;
-            textView.setText(data.getName());
-            textView.append("\n" + data.getAddress());
-            textView.setTextColor(mSupport.getFontColor());
-            textView.setBackgroundColor(mSupport.getBackgroundColor());
+            textView_name.setText(data.getName());
+            textView_url.setText(data.getAddress());
+            textView_name.setTextColor(mSupport.getFontColor());
+            textView_name.setBackgroundColor(mSupport.getBackgroundColor());
+            textView_url.setBackgroundColor(mSupport.getBackgroundColor());
             button.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
         }
 
+        @SuppressLint("NonConstantResourceId")
         @Override
         public void onClick(View v) {
-            startActivity(PasswordActivity.newIntent(getActivity(), mData.getAddress()));
+            switch (v.getId()) {
+                case R.id.list_item_text_view:
+                    startActivity(PasswordActivity.newIntent(getActivity(), mData.getAddress()));
+                    break;
+                case R.id.list_item_button_more:
+                    startActivity(PasswordInfoActivity.newIntent(getContext(), mData.getId()));
+                    break;
+            }
         }
     }
 }
