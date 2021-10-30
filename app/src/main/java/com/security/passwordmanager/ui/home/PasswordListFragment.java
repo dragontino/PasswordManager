@@ -131,7 +131,8 @@ public class PasswordListFragment extends Fragment {
                     startActivity(PasswordActivity.newIntent(getActivity(), mData.getAddress()));
                     break;
                 case R.id.list_item_button_more:
-                    startActivity(PasswordInfoActivity.newIntent(getContext(), mData.getId()));
+                    startActivity(PasswordInfoActivity
+                            .newIntent(getContext(), mData.getId(), mData.getAddress()));
                     break;
             }
         }

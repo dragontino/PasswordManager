@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -145,7 +147,7 @@ public class PasswordActivity extends AppCompatActivity {
         }
         else if (item.getItemId() == R.id.menu_item_delete) {
             for (int i = 0; i < accountList.size(); i++) {
-                mDataLab.deleteData(accountList.get(i).getId());
+                mDataLab.deleteData(accountList.get(i).getAddress());
             }
             finish();
             return true;
@@ -177,6 +179,7 @@ public class PasswordActivity extends AppCompatActivity {
                 data = accountList.get(position);
 
             holder.bindAccount(data, position + 1);
+            accountList.set(position, data);
         }
 
         @Override
@@ -189,19 +192,28 @@ public class PasswordActivity extends AppCompatActivity {
 
 
 
-    private class AccountHolder extends RecyclerView.ViewHolder {
+    private class AccountHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final TextView name_of_account;
         private final EditText login;
         private final EditText password;
         private final EditText comment;
 
+        private Data data;
+
+        private final Button subtitle;
+        private boolean isPasswordVisible;
+
         public AccountHolder(@NonNull View itemView) {
             super(itemView);
             name_of_account = itemView.findViewById(R.id.name_of_account);
             login = itemView.findViewById(R.id.edit_text_login);
             password = itemView.findViewById(R.id.edit_text_password);
+            subtitle = itemView.findViewById(R.id.subtitle);
             comment = itemView.findViewById(R.id.edit_text_comment);
+            isPasswordVisible = false;
+
+//            subtitle.setOnClickListener(this);
 
             if (support.isLightTheme()) {
                 itemView.setBackgroundColor(getResources()
@@ -214,6 +226,9 @@ public class PasswordActivity extends AppCompatActivity {
         }
 
         private void bindAccount(Data data, int position) {
+
+            this.data = data;
+
             login.setText(data.getLogin());
             password.setText(data.getPassword());
             comment.setText(data.getComment());
@@ -230,6 +245,71 @@ public class PasswordActivity extends AppCompatActivity {
             login.setTextColor(support.getFontColor());
             password.setTextColor(support.getFontColor());
             comment.setTextColor(support.getFontColor());
+            subtitle.setTextColor(support.getFontColor());
+
+            login.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (s.length() != 0)
+                        data.setLogin(s.toString());
+                }
+            });
+
+            password.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (s.length() != 0 && !s.toString().equals(getString(R.string.hidden_password)))
+                        data.setPassword(s.toString());
+                }
+            });
+
+            comment.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (s.length() != 0)
+                        data.setComment(s.toString());
+                }
+            });
+        }
+
+
+        private void updatePasswordText() {
+            password.setTextIsSelectable(isPasswordVisible);
+            if (isPasswordVisible) {
+                password.setInputType(0x00000001);
+                password.setText(data.getPassword());
+                subtitle.setText(R.string.hide_password);
+            }
+            else {
+                password.setInputType(0x0000000);
+                password.setText(R.string.hidden_password);
+                subtitle.setText(R.string.show_password);
+            }
+        }
+
+
+        @Override
+        public void onClick(View v) {
+            isPasswordVisible = !isPasswordVisible;
+            updatePasswordText();
         }
     }
 }

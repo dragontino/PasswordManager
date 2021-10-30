@@ -41,11 +41,11 @@ public class DataLab {
         mDatabase.insert(DataTable.NAME, null, values);
     }
 
-    public void deleteData(UUID id) {
+    public void deleteData(String address) {
         mDatabase.delete(
                 DataTable.NAME,
-                DataTable.Cols.UUID + " = ?",
-                new String[]{id.toString()}
+                DataTable.Cols.URL + " = ?",
+                new String[]{address}
                 );
     }
 
@@ -65,7 +65,9 @@ public class DataLab {
 
         cursorWrapper.moveToFirst();
         while (!cursorWrapper.isAfterLast()) {
-            dataList.add(cursorWrapper.getData());
+            Data data = cursorWrapper.getData();
+            if (!contains(dataList, data))
+                dataList.add(cursorWrapper.getData());
             cursorWrapper.moveToNext();
         }
         cursorWrapper.close();
@@ -127,6 +129,15 @@ public class DataLab {
                 DataTable.Cols.UUID + " = ?",
                 new String[]{uuidString}
                 );
+    }
+
+
+    private boolean contains(List<Data> dataList, Data data) {
+        for (Data d : dataList) {
+            if (data.equals(d))
+                return true;
+        }
+        return false;
     }
 
 

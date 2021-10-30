@@ -75,4 +75,8 @@ public class Data {
     public void setComment(String comment) {
         this.comment = comment;
     }
+
+    public boolean equals(Data data) {
+        return address.equals(data.address) || name.equals(data.name);
+    }
 }

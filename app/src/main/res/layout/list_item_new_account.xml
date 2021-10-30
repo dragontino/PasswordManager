@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -32,6 +33,7 @@
         android:layout_marginHorizontal="6dp"
         android:hint="@string/text_view_login"
         android:inputType="textNoSuggestions"
+        android:textIsSelectable="true"
         android:autofillHints="@string/text_view_login"
         android:nextFocusDown="@id/edit_text_password"/>
 
@@ -43,9 +45,22 @@
         android:background="@drawable/text_view_gray_style"
         android:layout_marginHorizontal="6dp"
         android:hint="@string/text_view_password"
-        android:inputType="textPassword"
+        android:inputType="textNoSuggestions"
+        android:textIsSelectable="true"
         android:autofillHints="@string/text_view_password"
-        android:nextFocusDown="@id/edit_text_comment"/>
+        android:nextFocusDown="@id/edit_text_comment"
+        tools:ignore="TextFields" />
+
+    <Button
+        android:id="@+id/subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/show_password"
+        android:gravity="center"
+        android:textSize="13sp"
+        android:textAllCaps="false"
+        android:visibility="gone"
+        style="@style/Widget.AppCompat.Button.Borderless"/>
 
     <EditText
         android:id="@+id/edit_text_comment"
@@ -53,6 +68,7 @@
         android:layout_height="wrap_content"
         style="@style/TextViewTheme"
         android:background="@drawable/text_view_gray_style"
+        android:textIsSelectable="true"
         android:layout_marginHorizontal="6dp"
         android:hint="@string/comment"
         android:inputType="text"
