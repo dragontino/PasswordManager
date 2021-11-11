@@ -14,6 +14,7 @@
         android:orientation="horizontal">
 
         <TextView
+            android:layout_weight="4"
             android:id="@+id/name_of_account"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -21,6 +22,13 @@
             android:textSize="15sp"
             android:gravity="center"
             android:text="@string/account"/>
+
+        <Button
+            android:layout_weight="3"
+            android:layout_width="80dp"
+            android:layout_height="40dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/ic_action_more"/>
 
     </LinearLayout>
 

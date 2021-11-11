@@ -15,18 +15,16 @@ import java.util.UUID;
 
 public class PasswordInfoActivity extends AppCompatActivity {
 
-    private static final String EXTRA_URL = "extra_url";
-    private static final String EXTRA_ID = "extra_id";
+    private static final String EXTRA_DATA = "extra_data";
 
     private Support support;
     private DataLab dataLab;
 
-    private String url;
+    private Data data;
 
-    public static Intent newIntent(Context context, UUID id, String url) {
+    public static Intent newIntent(Context context, Data data) {
         Intent intent = new Intent(context, PasswordInfoActivity.class);
-        intent.putExtra(EXTRA_ID, id);
-        intent.putExtra(EXTRA_URL, url);
+        intent.putExtra(EXTRA_DATA, data);
         return intent;
     }
 
@@ -39,12 +37,11 @@ public class PasswordInfoActivity extends AppCompatActivity {
 
         dataLab = DataLab.get(this);
         support = Support.get(this);
-        url = getIntent().getStringExtra(EXTRA_URL);
-        UUID id = (UUID) getIntent().getSerializableExtra(EXTRA_ID);
+        data = (Data) getIntent().getSerializableExtra(EXTRA_DATA);
 
         getWindow().getDecorView().setBackgroundColor(support.getBackgroundColor());
 
-        SpannableString title = new SpannableString(dataLab.getData(id).getName());
+        SpannableString title = new SpannableString(data.getName());
         title.setSpan(
                 new ForegroundColorSpan(support.getFontColor()),
                 0,
@@ -53,10 +50,17 @@ public class PasswordInfoActivity extends AppCompatActivity {
         );
         setTitle(title);
 
+        Button edit = findViewById(R.id.button_edit_password);
+        edit.setTextColor(support.getFontColor());
+        edit.setOnClickListener(v -> {
+            startActivity(PasswordActivity.newIntent(this, data.getAddress()));
+            finish();
+        });
+
         Button delete = findViewById(R.id.button_delete_password);
         delete.setTextColor(support.getFontColor());
         delete.setOnClickListener(v -> {
-            dataLab.deleteData(url);
+            dataLab.deleteData(data);
             finish();
         });
     }

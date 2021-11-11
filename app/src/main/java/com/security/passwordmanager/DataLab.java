@@ -41,11 +41,11 @@ public class DataLab {
         mDatabase.insert(DataTable.NAME, null, values);
     }
 
-    public void deleteData(String address) {
+    public void deleteData(Data data) {
         mDatabase.delete(
                 DataTable.NAME,
                 DataTable.Cols.URL + " = ?",
-                new String[]{address}
+                new String[]{data.getAddress()}
                 );
     }
 

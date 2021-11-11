@@ -2,7 +2,7 @@
     <string name="app_name">Password Manager</string>
     <string name="main_label">Менеджер паролей</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 1.2.2 от 30 октября 2021</string>
+    <string name="app_version">Версия 1.3.0 от 11 ноября 2021</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Настройки</string>
 
@@ -21,8 +21,10 @@
     <string name="add_account">Добавить аккаунт</string>
     <string name="password_label">Сайт</string>
     <string name="menu_item_save">Сохранить</string>
-    <string name="delete_password">Удалить пароль</string>
+    <string name="delete_password">Удалить</string>
     <string name="show_password">Показать пароль</string>
+    <string name="edit_password">Редактировать</string>
     <string name="hide_password">Скрыть пароль</string>
     <string name="hidden_password">********</string>
+    <string name="button_open_url">Открыть в браузере</string>
 </resources>

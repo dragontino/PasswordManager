@@ -1,8 +1,9 @@
 package com.security.passwordmanager;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class Data {
+public class Data implements Serializable {
 
     private UUID id;
     private String address;

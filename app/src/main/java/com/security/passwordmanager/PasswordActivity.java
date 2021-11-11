@@ -3,6 +3,7 @@ package com.security.passwordmanager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -33,6 +34,7 @@ public class PasswordActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private AccountAdapter adapter;
     private DataLab mDataLab;
+    private String address;
 
     private EditText url;
     private EditText name;
@@ -42,7 +44,6 @@ public class PasswordActivity extends AppCompatActivity {
     public static Intent newIntent(Context context, String address) {
         Intent intent = new Intent(context, PasswordActivity.class);
         intent.putExtra(EXTRA_ADDRESS, address);
-
         return intent;
     }
 
@@ -65,7 +66,7 @@ public class PasswordActivity extends AppCompatActivity {
             recyclerView.scrollToPosition(accountList.size() - 1);
         });
 
-        String address = getIntent().getStringExtra(EXTRA_ADDRESS);
+        address = getIntent().getStringExtra(EXTRA_ADDRESS);
         accountList = mDataLab.getAccountList(address);
         if (accountList.size() == 0)
             accountList.add(new Data());
@@ -147,7 +148,7 @@ public class PasswordActivity extends AppCompatActivity {
         }
         else if (item.getItemId() == R.id.menu_item_delete) {
             for (int i = 0; i < accountList.size(); i++) {
-                mDataLab.deleteData(accountList.get(i).getAddress());
+                mDataLab.deleteData(accountList.get(i));
             }
             finish();
             return true;
