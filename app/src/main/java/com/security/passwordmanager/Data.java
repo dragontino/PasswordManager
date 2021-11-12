@@ -7,15 +7,17 @@ public class Data implements Serializable {
 
     private UUID id;
     private String address;
-    private String name;
+    private String nameWebsite;
+    private String nameAccount;
     private String login;
     private String password;
     private String comment;
 
-    public Data(UUID id, String url, String name, String login, String password, String comment) {
+    public Data(UUID id, String url, String nameWebsite, String nameAccount, String login, String password, String comment) {
         setId(id);
         setAddress(url);
-        setName(name);
+        setNameWebsite(nameWebsite);
+        setNameAccount(nameAccount);
         setLogin(login);
         setPassword(password);
         setComment(comment);
@@ -26,7 +28,7 @@ public class Data implements Serializable {
     }
 
     public Data(UUID id) {
-        this(id, "", "", "", "", "");
+        this(id, "", "", "", "", "", "");
     }
 
     public UUID getId() {
@@ -45,12 +47,20 @@ public class Data implements Serializable {
         this.address = address;
     }
 
-    public String getName() {
-        return name;
+    public String getNameWebsite() {
+        return nameWebsite;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNameWebsite(String nameWebsite) {
+        this.nameWebsite = nameWebsite;
+    }
+
+    public String getNameAccount() {
+        return nameAccount;
+    }
+
+    public void setNameAccount(String nameAccount) {
+        this.nameAccount = nameAccount;
     }
 
     public String getLogin() {
@@ -78,6 +88,6 @@ public class Data implements Serializable {
     }
 
     public boolean equals(Data data) {
-        return address.equals(data.address) || name.equals(data.name);
+        return address.equals(data.address) || nameWebsite.equals(data.nameWebsite);
     }
 }

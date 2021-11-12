@@ -2,10 +2,11 @@ package com.security.passwordmanager;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -81,7 +82,7 @@ public class PasswordActivity extends AppCompatActivity {
     private void updateUI() {
 
         url.setText(accountList.get(0).getAddress());
-        name.setText(accountList.get(0).getName());
+        name.setText(accountList.get(0).getNameWebsite());
 
         if (adapter == null) {
             adapter = new AccountAdapter();
@@ -116,6 +117,7 @@ public class PasswordActivity extends AppCompatActivity {
 
             for (int position = 0; position < adapter.getItemCount(); position++) {
                 View v = recyclerView.getChildAt(position);
+                TextView nameAccount = v.findViewById(R.id.name_of_account);
                 TextView login = v.findViewById(R.id.edit_text_login);
                 TextView password = v.findViewById(R.id.edit_text_password);
                 TextView comment = v.findViewById(R.id.edit_text_comment);
@@ -125,6 +127,7 @@ public class PasswordActivity extends AppCompatActivity {
                             UUID.randomUUID(),
                             url.getText().toString(),
                             name.getText().toString(),
+                            nameAccount.getText().toString(),
                             login.getText().toString(),
                             password.getText().toString(),
                             comment.getText().toString()
@@ -135,7 +138,8 @@ public class PasswordActivity extends AppCompatActivity {
                 else {
                     Data data = accountList.get(position);
                     data.setAddress(url.getText().toString());
-                    data.setName(name.getText().toString());
+                    data.setNameWebsite(name.getText().toString());
+                    data.setNameAccount(nameAccount.getText().toString());
                     data.setLogin(login.getText().toString());
                     data.setPassword(password.getText().toString());
                     data.setComment(comment.getText().toString());
@@ -195,7 +199,8 @@ public class PasswordActivity extends AppCompatActivity {
 
     private class AccountHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        private final TextView name_of_account;
+        private final EditText name_of_account;
+        private Button edit_name;
         private final EditText login;
         private final EditText password;
         private final EditText comment;
@@ -204,10 +209,12 @@ public class PasswordActivity extends AppCompatActivity {
 
         private final Button subtitle;
         private boolean isPasswordVisible;
+        private int position;
 
         public AccountHolder(@NonNull View itemView) {
             super(itemView);
             name_of_account = itemView.findViewById(R.id.name_of_account);
+            edit_name = itemView.findViewById(R.id.edit_name_of_account);
             login = itemView.findViewById(R.id.edit_text_login);
             password = itemView.findViewById(R.id.edit_text_password);
             subtitle = itemView.findViewById(R.id.subtitle);
@@ -215,29 +222,35 @@ public class PasswordActivity extends AppCompatActivity {
             isPasswordVisible = false;
 
 //            subtitle.setOnClickListener(this);
+            edit_name.setOnClickListener(this);
 
-            if (support.isLightTheme()) {
-                itemView.setBackgroundColor(getResources()
-                        .getColor(R.color.light_gray, getTheme()));
+            if (support.isLightTheme())
                 name_of_account.setTextColor(getColor(android.R.color.darker_gray));
-            } else {
-                itemView.setBackgroundColor(getColor(R.color.gray));
-                name_of_account.setTextColor(Color.WHITE);
-            }
+            else name_of_account.setTextColor(Color.WHITE);
+
+            itemView.setBackgroundColor(support.getLayoutBackgroundColor());
         }
 
         private void bindAccount(Data data, int position) {
 
             this.data = data;
+            this.position = position;
 
             login.setText(data.getLogin());
             password.setText(data.getPassword());
             comment.setText(data.getComment());
-            name_of_account.setText(getString(R.string.account, position));
+            if (data.getNameAccount().equals(""))
+                name_of_account.setText(getString(R.string.account, position));
+            else
+                name_of_account.setText(data.getNameAccount());
+
+            name_of_account.setInputType(InputType.TYPE_NULL);
 
             login.setBackgroundResource(support.getBackgroundRes());
             password.setBackgroundResource(support.getBackgroundRes());
             comment.setBackgroundResource(support.getBackgroundRes());
+
+            edit_name.setBackgroundTintList(ColorStateList.valueOf(support.getFontColor()));
 
             login.setHintTextColor(getColor(android.R.color.darker_gray));
             password.setHintTextColor(getColor(android.R.color.darker_gray));
@@ -295,12 +308,12 @@ public class PasswordActivity extends AppCompatActivity {
         private void updatePasswordText() {
             password.setTextIsSelectable(isPasswordVisible);
             if (isPasswordVisible) {
-                password.setInputType(0x00000001);
+                password.setInputType(InputType.TYPE_CLASS_TEXT);
                 password.setText(data.getPassword());
                 subtitle.setText(R.string.hide_password);
             }
             else {
-                password.setInputType(0x0000000);
+                password.setInputType(InputType.TYPE_NULL);
                 password.setText(R.string.hidden_password);
                 subtitle.setText(R.string.show_password);
             }
@@ -309,8 +322,22 @@ public class PasswordActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
-            isPasswordVisible = !isPasswordVisible;
-            updatePasswordText();
+//            isPasswordVisible = !isPasswordVisible;
+//            updatePasswordText();
+            if (v.getId() == R.id.edit_name_of_account) {
+//                startActivity(PasswordInfoActivity.newIntent(getApplicationContext(), data));
+                if (name_of_account.getInputType() == InputType.TYPE_NULL) {
+                    name_of_account.setInputType(InputType.TYPE_CLASS_TEXT);
+                    name_of_account.setFocusable(true);
+                    if (name_of_account.getText().toString().equals(getString(R.string.account, position)))
+                        name_of_account.setText("");
+                }
+                else {
+                    name_of_account.setInputType(InputType.TYPE_NULL);
+                    if (name_of_account.getText().toString().equals(""))
+                        name_of_account.setText(getString(R.string.account, position));
+                }
+            }
         }
     }
 }

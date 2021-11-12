@@ -17,7 +17,8 @@ public class PasswordDBSchema {
         public static final class Cols {
             public static final String UUID = "Uuid";
             public static final String URL = "Url";
-            public static final String NAME = "Name";
+            public static final String NAME_ADDRESS = "Name";
+            public static final String NAME_ACCOUNT = "AccountName";
             public static final String LOGIN = "Login";
             public static final String PASSWORD = "Password";
             public static final String COMMENT = "Comment";

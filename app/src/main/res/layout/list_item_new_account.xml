@@ -13,17 +13,23 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
-            android:layout_weight="4"
+        <EditText
             android:id="@+id/name_of_account"
+            android:layout_weight="4"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textColor="@android:color/darker_gray"
             android:textSize="15sp"
             android:gravity="center"
-            android:text="@string/account"/>
+            android:hint="@string/account_hint"
+            android:text="@string/account"
+            android:inputType="none"
+            android:selectAllOnFocus="true"
+            android:textIsSelectable="true"
+            android:autofillHints="@string/account_hint" />
 
         <Button
+            android:id="@+id/edit_name_of_account"
             android:layout_weight="3"
             android:layout_width="80dp"
             android:layout_height="40dp"

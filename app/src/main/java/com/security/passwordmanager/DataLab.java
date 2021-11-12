@@ -5,11 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import androidx.annotation.Nullable;
-
 import com.security.passwordmanager.databases.DataCursorWrapper;
 import com.security.passwordmanager.databases.PasswordBaseHelper;
-import com.security.passwordmanager.databases.PasswordDBSchema;
 import com.security.passwordmanager.databases.PasswordDBSchema.DataTable;
 
 import java.util.ArrayList;
@@ -146,7 +143,8 @@ public class DataLab {
         ContentValues values = new ContentValues();
         values.put(DataTable.Cols.UUID, data.getId().toString());
         values.put(DataTable.Cols.URL, data.getAddress());
-        values.put(DataTable.Cols.NAME, data.getName());
+        values.put(DataTable.Cols.NAME_ADDRESS, data.getNameWebsite());
+        values.put(DataTable.Cols.NAME_ACCOUNT, data.getNameAccount());
         values.put(DataTable.Cols.LOGIN, data.getLogin());
         values.put(DataTable.Cols.PASSWORD, data.getPassword());
         values.put(DataTable.Cols.COMMENT, data.getComment());

@@ -17,14 +17,16 @@ public class DataCursorWrapper extends CursorWrapper {
     public Data getData() {
         String uuidString = getString(getColumnIndex(Cols.UUID));
         String url = getString(getColumnIndex(Cols.URL));
-        String name = getString(getColumnIndex(Cols.NAME));
+        String nameAddress = getString(getColumnIndex(Cols.NAME_ADDRESS));
+        String nameAccount = getString(getColumnIndex(Cols.NAME_ACCOUNT));
         String login = getString(getColumnIndex(Cols.LOGIN));
         String password = getString(getColumnIndex(Cols.PASSWORD));
         String comment = getString(getColumnIndex(Cols.COMMENT));
 
         Data data = new Data(UUID.fromString(uuidString));
         data.setAddress(url);
-        data.setName(name);
+        data.setNameWebsite(nameAddress);
+        data.setNameAccount(nameAccount);
         data.setLogin(login);
         data.setPassword(password);
         data.setComment(comment);

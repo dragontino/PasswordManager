@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/list_item_linear_layout_more"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp"
+    android:orientation="vertical"
+    android:background="@color/light_gray"
+    tools:showIn="@layout/list_item_main_text_view">
+
+    <TextView
+        android:id="@+id/list_item_text_view_name_of_account"
+        style="@style/MainTextViewTheme"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/list_item_text_view_login_head"
+        style="@style/MainTextViewTheme"
+        android:text="@string/text_view_login"
+        android:textSize="@dimen/head_size" />
+
+    <include
+        layout="@layout/text_view_field"/>
+
+    <TextView
+        android:id="@+id/list_item_text_view_password_head"
+        style="@style/MainTextViewTheme"
+        android:text="@string/text_view_password"
+        android:textSize="@dimen/head_size" />
+
+    <TextView
+        android:id="@+id/list_item_text_view_password"
+        style="@style/MainTextViewTheme" />
+
+    <TextView
+        android:id="@+id/list_item_text_view_comment_head"
+        style="@style/MainTextViewTheme"
+        android:text="@string/comment"
+        android:textSize="@dimen/head_size" />
+
+    <TextView
+        android:id="@+id/list_item_text_view_comment"
+        style="@style/MainTextViewTheme" />
+
+    <Button
+        android:id="@+id/list_item_button_open_url"
+        style="@style/MainTextViewTheme"
+        android:text="@string/button_open_url" />
+
+</LinearLayout>

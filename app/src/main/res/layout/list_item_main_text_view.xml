@@ -44,6 +44,13 @@
             android:background="@drawable/ic_action_more"/>
     </LinearLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list_item_recycler_view_more_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_margin="@dimen/activity_vertical_margin"/>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
