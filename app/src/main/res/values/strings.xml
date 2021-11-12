@@ -29,4 +29,6 @@
     <string name="button_open_url">Открыть в браузере</string>
     <string name="account_hint">Название аккаунта</string>
     <string name="btn_copy">Копировать</string>
+    <string name="rename_account">Переименовать</string>
+    <string name="delete_account">Удалить аккаунт</string>
 </resources>

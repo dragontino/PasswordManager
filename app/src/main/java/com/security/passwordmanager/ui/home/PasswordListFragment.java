@@ -173,7 +173,7 @@ public class PasswordListFragment extends Fragment {
         @SuppressLint("NonConstantResourceId")
         @Override
         public void onClick(View v) {
-            startActivity(PasswordInfoActivity.newIntent(getContext(), mAccountList.get(0)));
+            startActivity(PasswordInfoActivity.newIntent(getContext(), mAccountList.get(0), PasswordInfoActivity.TYPE_DATA));
         }
 
         public void setOnClickListener(View.OnClickListener listener) {

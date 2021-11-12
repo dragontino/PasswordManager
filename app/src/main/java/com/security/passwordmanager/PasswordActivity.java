@@ -325,7 +325,7 @@ public class PasswordActivity extends AppCompatActivity {
 //            isPasswordVisible = !isPasswordVisible;
 //            updatePasswordText();
             if (v.getId() == R.id.edit_name_of_account) {
-//                startActivity(PasswordInfoActivity.newIntent(getApplicationContext(), data));
+                startActivity(PasswordInfoActivity.newIntent(getApplicationContext(), data, PasswordInfoActivity.TYPE_ACCOUNT));
                 if (name_of_account.getInputType() == InputType.TYPE_NULL) {
                     name_of_account.setInputType(InputType.TYPE_CLASS_TEXT);
                     name_of_account.setFocusable(true);

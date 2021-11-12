@@ -23,21 +23,30 @@ import android.widget.ImageView;
 
 public class PasswordInfoActivity extends AppCompatActivity {
 
+    public static final int TYPE_DATA = 0;
+    public static final int TYPE_ACCOUNT = 1;
+
     private static final String EXTRA_DATA = "extra_data";
+    private static final String EXTRA_TYPE = "extra_type";
 
     private Support support;
     private DataLab dataLab;
+
+    private int typeId;
 
     private static final @DrawableRes int[] images = new int[]
             {R.drawable.ic_outline_edit_24, R.drawable.ic_action_delete};
     private static final @StringRes int[] names = new int[]
             {R.string.edit_password, R.string.delete_password};
+    private static final @StringRes int[] alt_names = new int[]
+            {R.string.rename_account, R.string.delete_account};
 
     private Data data;
 
-    public static Intent newIntent(Context context, Data data) {
+    public static Intent newIntent(Context context, Data data, int typeId) {
         Intent intent = new Intent(context, PasswordInfoActivity.class);
         intent.putExtra(EXTRA_DATA, data);
+        intent.putExtra(EXTRA_TYPE, typeId);
         return intent;
     }
 
@@ -54,6 +63,8 @@ public class PasswordInfoActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.info_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new InfoAdapter());
+
+        typeId = getIntent().getIntExtra(EXTRA_TYPE, TYPE_DATA);
 
         getWindow().getDecorView().setBackgroundColor(support.getBackgroundColor());
 
@@ -107,7 +118,11 @@ public class PasswordInfoActivity extends AppCompatActivity {
                     .getDrawable(getApplicationContext(), images[position]));
             imageView.setImageTintList(ColorStateList.valueOf(support.getFontColor()));
 
-            button.setText(names[position]);
+            if (typeId == TYPE_DATA)
+                button.setText(names[position]);
+            else
+                button.setText(alt_names[position]);
+
             button.setTextColor(support.getFontColor());
             button.setOnClickListener(this);
         }
@@ -116,12 +131,17 @@ public class PasswordInfoActivity extends AppCompatActivity {
         public void onClick(View v) {
             switch (position) {
                 case 0:
-                    startActivity(PasswordActivity
-                            .newIntent(getApplicationContext(), data.getAddress()));
-                    finish();
+                    if (typeId == TYPE_DATA) {
+                        startActivity(PasswordActivity
+                                .newIntent(getApplicationContext(), data.getAddress()));
+                        finish();
+                    }
                     break;
                 case 1:
-                    dataLab.deleteData(data);
+                    if (typeId == TYPE_DATA)
+                        dataLab.deleteData(data);
+                    else
+                        dataLab.deleteData(data.getAddress(), data.getLogin());
                     finish();
                     break;
             }
