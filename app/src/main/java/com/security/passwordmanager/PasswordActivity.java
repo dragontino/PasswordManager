@@ -200,7 +200,7 @@ public class PasswordActivity extends AppCompatActivity {
     private class AccountHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final EditText name_of_account;
-        private Button edit_name;
+        private final Button edit_name;
         private final EditText login;
         private final EditText password;
         private final EditText comment;
@@ -326,18 +326,25 @@ public class PasswordActivity extends AppCompatActivity {
 //            updatePasswordText();
             if (v.getId() == R.id.edit_name_of_account) {
                 startActivity(PasswordInfoActivity.newIntent(getApplicationContext(), data, PasswordInfoActivity.TYPE_ACCOUNT));
-                if (name_of_account.getInputType() == InputType.TYPE_NULL) {
-                    name_of_account.setInputType(InputType.TYPE_CLASS_TEXT);
-                    name_of_account.setFocusable(true);
-                    if (name_of_account.getText().toString().equals(getString(R.string.account, position)))
-                        name_of_account.setText("");
-                }
-                else {
-                    name_of_account.setInputType(InputType.TYPE_NULL);
-                    if (name_of_account.getText().toString().equals(""))
-                        name_of_account.setText(getString(R.string.account, position));
-                }
+                changeBlockHead();
             }
+        }
+
+        private void changeBlockHead() {
+            boolean block = name_of_account.isCursorVisible();
+            //true - заблокирует, false - разблокирует
+            String full = getString(R.string.account, position);
+            String Null = "";
+
+            name_of_account.setClickable(!block);
+            name_of_account.setEnabled(!block);
+            name_of_account.setCursorVisible(!block);
+            name_of_account.setFocusable(!block);
+
+            if (block && name_of_account.getText().length() == 0)
+                name_of_account.setText(full);
+            else if (!block && name_of_account.getText().toString().equals(full))
+                name_of_account.setText(Null);
         }
     }
 }
