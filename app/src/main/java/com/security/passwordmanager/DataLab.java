@@ -15,8 +15,8 @@ import java.util.UUID;
 
 public class DataLab {
 
-    private Context mContext;
-    private SQLiteDatabase mDatabase;
+    private final SQLiteDatabase mDatabase;
+    private final Cryptographer mCryptographer;
 
     private static DataLab sDataLab;
 
@@ -28,12 +28,13 @@ public class DataLab {
     }
 
     private DataLab(Context context) {
-        this.mContext = context.getApplicationContext();
+        Context mContext = context.getApplicationContext();
         mDatabase = new PasswordBaseHelper(mContext).getWritableDatabase();
+        mCryptographer = new Cryptographer(mContext);
     }
 
     public void addData(Data data) {
-        ContentValues values = getContentValues(data);
+        ContentValues values = getContentValues(data.encrypt(mCryptographer));
 
         mDatabase.insert(DataTable.NAME, null, values);
     }
@@ -50,7 +51,7 @@ public class DataLab {
         mDatabase.delete(
                 DataTable.NAME,
                 DataTable.Cols.URL + " = ? and " + DataTable.Cols.LOGIN + " = ?",
-                new String[]{address, login}
+                new String[]{address, mCryptographer.decrypt(login)}
         );
     }
 
@@ -62,7 +63,7 @@ public class DataLab {
 
         cursorWrapper.moveToFirst();
         while (!cursorWrapper.isAfterLast()) {
-            Data data = cursorWrapper.getData();
+            Data data = cursorWrapper.getData().decrypt(mCryptographer);
             if (!contains(dataList, data))
                 dataList.add(cursorWrapper.getData());
             cursorWrapper.moveToNext();
@@ -82,7 +83,7 @@ public class DataLab {
         cursorWrapper.moveToFirst();
 
         while (!cursorWrapper.isAfterLast()) {
-            accountList.add(cursorWrapper.getData());
+            accountList.add(cursorWrapper.getData().decrypt(mCryptographer));
             cursorWrapper.moveToNext();
         }
         cursorWrapper.close();
@@ -100,7 +101,7 @@ public class DataLab {
             return new Data();
 
         cursorWrapper.moveToFirst();
-        Data data = cursorWrapper.getData();
+        Data data = cursorWrapper.getData().decrypt(mCryptographer);
         cursorWrapper.close();
 
         return data;
@@ -118,7 +119,7 @@ public class DataLab {
             return;
         }
 
-        ContentValues values = getContentValues(data);
+        ContentValues values = getContentValues(data.encrypt(mCryptographer));
 
         mDatabase.update(
                 DataTable.NAME,

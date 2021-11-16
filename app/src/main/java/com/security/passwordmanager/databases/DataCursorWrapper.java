@@ -14,6 +14,7 @@ public class DataCursorWrapper extends CursorWrapper {
         super(cursor);
     }
 
+    //зашифрованные данные
     public Data getData() {
         String uuidString = getString(getColumnIndex(Cols.UUID));
         String url = getString(getColumnIndex(Cols.URL));
@@ -23,14 +24,12 @@ public class DataCursorWrapper extends CursorWrapper {
         String password = getString(getColumnIndex(Cols.PASSWORD));
         String comment = getString(getColumnIndex(Cols.COMMENT));
 
-        Data data = new Data(UUID.fromString(uuidString));
-        data.setAddress(url);
-        data.setNameWebsite(nameAddress);
-        data.setNameAccount(nameAccount);
-        data.setLogin(login);
-        data.setPassword(password);
-        data.setComment(comment);
-
-        return data;
+        return new Data(UUID.fromString(uuidString))
+                .setAddress(url)
+                .setNameWebsite(nameAddress)
+                .setNameAccount(nameAccount)
+                .setLogin(login)
+                .setPassword(password)
+                .setComment(comment);
     }
 }
