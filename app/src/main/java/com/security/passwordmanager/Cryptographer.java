@@ -3,8 +3,6 @@ package com.security.passwordmanager;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.provider.Settings.Secure;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
