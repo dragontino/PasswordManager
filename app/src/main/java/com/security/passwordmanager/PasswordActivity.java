@@ -18,7 +18,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,16 +34,34 @@ public class PasswordActivity extends AppCompatActivity {
 
     private static final String EXTRA_ADDRESS = "extra_address";
 
+    private String login_saved;
+
     private Support support;
     private RecyclerView recyclerView;
     private AccountAdapter adapter;
     private DataLab mDataLab;
     private String address;
 
+    private List<Data> accountList;
+
+    ActivityResultLauncher<Data> launcher = registerForActivityResult(
+            new PasswordInfoActivity.InfoContract(
+                    PasswordInfoActivity.TYPE_ACCOUNT),
+            result -> {
+                if (result == null) return;
+
+                if (result.equals(PasswordInfoActivity.ACTION_RENAME))
+                    login_saved = result;
+                else if (result.equals(PasswordInfoActivity.ACTION_DELETE)) {
+                    accountList = mDataLab.getAccountList(address);
+                    if (accountList.size() == 0) finish();
+                }
+
+                adapter.notifyDataSetChanged();
+            });
+
     private EditText url;
     private EditText name;
-
-    private List<Data> accountList;
 
     public static Intent newIntent(Context context, String address) {
         Intent intent = new Intent(context, PasswordActivity.class);
@@ -60,6 +81,62 @@ public class PasswordActivity extends AppCompatActivity {
 
         url = findViewById(R.id.url);
         name = findViewById(R.id.name);
+
+        url.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s.length() != 0)
+                    for (int i = 0; i < accountList.size(); i++) {
+                        Data data = accountList.get(i);
+                        data.setAddress(s.toString());
+                        accountList.set(i, data);
+                    }
+            }
+        });
+        name.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s.length() != 0)
+                    for (int i = 0; i < accountList.size(); i++) {
+                        Data data = accountList.get(i);
+                        data.setNameWebsite(s.toString());
+                        accountList.set(i, data);
+                    }
+            }
+        });
+
+        name.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                if (name.getText().length() == 0 && url.getText().length() != 0) {
+                    StringBuilder builder = new StringBuilder(url.getText());
+
+                    if (builder.toString().contains("www."))
+                        builder.delete(0, 5);
+                    if (builder.toString().contains(".com"))
+                        builder.delete(builder.length() - 4, builder.length());
+                    if (builder.toString().contains(".ru"))
+                        builder.delete(builder.length() - 3, builder.length());
+
+                    char first = Character.toUpperCase(builder.charAt(0));
+                    builder.setCharAt(0, first);
+
+                    name.setText(builder.toString());
+                }
+            }
+        });
+
         Button add = findViewById(R.id.add_account);
         add.setOnClickListener(v -> {
             accountList.add(new Data());
@@ -122,12 +199,17 @@ public class PasswordActivity extends AppCompatActivity {
                 TextView password = v.findViewById(R.id.edit_text_password);
                 TextView comment = v.findViewById(R.id.edit_text_comment);
 
+                String name_account = nameAccount.getText().toString();
+
+//                if (name_account.equals(getString(R.string.account, position)))
+//                    name_account = "";
+
                 if (position >= accountList.size()) {
                     Data data = new Data(
                             UUID.randomUUID(),
                             url.getText().toString(),
                             name.getText().toString(),
-                            nameAccount.getText().toString(),
+                            name_account,
                             login.getText().toString(),
                             password.getText().toString(),
                             comment.getText().toString()
@@ -136,13 +218,13 @@ public class PasswordActivity extends AppCompatActivity {
                     mDataLab.addData(data);
                 }
                 else {
-                    Data data = accountList.get(position);
-                    data.setAddress(url.getText().toString());
-                    data.setNameWebsite(name.getText().toString());
-                    data.setNameAccount(nameAccount.getText().toString());
-                    data.setLogin(login.getText().toString());
-                    data.setPassword(password.getText().toString());
-                    data.setComment(comment.getText().toString());
+                    Data data = accountList.get(position)
+                    .setAddress(url.getText().toString())
+                    .setNameWebsite(name.getText().toString())
+                    .setNameAccount(nameAccount.getText().toString())
+                    .setLogin(login.getText().toString())
+                    .setPassword(password.getText().toString())
+                    .setComment(comment.getText().toString());
 
                     mDataLab.updateData(data);
                 }
@@ -221,14 +303,23 @@ public class PasswordActivity extends AppCompatActivity {
             comment = itemView.findViewById(R.id.edit_text_comment);
             isPasswordVisible = false;
 
+//            launcher = registerForActivityResult(
+//                    new PasswordInfoActivity.InfoContract(
+//                            PasswordInfoActivity.TYPE_ACCOUNT),
+//                    result -> {
+//                        switch (result) {
+//                            case PasswordInfoActivity.ACTION_RENAME:
+//                                changeBlockHead();
+//                                break;
+//                            case PasswordInfoActivity.ACTION_DELETE:
+//                                accountList.remove(position);
+//                                adapter.notifyDataSetChanged();
+//                                break;
+//                        }
+//                    });
+
 //            subtitle.setOnClickListener(this);
             edit_name.setOnClickListener(this);
-
-            if (support.isLightTheme())
-                name_of_account.setTextColor(getColor(android.R.color.darker_gray));
-            else name_of_account.setTextColor(Color.WHITE);
-
-            itemView.setBackgroundColor(support.getLayoutBackgroundColor());
         }
 
         private void bindAccount(Data data, int position) {
@@ -244,7 +335,10 @@ public class PasswordActivity extends AppCompatActivity {
             else
                 name_of_account.setText(data.getNameAccount());
 
-            name_of_account.setInputType(InputType.TYPE_NULL);
+            if (data.getLogin().equals(login_saved)) {
+                changeBlockHead();
+                login_saved = null;
+            }
 
             login.setBackgroundResource(support.getBackgroundRes());
             password.setBackgroundResource(support.getBackgroundRes());
@@ -260,6 +354,12 @@ public class PasswordActivity extends AppCompatActivity {
             password.setTextColor(support.getFontColor());
             comment.setTextColor(support.getFontColor());
             subtitle.setTextColor(support.getFontColor());
+
+            if (support.isLightTheme())
+                name_of_account.setTextColor(getColor(android.R.color.darker_gray));
+            else name_of_account.setTextColor(Color.WHITE);
+
+            itemView.setBackgroundColor(support.getLayoutBackgroundColor());
 
             login.addTextChangedListener(new TextWatcher() {
                 @Override
@@ -324,10 +424,8 @@ public class PasswordActivity extends AppCompatActivity {
         public void onClick(View v) {
 //            isPasswordVisible = !isPasswordVisible;
 //            updatePasswordText();
-            if (v.getId() == R.id.edit_name_of_account) {
-                startActivity(PasswordInfoActivity.newIntent(getApplicationContext(), data, PasswordInfoActivity.TYPE_ACCOUNT));
-                changeBlockHead();
-            }
+            if (v.getId() == R.id.edit_name_of_account)
+                launcher.launch(data);
         }
 
         private void changeBlockHead() {
@@ -341,10 +439,13 @@ public class PasswordActivity extends AppCompatActivity {
             name_of_account.setCursorVisible(!block);
             name_of_account.setFocusable(!block);
 
-            if (block && name_of_account.getText().length() == 0)
+            if (block && name_of_account.getText().length() == 0) {
                 name_of_account.setText(full);
-            else if (!block && name_of_account.getText().toString().equals(full))
+                name_of_account.setInputType(InputType.TYPE_NULL);
+            } else if (!block && name_of_account.getText().toString().equals(full)) {
                 name_of_account.setText(Null);
+                name_of_account.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+            }
         }
     }
 }

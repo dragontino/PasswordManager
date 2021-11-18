@@ -51,7 +51,7 @@ public class DataLab {
         mDatabase.delete(
                 DataTable.NAME,
                 DataTable.Cols.URL + " = ? and " + DataTable.Cols.LOGIN + " = ?",
-                new String[]{address, mCryptographer.decrypt(login)}
+                new String[]{address, mCryptographer.encrypt(login)}
         );
     }
 

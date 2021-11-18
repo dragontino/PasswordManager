@@ -12,9 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -26,6 +29,10 @@ public class PasswordInfoActivity extends AppCompatActivity {
     public static final int TYPE_DATA = 0;
     public static final int TYPE_ACCOUNT = 1;
 
+    public static String ACTION_RENAME;
+    public static final String ACTION_DELETE = "";
+
+    private static final String EXTRA_ACTION = "extra_action";
     private static final String EXTRA_DATA = "extra_data";
     private static final String EXTRA_TYPE = "extra_type";
 
@@ -63,6 +70,8 @@ public class PasswordInfoActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.info_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new InfoAdapter());
+
+        ACTION_RENAME = data.getLogin();
 
         typeId = getIntent().getIntExtra(EXTRA_TYPE, TYPE_DATA);
 
@@ -129,6 +138,8 @@ public class PasswordInfoActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
+            Intent intent = new Intent();
+
             switch (position) {
                 case 0:
                     if (typeId == TYPE_DATA) {
@@ -136,15 +147,43 @@ public class PasswordInfoActivity extends AppCompatActivity {
                                 .newIntent(getApplicationContext(), data.getAddress()));
                         finish();
                     }
+                    else if (typeId == TYPE_ACCOUNT)
+                        intent.putExtra(EXTRA_ACTION, ACTION_RENAME);
                     break;
                 case 1:
                     if (typeId == TYPE_DATA)
                         dataLab.deleteData(data);
-                    else
+                    else {
                         dataLab.deleteData(data.getAddress(), data.getLogin());
-                    finish();
+                        intent.putExtra(EXTRA_ACTION, ACTION_DELETE);
+                    }
                     break;
             }
+            setResult(RESULT_OK, intent);
+            finish();
         }
     }
+
+    public static class InfoContract extends ActivityResultContract<Data, String> {
+
+        private final int typeId;
+
+        public InfoContract(int typeId) {
+            this.typeId = typeId;
+        }
+
+        @NonNull
+        @Override
+        public Intent createIntent(@NonNull Context context, Data input) {
+            return newIntent(context, input, typeId);
+        }
+
+        @Override
+        public String parseResult(int resultCode, @Nullable Intent intent) {
+            if (resultCode != RESULT_OK || intent == null) return null;
+            return intent.getStringExtra(EXTRA_ACTION);
+        }
+    }
+
+
 }

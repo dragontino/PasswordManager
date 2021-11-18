@@ -14,13 +14,13 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".PasswordListActivity" />
         <activity
             android:name=".PasswordActivity"
             android:label="@string/password_label"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".PasswordListActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name=".PasswordListActivity"
             android:label="@string/main_label"
             android:theme="@style/Theme.PasswordManager.NoActionBar">
             <intent-filter>

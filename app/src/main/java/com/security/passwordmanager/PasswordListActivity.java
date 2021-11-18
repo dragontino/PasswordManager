@@ -24,7 +24,7 @@ import android.widget.Toast;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+public class PasswordListActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     private Support mSupport;

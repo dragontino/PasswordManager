@@ -13,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,11 +20,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.security.passwordmanager.Cryptographer;
 import com.security.passwordmanager.Data;
 import com.security.passwordmanager.DataLab;
 import com.security.passwordmanager.PasswordInfoActivity;
@@ -153,7 +152,6 @@ public class PasswordListFragment extends Fragment {
             recyclerView = itemView.findViewById(R.id.list_item_recycler_view_more_info);
             recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-
             button_more.setOnClickListener(this);
         }
 
@@ -218,10 +216,10 @@ public class PasswordListFragment extends Fragment {
     private class MoreInfoHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final LinearLayout moreInfo;
-        private final TextView accountName, login, password, comment;
+        private final TextView accountName;
+        private final ConstraintLayout login, password, comment;
         private final TextView head_login, head_password, head_comment;
         private final Button button_open_url;
-        private final ImageButton copy;
         private Data data;
 
         public MoreInfoHolder(@NonNull View itemView) {
@@ -229,18 +227,16 @@ public class PasswordListFragment extends Fragment {
             moreInfo = itemView.findViewById(R.id.list_item_linear_layout_more);
 
             accountName = itemView.findViewById(R.id.list_item_text_view_name_of_account);
-
             login = itemView.findViewById(R.id.list_item_text_view_login);
             password = itemView.findViewById(R.id.list_item_text_view_password);
             comment = itemView.findViewById(R.id.list_item_text_view_comment);
             button_open_url = itemView.findViewById(R.id.list_item_button_open_url);
 
+            button_open_url.setOnClickListener(this);
+
             head_login = itemView.findViewById(R.id.list_item_text_view_login_head);
             head_password = itemView.findViewById(R.id.list_item_text_view_password_head);
             head_comment = itemView.findViewById(R.id.list_item_text_view_comment_head);
-
-            copy = itemView.findViewById(R.id.list_item_button_copy_login);
-            copy.setOnClickListener(this);
 
             button_open_url.setTextColor(Color.WHITE);
         }
@@ -254,24 +250,21 @@ public class PasswordListFragment extends Fragment {
             }
 
             accountName.setText(data.getNameAccount());
-            login.setText(data.getLogin());
-            password.setText(data.getPassword());
-            comment.setText(data.getComment());
+            setTextToLayout(login, data.getLogin());
+            setTextToLayout(password, data.getPassword());
+            setTextToLayout(comment, data.getComment());
+
+            setOnClickListener(login, data.getLogin());
+            setOnClickListener(password, data.getPassword());
+            setOnClickListener(comment, data.getComment());
 
             moreInfo.setBackgroundColor(mSupport.getLayoutBackgroundColor());
-            button_open_url.setBackgroundResource(mSupport.getButtonRes());
-
-            accountName.setBackgroundColor(mSupport.getLayoutBackgroundColor());
-            login.setBackgroundColor(mSupport.getLayoutBackgroundColor());
-            password.setBackgroundColor(mSupport.getLayoutBackgroundColor());
-            comment.setBackgroundColor(mSupport.getLayoutBackgroundColor());
-            copy.setBackgroundColor(mSupport.getLayoutBackgroundColor());
-            copy.setImageTintList(ColorStateList.valueOf(mSupport.getFontColor()));
-
             accountName.setTextColor(mSupport.getDarkerGrayColor());
-            login.setTextColor(mSupport.getFontColor());
-            password.setTextColor(mSupport.getFontColor());
-            comment.setTextColor(mSupport.getFontColor());
+            accountName.setBackgroundColor(mSupport.getLayoutBackgroundColor());
+            setColor(login);
+            setColor(password);
+            setColor(comment);
+            button_open_url.setBackgroundResource(mSupport.getButtonRes());
 
             head_login.setTextColor(mSupport.getFontColor());
             head_password.setTextColor(mSupport.getFontColor());
@@ -281,28 +274,46 @@ public class PasswordListFragment extends Fragment {
         @SuppressLint("NonConstantResourceId")
         @Override
         public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.list_item_button_open_url:
-                    String address;
-                    if (data.getAddress().contains("www."))
-                        address = "https://" + data.getAddress();
-                    else if (data.getAddress().contains("https://www.") || data.getAddress().contains("http://www."))
-                        address = data.getAddress();
-                    else
-                        address = "https://www." + data.getAddress();
+            if (v.getId() == R.id.list_item_button_open_url) {
+                String address;
+                if (data.getAddress().contains("www."))
+                    address = "https://" + data.getAddress();
+                else if (data.getAddress().contains("https://www.") || data.getAddress().contains("http://www."))
+                    address = data.getAddress();
+                else
+                    address = "https://www." + data.getAddress();
 
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(address));
-                    startActivity(intent);
-                    break;
-
-                case R.id.list_item_button_copy_login:
-                    ClipboardManager clipboard = (ClipboardManager)
-                            requireActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("", data.getLogin());
-                    clipboard.setPrimaryClip(clip);
-                    Toast.makeText(getActivity(), "Скопированно!", Toast.LENGTH_SHORT).show();
-                    break;
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(address));
+                startActivity(intent);
             }
+        }
+
+        private void setTextToLayout(ConstraintLayout layout, String text) {
+            TextView textView = layout.findViewById(R.id.field_item_text_view);
+            textView.setText(text);
+        }
+
+        private void setOnClickListener(ConstraintLayout layout, String text) {
+            ImageButton copy = layout.findViewById(R.id.field_item_button_copy);
+
+            copy.setOnClickListener(v -> {
+                ClipboardManager clipboard = (ClipboardManager)
+                        requireActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("", text);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getActivity(), "Скопированно!", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        private void setColor(ConstraintLayout layout) {
+            TextView textView = layout.findViewById(R.id.field_item_text_view);
+            ImageButton button_copy = layout.findViewById(R.id.field_item_button_copy);
+
+            textView.setTextColor(mSupport.getFontColor());
+            button_copy.setImageTintList(ColorStateList.valueOf(mSupport.getFontColor()));
+
+            textView.setBackgroundColor(mSupport.getLayoutBackgroundColor());
+            button_copy.setBackgroundColor(mSupport.getLayoutBackgroundColor());
         }
     }
 }

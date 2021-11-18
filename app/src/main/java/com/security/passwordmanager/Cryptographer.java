@@ -9,14 +9,14 @@ import androidx.annotation.Nullable;
 public class Cryptographer {
 
     private static final int START = 32;
-    private static final int END = 177;
+    private static final int END = 1105;
 
     private final Context mContext;
 
 //    private int N, publicExp, privateExp;
 
     private static final char EXTRA_LETTER = (char) 198;
-    private static final int SIZE = 10;
+    private static final int SIZE = 13;
     private static final char [][] keyTable = new char[SIZE][SIZE];
 
     public Cryptographer(Context context) {
@@ -25,43 +25,45 @@ public class Cryptographer {
     }
 
 
-    @Nullable
     public String encrypt(String defaultString) {
         return crypt(defaultString, 1);
     }
 
 
-    @Nullable
     public String decrypt(String defaultString) {
         return crypt(defaultString, -1);
     }
 
 
-
-    @Nullable
     private String crypt(String defaultString, int next) {
         StringBuilder cryptString = new StringBuilder(defaultString);
 
         int elem = 0;
         while (elem < cryptString.length()) {
 
+            char current = cryptString.charAt(elem);
+            char future = cryptString.charAt(elem + 1);
+
             if (next == 1) {
-                if (cryptString.charAt(elem) < START || cryptString.charAt(elem) > END)
-                    return null;
+                if (current == '№') current = '#';
+                if (future == '№') future = '#';
+
+                if (current < START || current > END || future < START || future > END)
+                    return defaultString;
 
                 if (cryptString.length() % 2 != 0 && elem == cryptString.length() - 1)
                     cryptString.append(EXTRA_LETTER);
-                else if (cryptString.charAt(elem) == cryptString.charAt(elem + 1))
+                else if (current == future)
                     cryptString.insert(elem + 1, EXTRA_LETTER);
             }
 
             Pair<Integer, Integer> first = getIndex(
-                    String.valueOf(cryptString.charAt(elem)));
+                    String.valueOf(current));
             Pair<Integer, Integer> second = getIndex(
-                    String.valueOf(cryptString.charAt(elem + 1)));
+                    String.valueOf(future));
 
             if (first == null || second == null)
-                return null;
+                return defaultString;
 
             if (first.equals(second, 0)) {
                 first.setSecond(mod(
@@ -105,7 +107,6 @@ public class Cryptographer {
             }
         }
 
-
         return cryptString.toString();
     }
 
@@ -125,15 +126,15 @@ public class Cryptographer {
 
             else {
                 while (key.contains(String.valueOf((char) code)))
-                    code = getNewCode(code);
+                    code = getNextCode(code);
 
                 keyTable[i][j] = (char) code;
-                code = getNewCode(code);
+                code = getNextCode(code);
             }
         }
     }
 
-    private int getNewCode(int currentCode) {
+    private int getNextCode(int currentCode) {
         switch (currentCode) {
             case 126:
                 return 163;
@@ -144,6 +145,18 @@ public class Cryptographer {
             case 167:
                 return 177;
             case 177:
+                return 214;
+            case 214:
+                return 223;
+            case 223:
+                return 230;
+            case 230:
+                return 1025;
+            case 1025:
+                return 1040;
+            case 1103:
+                return 1105;
+            case 1105:
                 return EXTRA_LETTER;
             default:
                 return currentCode + 1;
@@ -154,7 +167,6 @@ public class Cryptographer {
     private Pair<Integer, Integer> getIndex(String elem) {
         for (int i = 0; i < SIZE; i++) {
             int j = String.valueOf(keyTable[i]).indexOf(elem);
-//            Log.d("Crypt", String.valueOf(keyTable[i]));
             if (j > -1)
                 return new Pair<>(i, j);
         }

@@ -26,6 +26,10 @@
             android:inputType="none"
             android:selectAllOnFocus="true"
             android:textIsSelectable="true"
+            android:clickable="false"
+            android:enabled="false"
+            android:focusable="false"
+            android:cursorVisible="false"
             android:autofillHints="@string/account_hint" />
 
         <Button
