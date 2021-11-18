@@ -16,7 +16,7 @@
     <string name="name_address">Название</string>
     <string name="text_view_login">Логин</string>
     <string name="text_view_password">Пароль</string>
-    <string name="account">Аккаунт №%d</string>
+    <string name="account">Аккаунт %d</string>
     <string name="comment">Комментарий</string>
     <string name="add_account">Добавить аккаунт</string>
     <string name="password_label">Сайт</string>

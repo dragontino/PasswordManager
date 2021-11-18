@@ -42,19 +42,25 @@ public class Cryptographer {
         while (elem < cryptString.length()) {
 
             char current = cryptString.charAt(elem);
-            char future = cryptString.charAt(elem + 1);
+            char future;
+            if (elem + 1 >= cryptString.length())
+                future = ' ';
+            else
+                future = cryptString.charAt(elem + 1);
 
             if (next == 1) {
+                if (cryptString.length() % 2 != 0 && elem == cryptString.length() - 1)
+                    cryptString.append(EXTRA_LETTER);
+                else if (current == cryptString.charAt(elem + 1))
+                    cryptString.insert(elem + 1, EXTRA_LETTER);
+
+                future = cryptString.charAt(elem + 1);
+
                 if (current == '№') current = '#';
                 if (future == '№') future = '#';
 
-                if (current < START || current > END || future < START || future > END)
+                if (current < START || current > END)
                     return defaultString;
-
-                if (cryptString.length() % 2 != 0 && elem == cryptString.length() - 1)
-                    cryptString.append(EXTRA_LETTER);
-                else if (current == future)
-                    cryptString.insert(elem + 1, EXTRA_LETTER);
             }
 
             Pair<Integer, Integer> first = getIndex(
