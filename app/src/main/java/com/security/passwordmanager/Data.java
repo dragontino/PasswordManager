@@ -1,5 +1,7 @@
 package com.security.passwordmanager;
 
+import android.util.Log;
+
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -99,14 +101,15 @@ public class Data implements Serializable {
     }
 
     public Data encrypt(Cryptographer cryptographer) {
-//        setNameAccount(cryptographer.encrypt(nameAccount));
+        setNameAccount(cryptographer.encrypt(nameAccount));
+        Log.d("Data123", nameAccount);
         setLogin(cryptographer.encrypt(login));
         setPassword(cryptographer.encrypt(password));
         return this;
     }
 
     public Data decrypt(Cryptographer cryptographer) {
-//        setNameAccount(cryptographer.decrypt(nameAccount));
+        setNameAccount(cryptographer.decrypt(nameAccount));
         setLogin(cryptographer.decrypt(login));
         setPassword(cryptographer.decrypt(password));
         return this;

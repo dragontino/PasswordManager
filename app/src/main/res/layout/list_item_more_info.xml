@@ -21,6 +21,7 @@
         android:textSize="@dimen/head_size" />
 
     <include
+        android:id="@+id/list_item_text_view_login"
         layout="@layout/text_view_field"/>
 
     <TextView
@@ -29,9 +30,9 @@
         android:text="@string/text_view_password"
         android:textSize="@dimen/head_size" />
 
-    <TextView
+    <include
         android:id="@+id/list_item_text_view_password"
-        style="@style/MainTextViewTheme" />
+        layout="@layout/text_view_field"/>
 
     <TextView
         android:id="@+id/list_item_text_view_comment_head"
@@ -39,9 +40,9 @@
         android:text="@string/comment"
         android:textSize="@dimen/head_size" />
 
-    <TextView
+    <include
         android:id="@+id/list_item_text_view_comment"
-        style="@style/MainTextViewTheme" />
+        layout="@layout/text_view_field"/>
 
     <Button
         android:id="@+id/list_item_button_open_url"
