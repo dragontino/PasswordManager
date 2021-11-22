@@ -8,9 +8,6 @@ import androidx.annotation.Nullable;
 
 public class Cryptographer {
 
-    private static final int START = 32;
-    private static final int END = 1105;
-
     private final Context mContext;
 
 //    private int N, publicExp, privateExp;
@@ -55,12 +52,6 @@ public class Cryptographer {
                     cryptString.insert(elem + 1, EXTRA_LETTER);
 
                 future = cryptString.charAt(elem + 1);
-
-                if (current == '№') current = '#';
-                if (future == '№') future = '#';
-
-                if (current < START || current > END)
-                    return defaultString;
             }
 
             Pair<Integer, Integer> first = getIndex(
@@ -69,7 +60,7 @@ public class Cryptographer {
                     String.valueOf(future));
 
             if (first == null || second == null)
-                return defaultString;
+                return "";
 
             if (first.equals(second, 0)) {
                 first.setSecond(mod(
@@ -145,8 +136,8 @@ public class Cryptographer {
             case 126:
                 return 163;
             case 163:
-                return 165;
-            case 165:
+                return 8470;
+            case 8470:
                 return 167;
             case 167:
                 return 177;

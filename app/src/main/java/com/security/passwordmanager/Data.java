@@ -1,7 +1,5 @@
 package com.security.passwordmanager;
 
-import android.util.Log;
-
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -96,13 +94,8 @@ public class Data implements Serializable {
         return this;
     }
 
-    public boolean equals(Data data) {
-        return address.equals(data.address) || nameWebsite.equals(data.nameWebsite);
-    }
-
     public Data encrypt(Cryptographer cryptographer) {
         setNameAccount(cryptographer.encrypt(nameAccount));
-        Log.d("Data123", nameAccount);
         setLogin(cryptographer.encrypt(login));
         setPassword(cryptographer.encrypt(password));
         return this;
@@ -113,5 +106,18 @@ public class Data implements Serializable {
         setLogin(cryptographer.decrypt(login));
         setPassword(cryptographer.decrypt(password));
         return this;
+    }
+
+    /**
+     * compare name of website form this object and from data
+     * @param anotherData - another object of data
+     * @return value < 0 if this string
+     *      *          is lexicographically less than the string argument;
+     *      *          and a
+     *      *          value > 0 if this string is
+     *      *          lexicographically greater than the string argument.
+     */
+    public int compareTo(Data anotherData) {
+        return this.getNameWebsite().compareTo(anotherData.getNameWebsite());
     }
 }

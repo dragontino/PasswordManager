@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -10,29 +11,33 @@
         android:orientation="horizontal">
 
         <LinearLayout
-            android:id="@+id/list_item_text_view"
-            android:layout_weight="4"
+            android:id="@+id/list_item_main_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_margin="@dimen/activity_horizontal_margin"
             android:clickable="true"
-            android:focusable="true">
+            android:focusable="true"
+            android:layout_weight="4"
+            android:orientation="horizontal"
+            android:layout_margin="@dimen/activity_horizontal_margin">
 
-            <TextView
-                android:id="@+id/list_item_text_view_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"/>
+            <ImageView
+                android:id="@+id/list_item_image_view"
+                android:layout_width="35dp"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="4dp"
+                android:layout_gravity="start"
+                android:src="@drawable/ic_baseline_right_arrow"
+                android:contentDescription="@string/more_info"/>
 
-            <TextView
-                android:id="@+id/list_item_text_view_url"
+            <include
+                layout="@layout/layout_main_text_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textColor="@android:color/darker_gray"/>
+                android:layout_height="match_parent"
+                android:layout_marginStart="4dp"/>
 
         </LinearLayout>
+
+
 
         <Button
             android:id="@+id/list_item_button_more"
@@ -41,7 +46,8 @@
             android:layout_height="40dp"
             android:layout_margin="8dp"
             android:layout_gravity="center"
-            android:background="@drawable/ic_action_more"/>
+            android:background="@drawable/ic_action_more"
+            tools:ignore="InefficientWeight" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

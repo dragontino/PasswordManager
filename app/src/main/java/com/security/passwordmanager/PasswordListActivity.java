@@ -44,7 +44,6 @@ public class PasswordListActivity extends AppCompatActivity {
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(view ->
                 startActivity(PasswordActivity.newIntent(this, "")));
-        fab.setBackgroundTintList(ColorStateList.valueOf(mSupport.getHeaderColor()));
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);

@@ -9,11 +9,13 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.transition.TransitionManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,9 +27,10 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.security.passwordmanager.BottomSheet;
 import com.security.passwordmanager.Data;
 import com.security.passwordmanager.DataLab;
-import com.security.passwordmanager.PasswordInfoActivity;
+import com.security.passwordmanager.PasswordActivity;
 import com.security.passwordmanager.R;
 import com.security.passwordmanager.Support;
 
@@ -42,6 +45,8 @@ public class PasswordListFragment extends Fragment {
     private DataLab mDataLab;
     private List<Data> dataList;
 
+    private BottomSheet mBottomSheet;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -49,6 +54,8 @@ public class PasswordListFragment extends Fragment {
         mRecyclerView = root.findViewById(R.id.main_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         updateUI();
+
+        mBottomSheet = new BottomSheet(requireContext(), root);
 
         return root;
     }
@@ -111,7 +118,7 @@ public class PasswordListFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull PasswordHolder holder, int position) {
             Data data = dataList.get(position);
-            holder.bindPassword(mDataLab.getAccountList(data.getAddress()));
+            holder.bindPassword(mDataLab.getAccountList(data.getAddress()), position == openedView);
 
             holder.setOnClickListener(v -> {
                 if (openedView == position)
@@ -132,11 +139,11 @@ public class PasswordListFragment extends Fragment {
     }
 
 
-
     private class PasswordHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final RecyclerView recyclerView;
-        private final LinearLayout text_view;
+        private final LinearLayout mainView;
+        private final ImageView imageView;
         private final TextView textView_name, textView_url;
         private final Button button_more;
 
@@ -144,7 +151,8 @@ public class PasswordListFragment extends Fragment {
 
         public PasswordHolder(@NonNull View itemView) {
             super(itemView);
-            text_view = itemView.findViewById(R.id.list_item_text_view);
+            mainView = itemView.findViewById(R.id.list_item_main_view);
+            imageView = itemView.findViewById(R.id.list_item_image_view);
             textView_name = itemView.findViewById(R.id.list_item_text_view_name);
             textView_url = itemView.findViewById(R.id.list_item_text_view_url);
             button_more = itemView.findViewById(R.id.list_item_button_more);
@@ -155,14 +163,16 @@ public class PasswordListFragment extends Fragment {
             button_more.setOnClickListener(this);
         }
 
-        public void bindPassword(List<Data> accountList) {
+        public void bindPassword(List<Data> accountList, boolean isShown) {
             this.mAccountList = accountList;
 
             recyclerView.setAdapter(new MoreInfoAdapter(mAccountList));
 
+            updateArrow(isShown);
             textView_name.setText(accountList.get(0).getNameWebsite());
             textView_url.setText(accountList.get(0).getAddress());
 
+            imageView.setImageTintList(ColorStateList.valueOf(mSupport.getHeaderColor()));
             textView_name.setBackgroundColor(mSupport.getBackgroundColor());
             textView_url.setBackgroundColor(mSupport.getBackgroundColor());
             button_more.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
@@ -173,11 +183,44 @@ public class PasswordListFragment extends Fragment {
         @SuppressLint("NonConstantResourceId")
         @Override
         public void onClick(View v) {
-            startActivity(PasswordInfoActivity.newIntent(getContext(), mAccountList.get(0), PasswordInfoActivity.TYPE_DATA));
+
+            mBottomSheet.setHeading(
+                    mAccountList.get(0).getNameWebsite(),
+                    mAccountList.get(0).getAddress()
+            );
+
+            mBottomSheet.updateImageAndText(
+                    new int[]{ R.string.edit_password, R.string.delete_password },
+                    new int[]{ R.drawable.ic_outline_edit_24, R.drawable.ic_baseline_delete_24 }
+            );
+
+            mBottomSheet.setOnClickListener(BottomSheet.VIEW_EDIT, v1 -> {
+                startActivity(PasswordActivity
+                        .newIntent(requireContext(), mAccountList.get(0).getAddress()));
+                mBottomSheet.stop();
+            });
+
+            mBottomSheet.setOnClickListener(BottomSheet.VIEW_DELETE, v1 -> {
+                mDataLab.deleteData(mAccountList.get(0).getAddress());
+                mBottomSheet.stop();
+                updateUI();
+            });
+
+            mBottomSheet.start();
         }
 
         public void setOnClickListener(View.OnClickListener listener) {
-            text_view.setOnClickListener(listener);
+            mainView.setOnClickListener(listener);
+        }
+
+
+        //true - стрелка вниз, false - вправо
+        private void updateArrow(boolean isShown) {
+            TransitionManager.beginDelayedTransition(mainView);
+            if (isShown)
+                imageView.animate().rotation(90);
+            else
+                imageView.animate().rotation(0);
         }
     }
 
