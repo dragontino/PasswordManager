@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -24,6 +23,7 @@
             android:inputType="text"
             android:hint="@string/account_hint"
             android:text="@string/account"
+            android:textIsSelectable="true"
             android:focusable="true"
             android:nextFocusDown="@id/edit_text_login"
             android:cursorVisible="false"
@@ -53,30 +53,41 @@
         android:autofillHints="@string/text_view_login"
         android:nextFocusDown="@id/edit_text_password"/>
 
-    <EditText
-        android:id="@+id/edit_text_password"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/TextViewTheme"
-        android:background="@drawable/text_view_gray_style"
-        android:layout_marginHorizontal="6dp"
-        android:hint="@string/text_view_password"
-        android:inputType="textNoSuggestions"
-        android:textIsSelectable="true"
-        android:autofillHints="@string/text_view_password"
-        android:nextFocusDown="@id/edit_text_comment"
-        tools:ignore="TextFields" />
+        android:layout_margin="@dimen/activity_vertical_margin">
 
-    <Button
-        android:id="@+id/show_password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/show_password"
-        android:gravity="center"
-        android:textSize="13sp"
-        android:textAllCaps="false"
-        android:visibility="gone"
-        style="@style/Widget.AppCompat.Button.Borderless"/>
+        <EditText
+            android:id="@+id/edit_text_password"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            style="@style/TextViewTheme"
+            android:layout_margin="0dp"
+            android:autofillHints="@string/text_view_password"
+            android:background="@drawable/text_view_gray_style"
+            android:hint="@string/text_view_password"
+            android:inputType="textPassword"
+            android:nextFocusDown="@id/edit_text_comment"
+            android:textIsSelectable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/field_item_button_visibility"
+            style="@style/UtilityButtons"
+            android:contentDescription="@string/show_password"
+            android:src="@drawable/ic_visibility_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.99"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <EditText
         android:id="@+id/edit_text_comment"
