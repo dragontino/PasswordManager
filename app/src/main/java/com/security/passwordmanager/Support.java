@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Window;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.IntDef;
 import androidx.annotation.StringDef;
@@ -32,7 +33,7 @@ public class Support {
     private final SQLiteDatabase mDatabase;
     private final Context mContext;
     private Settings mSettings;
-    private int backgroundColor, fontColor, headerColor, layoutBackgroundColor;
+    private @ColorInt int backgroundColor, fontColor, headerColor, layoutBackgroundColor;
     private @DrawableRes int backgroundRes, buttonRes;
 
     private static Support sSupport;
@@ -104,14 +105,17 @@ public class Support {
         }
     }
 
+    @ColorInt
     public int getBackgroundColor() {
         return backgroundColor;
     }
 
+    @ColorInt
     public int getFontColor() {
         return fontColor;
     }
 
+    @ColorInt
     public int getHeaderColor() {
         return headerColor;
     }
