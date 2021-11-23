@@ -1,4 +1,4 @@
-package com.security.passwordmanager.ui.home;
+package com.security.passwordmanager.ui.passwords;
 
 import android.annotation.SuppressLint;
 import android.content.ClipData;
@@ -9,19 +9,22 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.transition.TransitionManager;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.DimenRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -146,6 +149,7 @@ public class PasswordListFragment extends Fragment {
         private final ImageView imageView;
         private final TextView textView_name, textView_url;
         private final Button button_more;
+        private final MotionLayout motionLayout;
 
         private List<Data> mAccountList;
 
@@ -161,6 +165,8 @@ public class PasswordListFragment extends Fragment {
             recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
             button_more.setOnClickListener(this);
+
+            motionLayout = itemView.findViewById(R.id.motion_container);
         }
 
         public void bindPassword(List<Data> accountList, boolean isShown) {
@@ -216,11 +222,10 @@ public class PasswordListFragment extends Fragment {
 
         //true - стрелка вниз, false - вправо
         private void updateArrow(boolean isShown) {
-            TransitionManager.beginDelayedTransition(mainView);
             if (isShown)
-                imageView.animate().rotation(90);
+                motionLayout.transitionToEnd();
             else
-                imageView.animate().rotation(0);
+                motionLayout.transitionToStart();
         }
     }
 
@@ -265,6 +270,8 @@ public class PasswordListFragment extends Fragment {
         private final Button button_open_url;
         private Data data;
 
+        private boolean isPasswordVisible;
+
         public MoreInfoHolder(@NonNull View itemView) {
             super(itemView);
             moreInfo = itemView.findViewById(R.id.list_item_linear_layout_more);
@@ -282,6 +289,8 @@ public class PasswordListFragment extends Fragment {
             head_comment = itemView.findViewById(R.id.list_item_text_view_comment_head);
 
             button_open_url.setTextColor(Color.WHITE);
+
+            isPasswordVisible = false;
         }
 
         public void bindInfo(Data data) {
@@ -293,13 +302,13 @@ public class PasswordListFragment extends Fragment {
             }
 
             accountName.setText(data.getNameAccount());
-            setTextToLayout(login, data.getLogin());
-            setTextToLayout(password, data.getPassword());
-            setTextToLayout(comment, data.getComment());
+            setTextToLayout(login, data.getLogin(), null);
+            setTextToLayout(password, data.getPassword(), 129);
+            setTextToLayout(comment, data.getComment(), null);
 
-            setOnClickListener(login, data.getLogin());
-            setOnClickListener(password, data.getPassword());
-            setOnClickListener(comment, data.getComment());
+            setOnClickListener(login, data.getLogin(), false);
+            setOnClickListener(password, data.getPassword(), true);
+            setOnClickListener(comment, data.getComment(), false);
 
             moreInfo.setBackgroundColor(mSupport.getLayoutBackgroundColor());
             accountName.setTextColor(mSupport.getDarkerGrayColor());
@@ -331,13 +340,16 @@ public class PasswordListFragment extends Fragment {
             }
         }
 
-        private void setTextToLayout(ConstraintLayout layout, String text) {
+        private void setTextToLayout(ConstraintLayout layout, String text, Integer inputType) {
             TextView textView = layout.findViewById(R.id.field_item_text_view);
             textView.setText(text);
+            if (inputType != null)
+                textView.setInputType(inputType);
         }
 
-        private void setOnClickListener(ConstraintLayout layout, String text) {
+        private void setOnClickListener(ConstraintLayout layout, String text, boolean needVisibility) {
             ImageButton copy = layout.findViewById(R.id.field_item_button_copy);
+            ImageButton visibility = layout.findViewById(R.id.field_item_button_visibility);
 
             copy.setOnClickListener(v -> {
                 ClipboardManager clipboard = (ClipboardManager)
@@ -346,17 +358,39 @@ public class PasswordListFragment extends Fragment {
                 clipboard.setPrimaryClip(clip);
                 Toast.makeText(getActivity(), "Скопированно!", Toast.LENGTH_SHORT).show();
             });
+
+            if (needVisibility) {
+                visibility.setVisibility(View.VISIBLE);
+                visibility.setOnClickListener(v -> {
+                    TextView textView = layout.findViewById(R.id.field_item_text_view);
+
+                    isPasswordVisible = !isPasswordVisible;
+
+                    if (isPasswordVisible) {
+                        textView.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                        visibility.setImageResource(R.drawable.ic_outline_visibility_off_24);
+                    }
+                    else {
+                        textView.setInputType(129);
+                        visibility.setImageResource(R.drawable.ic_visibility_24);
+                    }
+                });
+            }
+            else visibility.setVisibility(View.GONE);
         }
 
         private void setColor(ConstraintLayout layout) {
             TextView textView = layout.findViewById(R.id.field_item_text_view);
-            ImageButton button_copy = layout.findViewById(R.id.field_item_button_copy);
+            ImageButton copy = layout.findViewById(R.id.field_item_button_copy);
+            ImageButton visibility = layout.findViewById(R.id.field_item_button_visibility);
 
             textView.setTextColor(mSupport.getFontColor());
-            button_copy.setImageTintList(ColorStateList.valueOf(mSupport.getFontColor()));
+            copy.setImageTintList(ColorStateList.valueOf(mSupport.getFontColor()));
+            visibility.setImageTintList(ColorStateList.valueOf(mSupport.getFontColor()));
 
             textView.setBackgroundColor(mSupport.getLayoutBackgroundColor());
-            button_copy.setBackgroundColor(mSupport.getLayoutBackgroundColor());
+            copy.setBackgroundColor(mSupport.getLayoutBackgroundColor());
+            visibility.setBackgroundColor(mSupport.getLayoutBackgroundColor());
         }
     }
 }

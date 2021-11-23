@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -19,24 +20,33 @@
             android:layout_weight="4"
             android:orientation="horizontal"
             android:layout_margin="@dimen/activity_horizontal_margin">
-
-            <ImageView
-                android:id="@+id/list_item_image_view"
+            
+            <androidx.constraintlayout.motion.widget.MotionLayout
+                android:id="@+id/motion_container"
                 android:layout_width="35dp"
                 android:layout_height="match_parent"
-                android:paddingHorizontal="4dp"
-                android:layout_gravity="start"
-                android:src="@drawable/ic_baseline_right_arrow"
-                android:contentDescription="@string/more_info"/>
+                app:layoutDescription="@xml/list_item_main_text_view_scene">
+
+                <ImageView
+                    android:id="@+id/list_item_image_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingHorizontal="4dp"
+                    android:layout_gravity="start"
+                    android:src="@drawable/ic_baseline_right_arrow"
+                    android:contentDescription="@string/more_info"/>
+
+            </androidx.constraintlayout.motion.widget.MotionLayout>
+
+
 
             <include
-                layout="@layout/layout_main_text_view"
+                layout="@layout/layout_main_header"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginStart="4dp"/>
 
         </LinearLayout>
-
 
 
         <Button

@@ -8,26 +8,36 @@
     <TextView
         android:id="@+id/field_item_text_view"
         style="@style/MainTextViewTheme"
+        android:inputType="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0" />
+        app:layout_constraintVertical_bias="0"/>
 
-    <ImageButton
-        android:id="@+id/field_item_button_copy"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:background="@color/white"
-        android:contentDescription="@string/btn_copy"
-        android:src="@drawable/ic_outline_content_copy_24"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.958"
+        app:layout_constraintHorizontal_bias="1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.011" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/field_item_button_visibility"
+            style="@style/UtilityButtons"
+            android:contentDescription="@string/show_password"
+            android:src="@drawable/ic_visibility_24" />
+
+        <ImageButton
+            android:id="@+id/field_item_button_copy"
+            style="@style/UtilityButtons"
+            android:contentDescription="@string/btn_copy"
+            android:src="@drawable/ic_outline_content_copy_24"/>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -10,7 +10,7 @@
 
     <include
         android:id="@+id/main_bottom_sheet_heading"
-        layout="@layout/layout_main_text_view"
+        layout="@layout/layout_main_header"
         android:visibility="gone"/>
 
     <include

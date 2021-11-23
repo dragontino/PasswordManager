@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,22 +43,6 @@ public class PasswordActivity extends AppCompatActivity {
     private String address;
 
     private List<Data> accountList;
-
-//    ActivityResultLauncher<Data> launcher = registerForActivityResult(
-//            new PasswordInfoActivity.InfoContract(
-//                    PasswordInfoActivity.TYPE_ACCOUNT),
-//            result -> {
-//                if (result == null) return;
-//
-//                if (result.equals(PasswordInfoActivity.ACTION_RENAME))
-//                    login_saved = result;
-//                else if (result.equals(PasswordInfoActivity.ACTION_DELETE)) {
-//                    accountList = mDataLab.getAccountList(address);
-//                    if (accountList.size() == 0) finish();
-//                }
-//
-//                adapter.notifyDataSetChanged();
-//            });
 
     private EditText url;
     private EditText name;
@@ -291,7 +276,7 @@ public class PasswordActivity extends AppCompatActivity {
 
         private Data data;
 
-        private final Button showPassword;
+        private final ImageButton buttonVisibility;
         private boolean isPasswordVisible;
         private int position;
 
@@ -303,12 +288,13 @@ public class PasswordActivity extends AppCompatActivity {
             edit_name = itemView.findViewById(R.id.edit_name_of_account);
             login = itemView.findViewById(R.id.edit_text_login);
             password = itemView.findViewById(R.id.edit_text_password);
-            showPassword = itemView.findViewById(R.id.show_password);
+            buttonVisibility = itemView.findViewById(R.id.field_item_button_visibility);
             comment = itemView.findViewById(R.id.edit_text_comment);
             isPasswordVisible = false;
             renamingText = R.string.rename_account;
 
             edit_name.setOnClickListener(this);
+            buttonVisibility.setOnClickListener(this);
         }
 
         private void bindAccount(Data data, int position) {
@@ -324,16 +310,13 @@ public class PasswordActivity extends AppCompatActivity {
             else
                 name_of_account.setText(data.getNameAccount());
 
-//            if (data.getLogin().equals(login_saved)) {
-//                changeBlockHead();
-//                login_saved = null;
-//            }
-
             login.setBackgroundResource(support.getBackgroundRes());
             password.setBackgroundResource(support.getBackgroundRes());
             comment.setBackgroundResource(support.getBackgroundRes());
 
             edit_name.setBackgroundTintList(ColorStateList.valueOf(support.getFontColor()));
+
+            buttonVisibility.setBackgroundColor(support.getBackgroundColor());
 
             login.setHintTextColor(getColor(android.R.color.darker_gray));
             password.setHintTextColor(getColor(android.R.color.darker_gray));
@@ -342,7 +325,7 @@ public class PasswordActivity extends AppCompatActivity {
             login.setTextColor(support.getFontColor());
             password.setTextColor(support.getFontColor());
             comment.setTextColor(support.getFontColor());
-            showPassword.setTextColor(support.getFontColor());
+            buttonVisibility.setImageTintList(ColorStateList.valueOf(support.getFontColor()));
 
             if (support.isLightTheme())
                 name_of_account.setTextColor(getColor(android.R.color.darker_gray));
@@ -373,7 +356,7 @@ public class PasswordActivity extends AppCompatActivity {
 
                 @Override
                 public void afterTextChanged(Editable s) {
-                    if (s.length() != 0 && !s.toString().equals(getString(R.string.hidden_password)))
+                    if (s.length() != 0)
                         data.setPassword(s.toString());
                 }
             });
@@ -406,24 +389,22 @@ public class PasswordActivity extends AppCompatActivity {
 
 
         private void updatePasswordText() {
-            password.setTextIsSelectable(isPasswordVisible);
+            isPasswordVisible = !isPasswordVisible;
             if (isPasswordVisible) {
                 password.setInputType(InputType.TYPE_CLASS_TEXT);
-                password.setText(data.getPassword());
-                showPassword.setText(R.string.hide_password);
+                buttonVisibility.setImageResource(R.drawable.ic_outline_visibility_off_24);
+                buttonVisibility.setContentDescription(getString(R.string.hide_password));
             }
             else {
-                password.setInputType(InputType.TYPE_NULL);
-                password.setText(R.string.hidden_password);
-                showPassword.setText(R.string.show_password);
+                password.setInputType(129);
+                buttonVisibility.setImageResource(R.drawable.ic_visibility_24);
+                buttonVisibility.setContentDescription(getString(R.string.show_password));
             }
         }
 
 
         @Override
         public void onClick(View v) {
-//            isPasswordVisible = !isPasswordVisible;
-//            updatePasswordText();
             if (v.getId() == R.id.edit_name_of_account) {
                 mBottomSheet.updateImageAndText(
                         new int[]{ renamingText, R.string.delete_account },
@@ -447,6 +428,9 @@ public class PasswordActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                 });
                 mBottomSheet.start();
+            }
+            else if (v.getId() == R.id.field_item_button_visibility) {
+                updatePasswordText();
             }
         }
 
