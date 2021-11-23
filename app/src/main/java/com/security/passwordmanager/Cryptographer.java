@@ -10,8 +10,6 @@ public class Cryptographer {
 
     private final Context mContext;
 
-//    private int N, publicExp, privateExp;
-
     private static final char EXTRA_LETTER = (char) 198;
     private static final int SIZE = 13;
     private static final char [][] keyTable = new char[SIZE][SIZE];
@@ -192,56 +190,4 @@ public class Cryptographer {
         int result = a % b;
         return result < 0 ? result + b : result;
     }
-
-
-//    @SuppressLint("HardwareIds")
-//    private void calculateExponents() {
-//        String androidId = Secure.getString(mContext.getContentResolver(), Secure.ANDROID_ID);
-//        int a = parseInt(androidId), b = a;
-//
-//        while (isComposite(a))
-//            a--;
-//        while (isComposite(b))
-//            b++;
-//
-//        N = a * b;
-//        publicExp = 2;
-//        privateExp = 1;
-//        int phi = (a - 1) * (b - 1);
-//
-//        while (gcd(phi, publicExp) != 1 && publicExp < phi)
-//            publicExp++;
-//
-//        while ((publicExp * privateExp) % phi != 1)
-//            privateExp++;
-//    }
-
-//    private int parseInt(String string) {
-//        int result = 0;
-//
-//        for (int i = 0; i < string.length(); i++)
-//            result += string.charAt(i);
-//
-//        return result;
-//    }
-//
-//    private int gcd(int a, int b) {
-//        int result = Math.max(a, b);
-//
-//        if (Math.min(a, b) <= 0)
-//            return result;
-//
-//        return gcd(b, a % b);
-//    }
-//
-//    private boolean isComposite(int number) {
-//        if (number % 2 == 0)
-//            return number != 2;
-//
-//        for (int div = 3; div <= Math.sqrt(number); div += 2) {
-//            if (number % div == 0)
-//                return true;
-//        }
-//        return false;
-//    }
 }
