@@ -1,9 +1,8 @@
-package com.security.passwordmanager;
+package com.security.passwordmanager.ui.account;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
@@ -25,6 +24,12 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.security.passwordmanager.BottomSheet;
+import com.security.passwordmanager.Data;
+import com.security.passwordmanager.DataLab;
+import com.security.passwordmanager.R;
+import com.security.passwordmanager.Support;
 
 import java.util.List;
 import java.util.Objects;
@@ -318,18 +323,17 @@ public class PasswordActivity extends AppCompatActivity {
 
             buttonVisibility.setBackgroundColor(support.getBackgroundColor());
 
-            login.setHintTextColor(getColor(android.R.color.darker_gray));
-            password.setHintTextColor(getColor(android.R.color.darker_gray));
-            comment.setHintTextColor(getColor(android.R.color.darker_gray));
+            login.setHintTextColor(support.getDarkerGrayColor());
+            password.setHintTextColor(support.getDarkerGrayColor());
+            comment.setHintTextColor(support.getDarkerGrayColor());
 
             login.setTextColor(support.getFontColor());
             password.setTextColor(support.getFontColor());
             comment.setTextColor(support.getFontColor());
             buttonVisibility.setImageTintList(ColorStateList.valueOf(support.getFontColor()));
 
-            if (support.isLightTheme())
-                name_of_account.setTextColor(getColor(android.R.color.darker_gray));
-            else name_of_account.setTextColor(Color.WHITE);
+            name_of_account.setHintTextColor(support.getDarkerGrayColor());
+            name_of_account.setTextColor(support.getDarkerGrayColor());
 
             itemView.setBackgroundColor(support.getLayoutBackgroundColor());
 
@@ -447,6 +451,11 @@ public class PasswordActivity extends AppCompatActivity {
                 name_of_account.setText(full);
             else if (!blocking && name_of_account.getText().toString().equals(full))
                 name_of_account.setText(Null);
+
+            if (blocking)
+                name_of_account.setTextColor(support.getDarkerGrayColor());
+            else
+                name_of_account.setTextColor(support.getFontColor());
         }
     }
 }

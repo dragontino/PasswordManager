@@ -1,11 +1,17 @@
-package com.security.passwordmanager;
+package com.security.passwordmanager.ui.main;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import android.view.Menu;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.security.passwordmanager.ui.account.PasswordActivity;
+import com.security.passwordmanager.R;
+import com.security.passwordmanager.SettingsActivity;
+import com.security.passwordmanager.Support;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -20,6 +26,8 @@ import android.widget.LinearLayout;
 
 import java.util.Objects;
 
+import kotlin.Pair;
+
 public class PasswordListActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -27,6 +35,10 @@ public class PasswordListActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private FloatingActionButton fab;
     private LinearLayout headerLayout;
+
+    public static Intent getIntent(Context context) {
+        return new Intent(context, PasswordListActivity.class);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

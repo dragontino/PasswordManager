@@ -7,4 +7,5 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="head_size">13sp</dimen>
     <dimen name="text_view_normal_size">16sp</dimen>
+    <dimen name="text_view_corner">6dp</dimen>
 </resources>
