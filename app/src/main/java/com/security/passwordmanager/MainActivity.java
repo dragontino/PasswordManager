@@ -1,5 +1,10 @@
 package com.security.passwordmanager;
 
+<<<<<<< HEAD
+=======
+import android.content.res.ColorStateList;
+import android.graphics.drawable.ColorDrawable;
+>>>>>>> origin/master
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -62,7 +67,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
+<<<<<<< HEAD
         mSupport.updateThemeInScreen(getWindow(), getSupportActionBar());
+=======
+        getWindow().getDecorView().setBackgroundColor(mSupport.getBackgroundColor());
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(mSupport.getHeaderColor()));
+        getWindow().setStatusBarColor(mSupport.getHeaderColor());
+>>>>>>> origin/master
 
         username.setBackgroundResource(mSupport.getBackgroundRes());
         password.setBackgroundResource(mSupport.getBackgroundRes());
