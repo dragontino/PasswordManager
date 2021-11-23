@@ -104,14 +104,17 @@ public class Support {
         }
     }
 
+    @ColorInt
     public int getBackgroundColor() {
         return backgroundColor;
     }
 
+    @ColorInt
     public int getFontColor() {
         return fontColor;
     }
 
+    @ColorInt
     public int getHeaderColor() {
         return headerColor;
     }
