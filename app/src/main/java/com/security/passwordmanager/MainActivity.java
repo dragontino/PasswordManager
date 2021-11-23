@@ -1,10 +1,13 @@
 package com.security.passwordmanager;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 >>>>>>> 30ee146 (версия 2.2.1 от 23.11.2021)
+=======
+>>>>>>> ea46599 (версия 2.2.1 от 23.11.2021)
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -67,9 +70,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        getWindow().getDecorView().setBackgroundColor(mSupport.getBackgroundColor());
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(mSupport.getHeaderColor()));
-        getWindow().setStatusBarColor(mSupport.getHeaderColor());
+        mSupport.updateThemeInScreen(getWindow(), getSupportActionBar());
 
         username.setBackgroundResource(mSupport.getBackgroundRes());
         password.setBackgroundResource(mSupport.getBackgroundRes());
