@@ -8,8 +8,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Window;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
-import androidx.annotation.IntDef;
 import androidx.annotation.StringDef;
 import androidx.appcompat.app.ActionBar;
 
@@ -32,7 +32,7 @@ public class Support {
     private final SQLiteDatabase mDatabase;
     private final Context mContext;
     private Settings mSettings;
-    private int backgroundColor, fontColor, headerColor, layoutBackgroundColor;
+    private @ColorInt int backgroundColor, fontColor, headerColor, layoutBackgroundColor;
     private @DrawableRes int backgroundRes, buttonRes;
 
     private static Support sSupport;
@@ -53,7 +53,7 @@ public class Support {
         mDatabase = new PasswordBaseHelper(context).getWritableDatabase();
         mSettings = new Settings();
 
-        SupportCursorWrapper cursor = querySupports(null, null);
+        SupportCursorWrapper cursor = querySupports();
         if (cursor.getCount() == 0)
             addSettings(mSettings);
         else {
@@ -134,7 +134,6 @@ public class Support {
 
 
 
-
     private void addSettings(Settings settings) {
         ContentValues contentValues = getContentValues(settings);
         mDatabase.insert(SupportTable.NAME, null, contentValues);
@@ -156,12 +155,12 @@ public class Support {
         return values;
     }
 
-    private SupportCursorWrapper querySupports(String whereClause, String[] whereArgs) {
+    private SupportCursorWrapper querySupports() {
         Cursor cursor = mDatabase.query(
                 SupportTable.NAME,
                 null,
-                whereClause,
-                whereArgs,
+                null,
+                null,
                 null,
                 null,
                 null

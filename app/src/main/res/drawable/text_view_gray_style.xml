@@ -11,6 +11,6 @@
         android:endColor="@color/light_gray"/>
 
     <corners
-        android:radius="3dp"/>
+        android:radius="@dimen/text_view_corner"/>
 
 </shape>

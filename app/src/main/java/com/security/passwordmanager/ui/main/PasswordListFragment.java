@@ -1,4 +1,4 @@
-package com.security.passwordmanager.ui.passwords;
+package com.security.passwordmanager.ui.main;
 
 import android.annotation.SuppressLint;
 import android.content.ClipData;
@@ -14,14 +14,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.DimenRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.motion.widget.MotionLayout;
@@ -33,7 +31,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.security.passwordmanager.BottomSheet;
 import com.security.passwordmanager.Data;
 import com.security.passwordmanager.DataLab;
-import com.security.passwordmanager.PasswordActivity;
+import com.security.passwordmanager.ui.account.PasswordActivity;
 import com.security.passwordmanager.R;
 import com.security.passwordmanager.Support;
 
