@@ -1,5 +1,9 @@
 package com.security.passwordmanager;
 
+import android.content.Context;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -119,5 +123,29 @@ public class Data implements Serializable {
      */
     public int compareTo(Data anotherData) {
         return this.getNameWebsite().compareTo(anotherData.getNameWebsite());
+    }
+
+
+    @NotNull
+    public String toString(Context context, boolean needHeading) {
+        final StringBuilder sb = new StringBuilder();
+        if (needHeading) {
+            sb.append(context.getString(R.string.website)).append(": ")
+            .append(nameWebsite).append("\n")
+            .append(context.getString(R.string.url_address)).append(": ")
+            .append(address).append("\n");
+        }
+        sb.append(context.getString(R.string.account)).append(": ")
+                .append(nameAccount).append("\n")
+                .append(context.getString(R.string.login)).append(": ")
+                .append(login).append("\n")
+                .append(context.getString(R.string.password)).append(": ")
+                .append(password).append("\n");
+
+        if (comment.length() != 0)
+            sb.append(context.getString(R.string.comment)).append(": ")
+                    .append(comment).append("\n");
+
+        return sb.toString();
     }
 }

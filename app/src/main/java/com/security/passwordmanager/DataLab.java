@@ -1,9 +1,12 @@
 package com.security.passwordmanager;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.widget.Toast;
 
 import com.security.passwordmanager.databases.DataCursorWrapper;
 import com.security.passwordmanager.databases.PasswordBaseHelper;
@@ -11,12 +14,14 @@ import com.security.passwordmanager.databases.PasswordDBSchema.DataTable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class DataLab {
 
+    private static final String COPY_LABEL = "dataLab_copy_label";
+
     private final SQLiteDatabase mDatabase;
     private final Cryptographer mCryptographer;
+    private final Context mContext;
 
     private static DataLab sDataLab;
 
@@ -28,7 +33,7 @@ public class DataLab {
     }
 
     private DataLab(Context context) {
-        Context mContext = context.getApplicationContext();
+        mContext = context.getApplicationContext();
         mDatabase = new PasswordBaseHelper(mContext).getWritableDatabase();
         mCryptographer = new Cryptographer(mContext);
     }
@@ -94,19 +99,30 @@ public class DataLab {
     }
 
 
-    public Data getData(UUID id) {
-        DataCursorWrapper cursorWrapper = queryPasswords(
-                DataTable.Cols.UUID + " = ?",
-                new String[]{id.toString()});
+    public void copyData(Data data) {
+        String dataText = data.toString(mContext, true);
+        copyText(dataText);
+    }
 
-        if (cursorWrapper.getCount() == 0)
-            return new Data();
 
-        cursorWrapper.moveToFirst();
-        Data data = cursorWrapper.getData().decrypt(mCryptographer);
-        cursorWrapper.close();
+    public void copyAccountList(List<Data> accountList) {
+        StringBuilder builder = new StringBuilder(
+                accountList.get(0).toString(mContext, true));
 
-        return data;
+        for (int i = 1, accountListSize = accountList.size(); i < accountListSize; i++) {
+            Data d = accountList.get(i);
+            builder.append("\n").append(d.toString(mContext, false));
+        }
+
+        copyText(builder.toString());
+    }
+
+    public void copyText(String text) {
+        ClipboardManager clipboard = (ClipboardManager)
+                mContext.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText(COPY_LABEL, text);
+        clipboard.setPrimaryClip(clip);
+        Toast.makeText(mContext, R.string.clipText, Toast.LENGTH_SHORT).show();
     }
 
 

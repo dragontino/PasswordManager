@@ -2,6 +2,7 @@ package com.security.passwordmanager;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -13,21 +14,32 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.StringDef;
 import androidx.appcompat.app.ActionBar;
 
+import com.google.android.gms.common.util.ArrayUtils;
 import com.security.passwordmanager.databases.PasswordBaseHelper;
 import com.security.passwordmanager.databases.PasswordDBSchema.SupportTable;
 import com.security.passwordmanager.databases.SupportCursorWrapper;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Locale;
 
 public class Support {
 
-    @StringDef({LIGHT_THEME, DARK_THEME})
+    @StringDef({LIGHT_THEME, DARK_THEME, SYSTEM_THEME, AUTO_THEME})
     @Retention(RetentionPolicy.SOURCE)
     public @interface ThemeDef {}
 
     public static final String LIGHT_THEME = "LIGHT";
     public static final String DARK_THEME = "DARK";
+    public static final String SYSTEM_THEME = "SYSTEM";
+    public static final String AUTO_THEME = "AUTO";
+
+    private static final String[] THEMES = new String[]
+            {LIGHT_THEME, DARK_THEME, SYSTEM_THEME, AUTO_THEME};
 
     private final SQLiteDatabase mDatabase;
     private final Context mContext;
@@ -38,7 +50,7 @@ public class Support {
     private static Support sSupport;
 
     public static boolean checkTheme(String theme) {
-        return !theme.equals(LIGHT_THEME) && !theme.equals(DARK_THEME);
+        return ArrayUtils.contains(THEMES, theme);
     }
 
     public static Support get(Context context) {
@@ -61,7 +73,6 @@ public class Support {
             mSettings = cursor.getSettings();
             cursor.close();
         }
-
         updateColors();
     }
 
@@ -75,8 +86,28 @@ public class Support {
         updateSettings(mSettings);
     }
 
+    public int getIndexTheme() {
+        return Arrays.asList(THEMES).indexOf(getTheme());
+    }
+
     public boolean isLightTheme() {
-        return getTheme().equals(LIGHT_THEME);
+        String theme = getTheme();
+        switch (theme) {
+            case DARK_THEME:
+                return false;
+            case SYSTEM_THEME:
+                int currentNightMode = mContext.getResources().getConfiguration()
+                        .uiMode & Configuration.UI_MODE_NIGHT_MASK;
+
+                return currentNightMode == Configuration.UI_MODE_NIGHT_NO;
+            case AUTO_THEME:
+                Date date = new Date(System.currentTimeMillis());
+                DateFormat format = new SimpleDateFormat("HH", Locale.getDefault());
+                int hours = Integer.parseInt(format.format(date));
+                return hours >= 7 && hours <= 22;
+            default:
+                return true;
+        }
     }
 
     public void updateThemeInScreen(Window window, ActionBar actionBar) {

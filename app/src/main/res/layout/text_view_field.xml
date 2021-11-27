@@ -35,7 +35,7 @@
         <ImageButton
             android:id="@+id/field_item_button_copy"
             style="@style/UtilityButtons"
-            android:contentDescription="@string/btn_copy"
+            android:contentDescription="@string/copy_info"
             android:src="@drawable/ic_outline_content_copy_24"/>
 
     </LinearLayout>

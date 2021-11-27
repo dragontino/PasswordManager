@@ -7,14 +7,22 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <androidx.appcompat.widget.SwitchCompat
+        <TextView
             android:id="@+id/switchTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/switch_theme"
-            android:textSize="20sp"
+            android:text="@string/switchThemeText"
+            android:textSize="@dimen/text_view_normal_size"
+            android:textColor="@color/black"
             android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
             android:layout_margin="@dimen/activity_vertical_margin"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
 
     </LinearLayout>
 

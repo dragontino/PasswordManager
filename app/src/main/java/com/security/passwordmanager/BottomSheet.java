@@ -21,7 +21,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 public class BottomSheet {
 
     public static final int VIEW_EDIT = 0;
-    public static final int VIEW_DELETE = 1;
+    public static final int VIEW_COPY = 1;
+    public static final int VIEW_DELETE = 2;
 
     private final BottomSheetDialog bottomSheetDialog;
     private final View bottomSheetView;
@@ -31,6 +32,7 @@ public class BottomSheet {
 
     private final int[] id = new int[]{
             R.id.main_bottom_sheet_edit_password,
+            R.id.main_bottom_sheet_copy_info,
             R.id.main_bottom_sheet_delete_password
     };
 
@@ -92,10 +94,6 @@ public class BottomSheet {
     }
 
 
-
-
-
-
     public void setOnClickListener(@BottomSheetType int type, View.OnClickListener listener) {
         Button button = bottomSheetView
                 .findViewById(id[type])
@@ -113,6 +111,6 @@ public class BottomSheet {
         bottomSheetDialog.dismiss();
     }
 
-    @IntDef({VIEW_EDIT, VIEW_DELETE})
+    @IntDef({VIEW_EDIT, VIEW_COPY, VIEW_DELETE})
     public @interface BottomSheetType {}
 }

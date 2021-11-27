@@ -2,30 +2,46 @@
     <string name="app_name">Password Manager</string>
     <string name="main_label">Менеджер паролей</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 2.2.1 от 23 ноября 2021</string>
+    <string name="app_version">Версия 2.3.1 от 27 ноября 2021</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Настройки</string>
 
     <string name="menu_main_label">Все записи</string>
     <string name="add_record">Создать новую запись</string>
     <string name="title_activity_settings">Настройки</string>
-    <string name="switch_theme">Тёмная тема</string>
+
+    <string name="dark_theme">Тёмная</string>
+    <string name="light_theme">Светлая</string>
+    <string name="system_theme">Системная</string>
+    <string name="auto_theme">Авто</string>
+
+    <string name="switchThemeText">Тема приложения: %s</string>
+    <string-array name="themes">
+        <item>@string/light_theme</item>
+        <item>@string/dark_theme</item>
+        <item>@string/system_theme</item>
+        <item>@string/auto_theme</item>
+    </string-array>
+
+    <string name="website">Сайт</string>
     <string name="url_address">Адрес сайта</string>
-    <string name="name_address">Название</string>
-    <string name="text_view_login">Логин</string>
-    <string name="text_view_password">Пароль</string>
-    <string name="account">Аккаунт №%d</string>
+    <string name="name_website">Название</string>
+    <string name="account_start">Аккаунт №%d</string>
+    <string name="account_hint">Название аккаунта</string>
+    <string name="account">Аккаунт</string>
+    <string name="login">Логин</string>
+    <string name="password">Пароль</string>
     <string name="comment">Комментарий</string>
     <string name="add_account">Добавить аккаунт</string>
     <string name="password_label">Сайт</string>
     <string name="menu_item_save">Сохранить</string>
     <string name="delete_password">Удалить</string>
     <string name="show_password">Показать пароль</string>
-    <string name="edit_password">Редактировать</string>
     <string name="hide_password">Скрыть пароль</string>
+    <string name="edit_password">Редактировать</string>
     <string name="button_open_url">Открыть в браузере</string>
-    <string name="account_hint">Название аккаунта</string>
-    <string name="btn_copy">Копировать</string>
+
+    <string name="copy_info">Копировать</string>
     <string name="rename_account">Переименовать</string>
     <string name="delete_account">Удалить аккаунт</string>
     <string name="more_info">Больше информации</string>
@@ -34,4 +50,6 @@
     <string name="prompt_password">Пароль</string>
     <string name="action_sign_in">Войти</string>
     <string name="action_sign_up">Зарегестрироваться</string>
+    <string name="clipText">Скопировано в буфер обмена</string>
+
 </resources>

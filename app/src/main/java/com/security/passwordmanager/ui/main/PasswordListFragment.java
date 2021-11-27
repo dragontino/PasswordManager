@@ -1,9 +1,6 @@
 package com.security.passwordmanager.ui.main;
 
 import android.annotation.SuppressLint;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -18,7 +15,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,9 +27,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.security.passwordmanager.BottomSheet;
 import com.security.passwordmanager.Data;
 import com.security.passwordmanager.DataLab;
-import com.security.passwordmanager.ui.account.PasswordActivity;
 import com.security.passwordmanager.R;
 import com.security.passwordmanager.Support;
+import com.security.passwordmanager.ui.account.PasswordActivity;
 
 import java.util.List;
 
@@ -194,13 +190,26 @@ public class PasswordListFragment extends Fragment {
             );
 
             mBottomSheet.updateImageAndText(
-                    new int[]{ R.string.edit_password, R.string.delete_password },
-                    new int[]{ R.drawable.ic_outline_edit_24, R.drawable.ic_baseline_delete_24 }
+                    new int[]{
+                            R.string.edit_password,
+                            R.string.copy_info,
+                            R.string.delete_password
+                    },
+                    new int[]{
+                            R.drawable.ic_outline_edit_24,
+                            R.drawable.ic_baseline_content_copy_24,
+                            R.drawable.ic_baseline_delete_24
+                    }
             );
 
             mBottomSheet.setOnClickListener(BottomSheet.VIEW_EDIT, v1 -> {
                 startActivity(PasswordActivity
                         .newIntent(requireContext(), mAccountList.get(0).getAddress()));
+                mBottomSheet.stop();
+            });
+
+            mBottomSheet.setOnClickListener(BottomSheet.VIEW_COPY, view -> {
+                mDataLab.copyAccountList(mAccountList);
                 mBottomSheet.stop();
             });
 
@@ -298,8 +307,11 @@ public class PasswordListFragment extends Fragment {
                 comment.setVisibility(View.GONE);
                 head_comment.setVisibility(View.GONE);
             }
+            if (data.getNameAccount().length() == 0)
+                accountName.setVisibility(View.GONE);
+            else
+                accountName.setText(data.getNameAccount());
 
-            accountName.setText(data.getNameAccount());
             setTextToLayout(login, data.getLogin(), null);
             setTextToLayout(password, data.getPassword(), 129);
             setTextToLayout(comment, data.getComment(), null);
@@ -349,13 +361,8 @@ public class PasswordListFragment extends Fragment {
             ImageButton copy = layout.findViewById(R.id.field_item_button_copy);
             ImageButton visibility = layout.findViewById(R.id.field_item_button_visibility);
 
-            copy.setOnClickListener(v -> {
-                ClipboardManager clipboard = (ClipboardManager)
-                        requireActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("", text);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(getActivity(), "Скопированно!", Toast.LENGTH_SHORT).show();
-            });
+            copy.setOnClickListener(v ->
+                    mDataLab.copyText(text));
 
             if (needVisibility) {
                 visibility.setVisibility(View.VISIBLE);

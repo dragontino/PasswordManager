@@ -18,6 +18,10 @@
         layout="@layout/bottom_sheet_field"/>
 
     <include
+        android:id="@+id/main_bottom_sheet_copy_info"
+        layout="@layout/bottom_sheet_field"/>
+
+    <include
         android:id="@+id/main_bottom_sheet_delete_password"
         layout="@layout/bottom_sheet_field"/>
 

@@ -17,7 +17,7 @@
     <TextView
         android:id="@+id/list_item_text_view_login_head"
         style="@style/MainTextViewTheme"
-        android:text="@string/text_view_login"
+        android:text="@string/login"
         android:textSize="@dimen/head_size" />
 
     <include
@@ -27,7 +27,7 @@
     <TextView
         android:id="@+id/list_item_text_view_password_head"
         style="@style/MainTextViewTheme"
-        android:text="@string/text_view_password"
+        android:text="@string/password"
         android:textSize="@dimen/head_size" />
 
     <include

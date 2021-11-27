@@ -4,7 +4,7 @@ public class Settings {
     private String theme;
 
     public Settings() {
-        this(Support.LIGHT_THEME);
+        this(Support.SYSTEM_THEME);
     }
 
     public Settings(String theme) {
@@ -15,9 +15,9 @@ public class Settings {
         return theme;
     }
 
-    public void setTheme(String theme) {
-        if (Support.checkTheme(theme))
-            theme = Support.LIGHT_THEME;
+    public void setTheme(@Support.ThemeDef String theme) {
+        if (!Support.checkTheme(theme))
+            theme = Support.SYSTEM_THEME;
         this.theme = theme;
     }
 }

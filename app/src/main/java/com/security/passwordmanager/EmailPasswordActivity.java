@@ -9,29 +9,40 @@ import android.graphics.drawable.ColorDrawable;
 =======
 >>>>>>> ea46599 (версия 2.2.1 от 23.11.2021)
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.security.passwordmanager.ui.main.PasswordListActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class EmailPasswordActivity extends AppCompatActivity {
+
+    private static final String TAG = "EmailPassword";
 
     private ProgressBar progressBar;
     private Support mSupport;
     private EditText username, password;
-    Button buttonSignIn, buttonSignUp;
+    private Button buttonSignIn, buttonSignUp;
+
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mAuth = FirebaseAuth.getInstance();
 
         mSupport = Support.get(this);
 
@@ -47,6 +58,37 @@ public class MainActivity extends AppCompatActivity {
             startActivity(PasswordListActivity.getIntent(this));
             progressBar.setVisibility(View.VISIBLE);
         });
+
+        mAuthStateListener = firebaseAuth -> {
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null) {
+                //TODO Вход в приложение
+                progressBar.setVisibility(View.VISIBLE);
+            }
+            else {
+                //TODO выход из приложения
+            }
+            updateUI(user);
+        };
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthStateListener);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null)
+            reload();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mAuth.removeAuthStateListener(mAuthStateListener);
+    }
+
+    private void reload() {
+
     }
 
     @Override
@@ -82,5 +124,29 @@ public class MainActivity extends AppCompatActivity {
 
         username.setHintTextColor(mSupport.getDarkerGrayColor());
         password.setHintTextColor(mSupport.getDarkerGrayColor());
+    }
+
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null) {
+
+        }
+    }
+
+
+    private void createAccount(String email, String password) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "createUserWithEmail:success");
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        updateUI(user);
+                    }
+                    else {
+                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                        Toast.makeText(EmailPasswordActivity.this, "Authentication failed",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }
