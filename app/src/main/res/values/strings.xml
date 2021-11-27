@@ -6,6 +6,9 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Настройки</string>
 
+    <string name="action_sign_in">Войти</string>
+    <string name="action_sign_up">Зарегестрироваться</string>
+
     <string name="menu_main_label">Все записи</string>
     <string name="add_record">Создать новую запись</string>
     <string name="title_activity_settings">Настройки</string>
@@ -15,15 +18,9 @@
     <string name="system_theme">Системная</string>
     <string name="auto_theme">Авто</string>
 
-    <string name="switchThemeText">Тема приложения: %s</string>
-    <string-array name="themes">
-        <item>@string/light_theme</item>
-        <item>@string/dark_theme</item>
-        <item>@string/system_theme</item>
-        <item>@string/auto_theme</item>
-    </string-array>
+    <string name="switchThemeText">Тема: %s</string>
 
-    <string name="website">Сайт</string>
+    <string name="password_label">Сайт</string>
     <string name="url_address">Адрес сайта</string>
     <string name="name_website">Название</string>
     <string name="account_start">Аккаунт №%d</string>
@@ -33,7 +30,6 @@
     <string name="password">Пароль</string>
     <string name="comment">Комментарий</string>
     <string name="add_account">Добавить аккаунт</string>
-    <string name="password_label">Сайт</string>
     <string name="menu_item_save">Сохранить</string>
     <string name="delete_password">Удалить</string>
     <string name="show_password">Показать пароль</string>
@@ -41,15 +37,12 @@
     <string name="edit_password">Редактировать</string>
     <string name="button_open_url">Открыть в браузере</string>
 
-    <string name="copy_info">Копировать</string>
     <string name="rename_account">Переименовать</string>
+    <string name="copy_info">Копировать</string>
     <string name="delete_account">Удалить аккаунт</string>
     <string name="more_info">Больше информации</string>
     <string name="cancel_renaming_account">Отменить переименование</string>
     <string name="prompt_email">Почта</string>
-    <string name="prompt_password">Пароль</string>
-    <string name="action_sign_in">Войти</string>
-    <string name="action_sign_up">Зарегестрироваться</string>
     <string name="clipText">Скопировано в буфер обмена</string>
 
 </resources>
