@@ -24,5 +24,4 @@ public class PasswordDBSchema {
             public static final String COMMENT = "Comment";
         }
     }
-
 }

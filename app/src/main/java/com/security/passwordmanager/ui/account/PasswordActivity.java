@@ -194,33 +194,32 @@ public class PasswordActivity extends AppCompatActivity {
 
                 String name_account = nameAccount.getText().toString();
 
-//                if (name_account.equals(getString(R.string.account, position)))
-//                    name_account = "";
+                if (name_account.equals(getNameAccountStart(position + 1)))
+                    name_account = "";
 
-                if (position >= accountList.size()) {
-                    Data data = new Data(
-                            UUID.randomUUID(),
-                            url.getText().toString(),
-                            name.getText().toString(),
-                            name_account,
-                            login.getText().toString(),
-                            password.getText().toString(),
-                            comment.getText().toString()
-                    );
+                if (login.getText().length() > 0 && password.getText().length() > 0)
+                    if (position >= accountList.size()) {
+                        Data data = new Data(
+                                UUID.randomUUID(),
+                                url.getText().toString(),
+                                name.getText().toString(),
+                                name_account,
+                                login.getText().toString(),
+                                password.getText().toString(),
+                                comment.getText().toString()
+                        );
+                        mDataLab.addData(data);
+                    } else {
+                        Data data = accountList.get(position)
+                                .setAddress(url.getText().toString())
+                                .setNameWebsite(name.getText().toString())
+                                .setNameAccount(name_account)
+                                .setLogin(login.getText().toString())
+                                .setPassword(password.getText().toString())
+                                .setComment(comment.getText().toString());
 
-                    mDataLab.addData(data);
-                }
-                else {
-                    Data data = accountList.get(position)
-                    .setAddress(url.getText().toString())
-                    .setNameWebsite(name.getText().toString())
-                    .setNameAccount(nameAccount.getText().toString())
-                    .setLogin(login.getText().toString())
-                    .setPassword(password.getText().toString())
-                    .setComment(comment.getText().toString());
-
-                    mDataLab.updateData(data);
-                }
+                        mDataLab.updateData(data);
+                    }
             }
             finish();
             return true;
@@ -232,6 +231,11 @@ public class PasswordActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    private String getNameAccountStart(int position) {
+        return getString(R.string.account_start, position);
     }
 
 
@@ -311,7 +315,7 @@ public class PasswordActivity extends AppCompatActivity {
             password.setText(data.getPassword());
             comment.setText(data.getComment());
             if (data.getNameAccount().equals(""))
-                name_of_account.setText(getString(R.string.account, position));
+                name_of_account.setText(getNameAccountStart(position));
             else
                 name_of_account.setText(data.getNameAccount());
 
@@ -411,16 +415,29 @@ public class PasswordActivity extends AppCompatActivity {
         public void onClick(View v) {
             if (v.getId() == R.id.edit_name_of_account) {
                 mBottomSheet.updateImageAndText(
-                        new int[]{ renamingText, R.string.delete_account },
-                        new int[]{ R.drawable.ic_outline_edit_24, R.drawable.ic_baseline_delete_24 }
+                        new int[] {
+                                renamingText,
+                                R.string.copy_info,
+                                R.string.delete_account
+                        },
+                        new int[]{
+                                R.drawable.ic_outline_edit_24,
+                                R.drawable.ic_baseline_content_copy_24,
+                                R.drawable.ic_baseline_delete_24
+                        }
                 );
 
                 mBottomSheet.setOnClickListener(BottomSheet.VIEW_EDIT, v1 -> {
-                    mBottomSheet.stop();
                     changeHeading();
+                    mBottomSheet.stop();
                     renamingText = name_of_account.isCursorVisible() ?
                             R.string.cancel_renaming_account :
                             R.string.rename_account;
+                });
+
+                mBottomSheet.setOnClickListener(BottomSheet.VIEW_COPY, view -> {
+                    mDataLab.copyData(data);
+                    mBottomSheet.stop();
                 });
 
                 mBottomSheet.setOnClickListener(BottomSheet.VIEW_DELETE, v1 -> {
@@ -441,7 +458,7 @@ public class PasswordActivity extends AppCompatActivity {
         private void changeHeading() {
             boolean blocking = name_of_account.isCursorVisible();
             //true - заблокирует, false - разблокирует
-            String full = getString(R.string.account, position);
+            String full = getNameAccountStart(position);
             String Null = "";
 
             name_of_account.setEnabled(!blocking);

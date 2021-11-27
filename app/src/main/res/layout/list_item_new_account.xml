@@ -22,7 +22,7 @@
             android:gravity="center"
             android:inputType="text"
             android:hint="@string/account_hint"
-            android:text="@string/account"
+            android:text="@string/account_start"
             android:textIsSelectable="true"
             android:focusable="true"
             android:nextFocusDown="@id/edit_text_login"
@@ -47,10 +47,10 @@
         style="@style/TextViewTheme"
         android:background="@drawable/text_view_gray_style"
         android:layout_marginHorizontal="6dp"
-        android:hint="@string/text_view_login"
+        android:hint="@string/login"
         android:inputType="textNoSuggestions"
         android:textIsSelectable="true"
-        android:autofillHints="@string/text_view_login"
+        android:autofillHints="@string/login"
         android:nextFocusDown="@id/edit_text_password"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -64,9 +64,9 @@
             android:layout_height="match_parent"
             style="@style/TextViewTheme"
             android:layout_margin="0dp"
-            android:autofillHints="@string/text_view_password"
+            android:autofillHints="@string/password"
             android:background="@drawable/text_view_gray_style"
-            android:hint="@string/text_view_password"
+            android:hint="@string/password"
             android:inputType="textPassword"
             android:nextFocusDown="@id/edit_text_comment"
             android:textIsSelectable="true"

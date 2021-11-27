@@ -4,29 +4,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import android.view.Menu;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationView;
-import com.security.passwordmanager.ui.account.PasswordActivity;
-import com.security.passwordmanager.R;
-import com.security.passwordmanager.SettingsActivity;
-import com.security.passwordmanager.Support;
+import android.view.MenuItem;
+import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import android.view.MenuItem;
-import android.widget.LinearLayout;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.security.passwordmanager.R;
+import com.security.passwordmanager.SettingsActivity;
+import com.security.passwordmanager.Support;
+import com.security.passwordmanager.ui.account.PasswordActivity;
 
 import java.util.Objects;
-
-import kotlin.Pair;
 
 public class PasswordListActivity extends AppCompatActivity {
 
@@ -37,7 +35,9 @@ public class PasswordListActivity extends AppCompatActivity {
     private LinearLayout headerLayout;
 
     public static Intent getIntent(Context context) {
-        return new Intent(context, PasswordListActivity.class);
+        Intent intent = new Intent(context, PasswordListActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        return intent;
     }
 
     @Override

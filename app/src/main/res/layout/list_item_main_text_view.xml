@@ -38,8 +38,6 @@
 
             </androidx.constraintlayout.motion.widget.MotionLayout>
 
-
-
             <include
                 layout="@layout/layout_main_header"
                 android:layout_width="match_parent"
