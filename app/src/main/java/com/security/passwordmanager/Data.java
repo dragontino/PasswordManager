@@ -130,7 +130,7 @@ public class Data implements Serializable {
     public String toString(Context context, boolean needHeading) {
         final StringBuilder sb = new StringBuilder();
         if (needHeading) {
-            sb.append(context.getString(R.string.website)).append(": ")
+            sb.append(context.getString(R.string.password_label)).append(": ")
             .append(nameWebsite).append("\n")
             .append(context.getString(R.string.url_address)).append(": ")
             .append(address).append("\n");
