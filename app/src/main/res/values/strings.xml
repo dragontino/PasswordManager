@@ -42,7 +42,11 @@
     <string name="delete_account">Удалить аккаунт</string>
     <string name="more_info">Больше информации</string>
     <string name="cancel_renaming_account">Отменить переименование</string>
-    <string name="prompt_email">Почта</string>
+    <string name="prompt_email">Email</string>
     <string name="clipText">Скопировано в буфер обмена</string>
+    <string name="required">Обязательно</string>
+    <string name="main_subtitle">by CuteCat</string>
+    <string name="main_image_view">Иконка приложения</string>
+    <string name="forgot_password">Забыли пароль?</string>
 
 </resources>
