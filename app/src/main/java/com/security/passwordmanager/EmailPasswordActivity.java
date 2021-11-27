@@ -1,6 +1,7 @@
 package com.security.passwordmanager;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,8 +25,10 @@ public class EmailPasswordActivity extends AppCompatActivity {
 
     private ProgressBar progressBar;
     private Support mSupport;
-    private EditText username, password;
+    private EditText mEmailField, mPasswordField;
     private Button buttonSignIn, buttonSignUp;
+
+    private TextView textViewLabel, textViewSubtitle;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
@@ -38,10 +42,13 @@ public class EmailPasswordActivity extends AppCompatActivity {
 
         mSupport = Support.get(this);
 
-        username = findViewById(R.id.username);
-        password = findViewById(R.id.password);
+        textViewLabel = findViewById(R.id.text_view_main_label);
+        textViewSubtitle = findViewById(R.id.text_view_main_subtitle);
+
+        mEmailField = findViewById(R.id.username);
+        mPasswordField = findViewById(R.id.password);
         buttonSignIn = findViewById(R.id.buttonSignIn);
-        buttonSignUp = findViewById(R.id.buttonSignUp);
+        buttonSignUp = findViewById(R.id.button_sign_up);
 
         buttonSignUp.setEnabled(true);
         progressBar = findViewById(R.id.loading);
@@ -63,6 +70,7 @@ public class EmailPasswordActivity extends AppCompatActivity {
             updateUI(user);
         };
     }
+
 
     @Override
     protected void onStart() {
@@ -106,16 +114,16 @@ public class EmailPasswordActivity extends AppCompatActivity {
     private void updateUI() {
         mSupport.updateThemeInScreen(getWindow(), getSupportActionBar());
 
-        username.setBackgroundResource(mSupport.getBackgroundRes());
-        password.setBackgroundResource(mSupport.getBackgroundRes());
+        textViewLabel.setTextColor(mSupport.getFontColor());
+        textViewSubtitle.setTextColor(mSupport.getFontColor());
+
         buttonSignIn.setBackgroundResource(mSupport.getButtonRes());
-        buttonSignUp.setTextColor(mSupport.getHeaderColor());
 
-        username.setTextColor(mSupport.getFontColor());
-        password.setTextColor(mSupport.getFontColor());
+        mEmailField.setTextColor(mSupport.getFontColor());
+        mPasswordField.setTextColor(mSupport.getFontColor());
 
-        username.setHintTextColor(mSupport.getDarkerGrayColor());
-        password.setHintTextColor(mSupport.getDarkerGrayColor());
+        mEmailField.setHintTextColor(mSupport.getDarkerGrayColor());
+        mPasswordField.setHintTextColor(mSupport.getDarkerGrayColor());
     }
 
 
@@ -127,6 +135,11 @@ public class EmailPasswordActivity extends AppCompatActivity {
 
 
     private void createAccount(String email, String password) {
+        Log.d(TAG, "createAccount: " + email);
+        if (!validateForm())
+            return;
+
+
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
@@ -140,5 +153,28 @@ public class EmailPasswordActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+
+    private boolean validateForm() {
+        boolean valid = true;
+
+        String email = mEmailField.getText().toString();
+        if (TextUtils.isEmpty(email)) {
+            mEmailField.setError(getString(R.string.required));
+            valid = false;
+        }
+        else
+            mEmailField.setError(null);
+
+        String password = mPasswordField.getText().toString();
+        if (TextUtils.isEmpty(password)) {
+            mPasswordField.setError(getString(R.string.required));
+            valid = false;
+        }
+        else
+            mPasswordField.setError(null);
+
+        return valid;
     }
 }
