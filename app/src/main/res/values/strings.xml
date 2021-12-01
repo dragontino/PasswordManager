@@ -2,7 +2,7 @@
     <string name="app_name">Password Manager</string>
     <string name="main_label">Менеджер паролей</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 2.3.1 от 27 ноября 2021</string>
+    <string name="app_version">Версия 2.4.0 от 01 декабря 2021</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Настройки</string>
 
@@ -48,5 +48,6 @@
     <string name="main_subtitle">by CuteCat</string>
     <string name="main_image_view">Иконка приложения</string>
     <string name="forgot_password">Забыли пароль?</string>
+    <string name="search_label">Поиск</string>
 
 </resources>

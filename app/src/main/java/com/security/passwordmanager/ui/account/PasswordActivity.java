@@ -1,5 +1,6 @@
 package com.security.passwordmanager.ui.account;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -58,6 +59,7 @@ public class PasswordActivity extends AppCompatActivity {
         return intent;
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -149,6 +151,7 @@ public class PasswordActivity extends AppCompatActivity {
         updateUI();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void updateUI() {
 
         url.setText(accountList.get(0).getAddress());
@@ -171,7 +174,7 @@ public class PasswordActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         getMenuInflater().inflate(R.menu.password, menu);
         return true;
     }
@@ -411,6 +414,7 @@ public class PasswordActivity extends AppCompatActivity {
         }
 
 
+        @SuppressLint("NotifyDataSetChanged")
         @Override
         public void onClick(View v) {
             if (v.getId() == R.id.edit_name_of_account) {

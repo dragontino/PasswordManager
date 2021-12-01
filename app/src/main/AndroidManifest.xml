@@ -10,7 +10,8 @@
         android:theme="@style/Theme.PasswordManager">
         <activity
             android:name="com.security.passwordmanager.EmailPasswordActivity"
-            android:label="@string/main_label">
+            android:label="@string/main_label"
+            android:exported="true">
             <intent-filter>
             <action android:name="android.intent.action.MAIN" />
 
