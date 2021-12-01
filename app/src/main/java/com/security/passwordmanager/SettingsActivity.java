@@ -23,8 +23,6 @@ import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private static final String TAG = "settingsActivity";
-
     private TextView switchTheme;
     private Support support;
     private ThemeBottomSheet bottomSheet;
@@ -47,33 +45,6 @@ public class SettingsActivity extends AppCompatActivity {
                 bottomSheet.start());
 
         updateTheme();
-
-//        listener = (group, checkedId) -> {
-//            switch (checkedId) {
-//                case R.id.theme_light:
-//                    support.setTheme(Support.LIGHT_THEME);
-//                    break;
-//                case R.id.theme_dark:
-//                    support.setTheme(Support.DARK_THEME);
-//                    break;
-//                case R.id.theme_system:
-//                    support.setTheme(Support.SYSTEM_THEME);
-//                    break;
-//                case R.id.theme_auto:
-//                    support.setTheme(Support.AUTO_THEME);
-//                    break;
-//            }
-//            updateTheme();
-//            switchTheme.setText(getCurrentThemeText());
-//            bottomSheetDialog.dismiss();
-//        };
-
-
-//        switchTheme.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            if (isChecked) support.setTheme(Support.DARK_THEME);
-//            else support.setTheme(Support.LIGHT_THEME);
-//            updateTheme();
-//        });
 
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
             if (getSupportFragmentManager().getBackStackEntryCount() == 0)
@@ -121,19 +92,22 @@ public class SettingsActivity extends AppCompatActivity {
                     findViewById(R.id.theme_bottom_sheet_container)
             );
 
-            mRecyclerView = bottomSheetView.findViewById(R.id.theme_bottom_sheet_container);
+            mRecyclerView = bottomSheetView.findViewById(R.id.theme_recycler_view);
             mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
         }
 
+        @SuppressLint("NotifyDataSetChanged")
         private void start() {
             bottomSheetView.setBackgroundColor(support.getBackgroundColor());
             bottomSheetDialog.setContentView(bottomSheetView);
             bottomSheetDialog.show();
 
-            if (mAdapter == null)
+            if (mAdapter == null) {
                 mAdapter = new ThemeAdapter();
-            
-            mRecyclerView.setAdapter(mAdapter);
+                mRecyclerView.setAdapter(mAdapter);
+            }
+            else
+                mAdapter.notifyDataSetChanged();
         }
 
 

@@ -64,15 +64,15 @@ public class DataLab {
 
 
     public List<Data> getDataList() {
-        DataCursorWrapper cursorWrapper = queryPasswords(null, null);
+        DataCursorWrapper cursorWrapper = queryPasswords(null, null, DataTable.Cols.NAME_WEBSITE);
 
         List<Data> dataList = new ArrayList<>();
 
         cursorWrapper.moveToFirst();
         while (!cursorWrapper.isAfterLast()) {
             Data data = cursorWrapper.getData().decrypt(mCryptographer);
-            if (!contains(dataList, data))
-                addSortedValue(dataList, data);
+            if (notContains(dataList, data))
+                dataList.add(data);
             cursorWrapper.moveToNext();
         }
         cursorWrapper.close();
@@ -96,6 +96,31 @@ public class DataLab {
         cursorWrapper.close();
 
         return accountList;
+    }
+
+
+    public List<Data> searchData(String query) {
+        if (query == null || query.length() == 0)
+            return getDataList();
+
+        List<Data> searchList = new ArrayList<>();
+
+        String search = getStringForSearch(DataTable.Cols.NAME_WEBSITE, query) + " OR " +
+                getStringForSearch(DataTable.Cols.URL, query);
+
+        DataCursorWrapper cursorWrapper = queryPasswords(
+                search, null, DataTable.Cols.NAME_WEBSITE);
+
+        boolean needCheck = false;
+
+        if (cursorWrapper.getCount() == 0) {
+            cursorWrapper = queryPasswords(null, null);
+            needCheck = true;
+        }
+
+        checkAndAdd(cursorWrapper, query, searchList, needCheck);
+
+        return searchList;
     }
 
 
@@ -147,31 +172,44 @@ public class DataLab {
                 );
     }
 
-    //добавляет новое значение в массив (массив уже отсортирован)
-    private void addSortedValue(List<Data> list, Data value) {
-        for (int i = 0; i < list.size(); i++)
-            if (list.get(i).compareTo(value) > 0) {
-                list.add(i, value);
-                return;
-            }
-        list.add(value);
-    }
-
-    private boolean contains(List<Data> dataList, Data data) {
+    private boolean notContains(List<Data> dataList, Data data) {
         for (Data d : dataList) {
             if (data.getAddress().equals(d.getAddress()))
-                return true;
+                return false;
         }
-        return false;
+        return true;
     }
 
+    private String getStringForSearch(String columnName, String query) {
+        return columnName + " LIKE" + "'%" + query + "%'";
+    }
+
+    private boolean compare(String first, String second) {
+        return first.toLowerCase().contains(second.toLowerCase());
+    }
+
+    private void checkAndAdd(DataCursorWrapper cursorWrapper, String query, List<Data> list, boolean needCheck) {
+        cursorWrapper.moveToFirst();
+        while (!cursorWrapper.isAfterLast()) {
+            Data data = cursorWrapper.getData().decrypt(mCryptographer);
+
+            if (needCheck &&
+                    (compare(data.getNameAccount(), query) || compare(data.getLogin(), query)) ||
+            !needCheck && notContains(list, data))
+
+                list.add(data);
+
+            cursorWrapper.moveToNext();
+        }
+        cursorWrapper.close();
+    }
 
 
     private static ContentValues getContentValues(Data data) {
         ContentValues values = new ContentValues();
         values.put(DataTable.Cols.UUID, data.getId().toString());
         values.put(DataTable.Cols.URL, data.getAddress());
-        values.put(DataTable.Cols.NAME_ADDRESS, data.getNameWebsite());
+        values.put(DataTable.Cols.NAME_WEBSITE, data.getNameWebsite());
         values.put(DataTable.Cols.NAME_ACCOUNT, data.getNameAccount());
         values.put(DataTable.Cols.LOGIN, data.getLogin());
         values.put(DataTable.Cols.PASSWORD, data.getPassword());
@@ -182,6 +220,10 @@ public class DataLab {
 
 
     private DataCursorWrapper queryPasswords(String whereClause, String[] whereArgs) {
+        return queryPasswords(whereClause, whereArgs, null);
+    }
+
+    private DataCursorWrapper queryPasswords(String whereClause, String[] whereArgs, String orderBy) {
         Cursor cursor = mDatabase.query(
                 DataTable.NAME,
                 null,
@@ -189,7 +231,7 @@ public class DataLab {
                 whereArgs,
                 null,
                 null,
-                null
+                orderBy
         );
 
         return new DataCursorWrapper(cursor);

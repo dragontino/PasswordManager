@@ -8,9 +8,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -18,6 +22,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
@@ -28,6 +33,7 @@ import com.security.passwordmanager.BottomSheet;
 import com.security.passwordmanager.Data;
 import com.security.passwordmanager.DataLab;
 import com.security.passwordmanager.R;
+import com.security.passwordmanager.SettingsActivity;
 import com.security.passwordmanager.Support;
 import com.security.passwordmanager.ui.account.PasswordActivity;
 
@@ -35,14 +41,20 @@ import java.util.List;
 
 public class PasswordListFragment extends Fragment {
 
+    private static final String OPENED_VIEW_KEY = "OPENED_VIEW_KEY";
+
     private RecyclerView mRecyclerView;
     private PasswordAdapter mAdapter;
+    private SearchView searchView;
+
+    private int openedView;
 
     private Support mSupport;
     private DataLab mDataLab;
     private List<Data> dataList;
 
     private BottomSheet mBottomSheet;
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -58,11 +70,46 @@ public class PasswordListFragment extends Fragment {
     }
 
     @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.main, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                dataList = mDataLab.searchData(newText);
+                updateSearchView();
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.menu_item_settings)
+            startActivity(SettingsActivity.newIntent(getActivity()));
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mSupport = Support.get(getActivity());
         mDataLab = DataLab.get(getActivity());
+
+        if (savedInstanceState != null)
+            openedView = savedInstanceState.getInt(OPENED_VIEW_KEY);
+        else
+            openedView = -1;
     }
 
     @Override
@@ -71,6 +118,13 @@ public class PasswordListFragment extends Fragment {
         updateUI();
     }
 
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(OPENED_VIEW_KEY, openedView);
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
     private void updateUI() {
         dataList = mDataLab.getDataList();
 
@@ -81,17 +135,33 @@ public class PasswordListFragment extends Fragment {
         else mAdapter.notifyDataSetChanged();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    private void updateSearchView() {
+
+        openedView = dataList.size() == 1 ? 0 : -1;
+
+        mAdapter.notifyDataSetChanged();
+
+        EditText searchText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        ImageView searchImage = searchView.findViewById(androidx.appcompat.R.id.search_button);
+        ImageView clearView = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
+
+        searchText.setTextColor(Color.WHITE);
+        searchText.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        searchImage.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+        clearView.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+    }
+
 
 
     private class PasswordAdapter extends RecyclerView.Adapter<PasswordHolder> {
 
-        private static final int OPENED_VIEW = 0xAAA;
-        private int openedView = -1;
+        private static final int OPENED_VIEW_TYPE = 0xAAA;
 
         @Override
         public int getItemViewType(int position) {
             if (position == openedView)
-                return OPENED_VIEW;
+                return OPENED_VIEW_TYPE;
             return super.getItemViewType(position);
         }
 
@@ -104,7 +174,7 @@ public class PasswordListFragment extends Fragment {
 
             RecyclerView infoRecyclerView = view.findViewById(R.id.list_item_recycler_view_more_info);
 
-            if (viewType == OPENED_VIEW)
+            if (viewType == OPENED_VIEW_TYPE)
                 infoRecyclerView.setVisibility(View.VISIBLE);
             else
                 infoRecyclerView.setVisibility(View.GONE);
@@ -118,11 +188,11 @@ public class PasswordListFragment extends Fragment {
             holder.bindPassword(mDataLab.getAccountList(data.getAddress()), position == openedView);
 
             holder.setOnClickListener(v -> {
-                if (openedView == position)
+                if (openedView == holder.getAdapterPosition())
                     openedView = -1;
                 else {
                     int oldOpen = openedView;
-                    openedView = position;
+                    openedView = holder.getAdapterPosition();
                     notifyItemChanged(oldOpen);
                 }
                 notifyItemChanged(position);

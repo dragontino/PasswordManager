@@ -29,7 +29,7 @@ public class PasswordBaseHelper extends SQLiteOpenHelper {
                 "_id integer primary key autoincrement, " +
                 DataTable.Cols.UUID + " integer, " +
                 DataTable.Cols.URL + " text, " +
-                DataTable.Cols.NAME_ADDRESS + " text, " +
+                DataTable.Cols.NAME_WEBSITE + " text, " +
                 DataTable.Cols.NAME_ACCOUNT + " text, " +
                 DataTable.Cols.LOGIN + " text, " +
                 DataTable.Cols.PASSWORD + " text, " +

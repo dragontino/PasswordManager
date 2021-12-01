@@ -4,11 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.LinearLayout;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -20,7 +17,6 @@ import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.security.passwordmanager.R;
-import com.security.passwordmanager.SettingsActivity;
 import com.security.passwordmanager.Support;
 import com.security.passwordmanager.ui.account.PasswordActivity;
 
@@ -83,19 +79,6 @@ public class PasswordListActivity extends AppCompatActivity {
             else
                 headerLayout.setBackgroundColor(mSupport.getHeaderColor());
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.menu_item_settings)
-            startActivity(SettingsActivity.newIntent(this));
-        return super.onOptionsItemSelected(item);
     }
 
     @Override

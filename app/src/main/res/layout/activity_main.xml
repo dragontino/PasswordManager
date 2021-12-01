@@ -58,6 +58,7 @@
         android:inputType="textEmailAddress"
         android:padding="8dp"
         android:selectAllOnFocus="true"
+        android:singleLine="false"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

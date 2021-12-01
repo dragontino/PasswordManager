@@ -11,7 +11,8 @@ public class Settings {
         setTheme(theme);
     }
 
-    public String getTheme() {
+    public @Support.ThemeDef
+    String getTheme() {
         return theme;
     }
 

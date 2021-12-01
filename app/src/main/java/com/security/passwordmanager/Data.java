@@ -112,20 +112,6 @@ public class Data implements Serializable {
         return this;
     }
 
-    /**
-     * compare name of website form this object and from data
-     * @param anotherData - another object of data
-     * @return value < 0 if this string
-     *      *          is lexicographically less than the string argument;
-     *      *          and a
-     *      *          value > 0 if this string is
-     *      *          lexicographically greater than the string argument.
-     */
-    public int compareTo(Data anotherData) {
-        return this.getNameWebsite().compareTo(anotherData.getNameWebsite());
-    }
-
-
     @NotNull
     public String toString(Context context, boolean needHeading) {
         final StringBuilder sb = new StringBuilder();

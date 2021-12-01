@@ -1,5 +1,6 @@
 package com.security.passwordmanager;
 
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -18,6 +19,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.security.passwordmanager.ui.main.PasswordListActivity;
+
+import java.util.Objects;
 
 public class EmailPasswordActivity extends AppCompatActivity {
 
@@ -101,6 +104,8 @@ public class EmailPasswordActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+        MenuItem search = menu.findItem(R.id.menu_item_search);
+        search.setVisible(false);
         return true;
     }
 
@@ -112,7 +117,7 @@ public class EmailPasswordActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        mSupport.updateThemeInScreen(getWindow(), getSupportActionBar());
+        mSupport.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
 
         textViewLabel.setTextColor(mSupport.getFontColor());
         textViewSubtitle.setTextColor(mSupport.getFontColor());
@@ -124,6 +129,9 @@ public class EmailPasswordActivity extends AppCompatActivity {
 
         mEmailField.setHintTextColor(mSupport.getDarkerGrayColor());
         mPasswordField.setHintTextColor(mSupport.getDarkerGrayColor());
+
+        mEmailField.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
+        mPasswordField.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
     }
 
 
