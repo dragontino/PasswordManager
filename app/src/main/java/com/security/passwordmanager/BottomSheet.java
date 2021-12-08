@@ -44,7 +44,7 @@ public class BottomSheet {
                 R.layout.main_bottom_sheet,
                 root.findViewById(R.id.main_bottom_sheet_container)
         );
-        mSupport = Support.get(context);
+        mSupport = Support.getInstance(context);
     }
 
     public BottomSheet(@NonNull Activity activity) {

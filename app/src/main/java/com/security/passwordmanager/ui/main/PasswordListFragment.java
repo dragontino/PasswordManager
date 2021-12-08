@@ -55,7 +55,6 @@ public class PasswordListFragment extends Fragment {
 
     private BottomSheet mBottomSheet;
 
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -76,6 +75,7 @@ public class PasswordListFragment extends Fragment {
 
         MenuItem searchItem = menu.findItem(R.id.menu_item_search);
         searchView = (SearchView) searchItem.getActionView();
+        updateSearchView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -83,9 +83,12 @@ public class PasswordListFragment extends Fragment {
                 return false;
             }
 
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public boolean onQueryTextChange(String newText) {
                 dataList = mDataLab.searchData(newText);
+                openedView = dataList.size() == 1 ? 0 : -1;
+                mAdapter.notifyDataSetChanged();
                 updateSearchView();
                 return true;
             }
@@ -103,7 +106,7 @@ public class PasswordListFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mSupport = Support.get(getActivity());
+        mSupport = Support.getInstance(getActivity());
         mDataLab = DataLab.get(getActivity());
 
         if (savedInstanceState != null)
@@ -135,13 +138,7 @@ public class PasswordListFragment extends Fragment {
         else mAdapter.notifyDataSetChanged();
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private void updateSearchView() {
-
-        openedView = dataList.size() == 1 ? 0 : -1;
-
-        mAdapter.notifyDataSetChanged();
-
         EditText searchText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
         ImageView searchImage = searchView.findViewById(androidx.appcompat.R.id.search_button);
         ImageView clearView = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
@@ -185,7 +182,13 @@ public class PasswordListFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull PasswordHolder holder, int position) {
             Data data = dataList.get(position);
-            holder.bindPassword(mDataLab.getAccountList(data.getAddress()), position == openedView);
+            List<Data> accountList;
+            if (dataList.size() == 1)
+                accountList = dataList;
+            else
+                accountList = mDataLab.getAccountList(data.getAddress());
+
+            holder.bindPassword(accountList, position == openedView);
 
             holder.setOnClickListener(v -> {
                 if (openedView == holder.getAdapterPosition())

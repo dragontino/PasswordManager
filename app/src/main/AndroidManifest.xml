@@ -9,28 +9,31 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.PasswordManager">
         <activity
-            android:name="com.security.passwordmanager.EmailPasswordActivity"
-            android:label="@string/main_label"
-            android:exported="true">
+            android:name=".TimePickerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.DayNight.Dialog"/>
+        <activity
+            android:name=".EmailPasswordActivity"
+            android:exported="true"
+            android:label="@string/main_label">
             <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN" />
 
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
-            android:name="com.security.passwordmanager.SettingsActivity"
+            android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName="com.security.passwordmanager.ui.main.PasswordListActivity" />
+            android:parentActivityName=".ui.main.PasswordListActivity" />
         <activity
-            android:name="com.security.passwordmanager.ui.account.PasswordActivity"
+            android:name=".ui.account.PasswordActivity"
             android:label="@string/password_label"
-            android:parentActivityName="com.security.passwordmanager.ui.main.PasswordListActivity" />
+            android:parentActivityName=".ui.main.PasswordListActivity" />
         <activity
-            android:name="com.security.passwordmanager.ui.main.PasswordListActivity"
+            android:name=".ui.main.PasswordListActivity"
             android:label="@string/main_label"
-            android:theme="@style/Theme.PasswordManager.NoActionBar">
-        </activity>
+            android:theme="@style/Theme.PasswordManager.NoActionBar"/>
     </application>
 
 </manifest>

@@ -17,8 +17,6 @@ public class Settings {
     }
 
     public void setTheme(@Support.ThemeDef String theme) {
-        if (!Support.checkTheme(theme))
-            theme = Support.SYSTEM_THEME;
         this.theme = theme;
     }
 }

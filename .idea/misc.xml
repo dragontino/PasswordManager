@@ -3,8 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/text_view_style.xml" value="0.26510416666666664" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/dialog_time.xml" value="0.24895833333333334" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/fragment_password_list.xml" value="0.12107396149949341" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/list_item_main_text_view.xml" value="0.12107396149949341" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/list_item_more_info.xml" value="0.12107396149949341" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/list_item_theme.xml" value="0.12107396149949341" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/nav_header_main.xml" value="0.12107396149949341" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/switch_theme_layout.xml" value="0.1" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/time_picker_dark.xml" value="0.24895833333333334" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/time_picker_view.xml" value="0.24895833333333334" />
       </map>
     </option>
   </component>
