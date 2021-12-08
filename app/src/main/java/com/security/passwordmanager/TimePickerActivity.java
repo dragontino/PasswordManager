@@ -5,15 +5,26 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+<<<<<<< HEAD
 import android.widget.Button;
 import android.widget.LinearLayout;
+=======
+import android.view.LayoutInflater;
+import android.widget.Button;
+>>>>>>> 73e2963 (версия 2.5.0 от 08.12.2021)
 import android.widget.TimePicker;
 
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+<<<<<<< HEAD
 import androidx.appcompat.app.AppCompatActivity;
+=======
+import androidx.annotation.StyleRes;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
+>>>>>>> 73e2963 (версия 2.5.0 от 08.12.2021)
 
 import java.util.Calendar;
 
@@ -43,9 +54,27 @@ public class TimePickerActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+<<<<<<< HEAD
         Support support = Support.getInstance(this);
 
         setContentView(R.layout.dialog_time);
+=======
+        Support support = Support.get(this);
+        @StyleRes int timePickerStyle;
+
+        if (support.isLightTheme())
+            timePickerStyle = R.style.Widget_MaterialComponents_TimePicker_Light;
+        else
+            timePickerStyle = R.style.Widget_MaterialComponents_TimePicker_Dark;
+
+        Context newContext = new ContextThemeWrapper(getBaseContext(), timePickerStyle);
+
+        setContentView(
+                LayoutInflater
+                .from(newContext)
+                .inflate(R.layout.dialog_time, null)
+        );
+>>>>>>> 73e2963 (версия 2.5.0 от 08.12.2021)
 
         Calendar calendar = (Calendar) getIntent().getSerializableExtra(ARG_TIME);
         int title = getIntent().getIntExtra(ARG_TITLE, R.string.account);
@@ -54,6 +83,7 @@ public class TimePickerActivity extends AppCompatActivity {
         int hours = calendar.get(Calendar.HOUR_OF_DAY);
         int minutes = calendar.get(Calendar.MINUTE);
 
+<<<<<<< HEAD
         mTimePicker = (TimePicker) getLayoutInflater().inflate(
                 support.isLightTheme() ? R.layout.time_picker_light : R.layout.time_picker_dark,
                 null
@@ -63,6 +93,13 @@ public class TimePickerActivity extends AppCompatActivity {
         mTimePicker.setMinute(minutes);
 
         ((LinearLayout) findViewById(R.id.dialog_time_picker)).addView(mTimePicker);
+=======
+        mTimePicker = findViewById(R.id.dialog_time_picker);
+        mTimePicker.setIs24HourView(true);
+        mTimePicker.setHour(hours);
+        mTimePicker.setMinute(minutes);
+        mTimePicker.setBackgroundColor(support.getBackgroundColor());
+>>>>>>> 73e2963 (версия 2.5.0 от 08.12.2021)
 
         Button buttonCancel = findViewById(R.id.dialog_button_cancel);
         Button buttonOk = findViewById(R.id.dialog_button_ok);

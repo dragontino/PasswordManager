@@ -5,11 +5,14 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <LinearLayout
+    <TimePicker
         android:id="@+id/dialog_time_picker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"/>
+        style="@style/Widget.MaterialComponents.TimePicker.Dark"
+        android:numbersSelectorColor="@color/raspberry"
+        android:timePickerMode="clock"
+        android:headerBackground="@color/raspberry"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraint_layout_buttons"

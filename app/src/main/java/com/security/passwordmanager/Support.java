@@ -58,7 +58,7 @@ public class Support {
 
     private static Support sSupport;
 
-    public static Support getInstance(Context context) {
+    public static Support get(Context context) {
         if (sSupport == null)
             sSupport = new Support(context);
 
