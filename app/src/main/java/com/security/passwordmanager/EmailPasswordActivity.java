@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,14 +37,22 @@ public class EmailPasswordActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
+    private View.OnClickListener listener;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
 
         mSupport = Support.get(this);
+
+        listener = view -> {
+            startActivity(PasswordListActivity.getIntent(this));
+            progressBar.setVisibility(View.VISIBLE);
+        };
 
         textViewLabel = findViewById(R.id.text_view_main_label);
         textViewSubtitle = findViewById(R.id.text_view_main_subtitle);
@@ -56,10 +65,9 @@ public class EmailPasswordActivity extends AppCompatActivity {
         buttonSignUp.setEnabled(true);
         progressBar = findViewById(R.id.loading);
 
-        buttonSignUp.setOnClickListener(view -> {
-            startActivity(PasswordListActivity.getIntent(this));
-            progressBar.setVisibility(View.VISIBLE);
-        });
+        buttonSignUp.setOnClickListener(listener);
+
+        listener.onClick(buttonSignUp);
 
         mAuthStateListener = firebaseAuth -> {
             FirebaseUser user = mAuth.getCurrentUser();
@@ -102,7 +110,7 @@ public class EmailPasswordActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         MenuItem search = menu.findItem(R.id.menu_item_search);
         search.setVisible(false);

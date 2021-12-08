@@ -193,7 +193,7 @@ public class DataLab {
         while (!cursorWrapper.isAfterLast()) {
             Data data = cursorWrapper.getData().decrypt(mCryptographer);
 
-            if (needCheck &&
+            if (needCheck && notContains(list, data) &&
                     (compare(data.getNameAccount(), query) || compare(data.getLogin(), query)) ||
             !needCheck && notContains(list, data))
 

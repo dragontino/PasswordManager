@@ -1,10 +1,11 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.PasswordManager" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="Theme.PasswordManager" parent="Theme.AppCompat.DayNight">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/raspberry</item>
         <item name="colorPrimaryDark">@color/raspberry</item>
         <item name="colorAccent">@color/teal_200</item>
+        <item name="android:textColorPrimary">@color/white</item>
         <!-- Customize your theme here. -->
     </style>
 
@@ -16,7 +17,7 @@
     <style name="Theme.PasswordManager.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="Theme.PasswordManager.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="TextViewTheme">
+    <style name="AccountTextViewTheme">
         <item name="android:padding">8dp</item>
         <item name="android:textSize">@dimen/text_view_normal_size</item>
         <item name="android:layout_margin">@dimen/activity_vertical_margin</item>
@@ -31,10 +32,29 @@
         <item name="android:layout_margin">8dp</item>
     </style>
 
+    <style name="NormalTextViewTheme">
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:layout_margin">@dimen/activity_horizontal_margin</item>
+    </style>
+
     <style name="UtilityButtons">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_margin">4dp</item>
         <item name="android:background">@color/white</item>
+    </style>
+
+    <style name="Widget.MaterialComponents.TimePicker.Light" parent="Widget.MaterialComponents.TimePicker">
+        <item name="android:numbersInnerTextColor">@color/black</item>
+        <item name="android:numbersTextColor">@color/black</item>
+        <item name="android:numbersBackgroundColor">@color/light_gray</item>
+    </style>
+
+    <style name="Widget.MaterialComponents.TimePicker.Dark" parent="Widget.MaterialComponents.TimePicker">
+        <item name="android:numbersInnerTextColor">@color/white</item>
+        <item name="android:numbersTextColor">@color/white</item>
+        <item name="android:numbersBackgroundColor">@color/gray</item>
     </style>
 </resources>

@@ -2,6 +2,7 @@ package com.security.passwordmanager;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -14,18 +15,16 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.StringDef;
 import androidx.appcompat.app.ActionBar;
 
-import com.google.android.gms.common.util.ArrayUtils;
 import com.security.passwordmanager.databases.PasswordBaseHelper;
 import com.security.passwordmanager.databases.PasswordDBSchema.SupportTable;
 import com.security.passwordmanager.databases.SupportCursorWrapper;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
+import java.util.GregorianCalendar;
 
 public class Support {
 
@@ -38,20 +37,26 @@ public class Support {
     public static final String SYSTEM_THEME = "SYSTEM";
     public static final String AUTO_THEME = "AUTO";
 
+    private static final String APP_PREFERENCES = "my_settings";
+    private static final String APP_PREFERENCES_START_HOURS = "start_hours";
+    private static final String APP_PREFERENCES_START_MINUTES = "start_minutes";
+    private static final String APP_PREFERENCES_END_HOURS = "end_hours";
+    private static final String APP_PREFERENCES_END_MINUTES = "end_minutes";
+
     private static final String[] THEMES = new String[]
             {LIGHT_THEME, DARK_THEME, SYSTEM_THEME, AUTO_THEME};
+
+    private static Calendar START_TIME, END_TIME;
 
     private final SQLiteDatabase mDatabase;
     private final Context mContext;
     private Settings mSettings;
+    private final SharedPreferences mPreferences;
+
     private @ColorInt int backgroundColor, fontColor, headerColor, layoutBackgroundColor;
     private @DrawableRes int backgroundRes, buttonRes;
 
     private static Support sSupport;
-
-    public static boolean checkTheme(String theme) {
-        return ArrayUtils.contains(THEMES, theme);
-    }
 
     public static Support get(Context context) {
         if (sSupport == null)
@@ -64,6 +69,13 @@ public class Support {
         mContext = context.getApplicationContext();
         mDatabase = new PasswordBaseHelper(context).getWritableDatabase();
         mSettings = new Settings();
+        mPreferences = mContext.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+
+
+        START_TIME = getDateFromPreferences(
+                APP_PREFERENCES_START_HOURS, 7, APP_PREFERENCES_START_MINUTES);
+        END_TIME = getDateFromPreferences(
+                APP_PREFERENCES_END_HOURS, 23, APP_PREFERENCES_END_MINUTES);
 
         SupportCursorWrapper cursor = querySupports();
         if (cursor.getCount() == 0)
@@ -75,6 +87,28 @@ public class Support {
         }
         updateColors();
     }
+
+    private Calendar getDateFromPreferences(
+            String key_hours, int defHours, String key_minutes) {
+
+        int hours = mPreferences.getInt(key_hours, defHours);
+        int minutes = mPreferences.getInt(key_minutes, 0);
+
+        Calendar calendar = new GregorianCalendar();
+        calendar.set(Calendar.HOUR_OF_DAY, hours);
+        calendar.set(Calendar.MINUTE, minutes);
+
+        return calendar;
+    }
+
+    private void setDateToPreferences(String key_hours, String key_minutes, Calendar date) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(key_hours, date.get(Calendar.HOUR_OF_DAY));
+        editor.putInt(key_minutes, date.get(Calendar.MINUTE));
+        editor.apply();
+    }
+
+
 
     public @ThemeDef String getTheme() {
         return mSettings.getTheme();
@@ -102,13 +136,13 @@ public class Support {
                 return currentNightMode == Configuration.UI_MODE_NIGHT_NO;
             case AUTO_THEME:
                 Date date = new Date(System.currentTimeMillis());
-                DateFormat format = new SimpleDateFormat("HH", Locale.getDefault());
-                int hours = Integer.parseInt(format.format(date));
-                return hours >= 7 && hours <= 22;
+                return date.after(START_TIME.getTime()) && date.before(END_TIME.getTime()) ||
+                        date.equals(START_TIME.getTime());
             default:
                 return true;
         }
     }
+
 
     public void updateThemeInScreen(Window window, ActionBar actionBar) {
         window.getDecorView().setBackgroundColor(backgroundColor);
@@ -125,6 +159,7 @@ public class Support {
             backgroundRes = R.drawable.text_view_style;
             buttonRes = R.drawable.button_style;
         }
+
         else {
             backgroundColor = mContext.getColor(R.color.background_dark);
             fontColor = Color.WHITE;
@@ -166,6 +201,22 @@ public class Support {
         return mContext.getColor(android.R.color.darker_gray);
     }
 
+
+    public void setStartTimeForAutoTheme(Calendar startTime) {
+        START_TIME = startTime;
+        setDateToPreferences(APP_PREFERENCES_START_HOURS, APP_PREFERENCES_START_MINUTES, startTime);
+        updateColors();
+    }
+
+    public void setEndTimeForAutoTheme(Calendar endTime) {
+        END_TIME = endTime;
+        setDateToPreferences(APP_PREFERENCES_END_HOURS, APP_PREFERENCES_END_MINUTES, endTime);
+        updateColors();
+    }
+
+    public Pair<Calendar, Calendar> getTimesForAutoTheme() {
+        return new Pair<>(START_TIME, END_TIME);
+    }
 
 
     private void addSettings(Settings settings) {
