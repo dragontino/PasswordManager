@@ -65,7 +65,7 @@ public class PasswordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_password);
 
-        support = Support.get(this);
+        support = Support.getInstance(this);
         recyclerView = findViewById(R.id.account_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mDataLab = DataLab.get(this);

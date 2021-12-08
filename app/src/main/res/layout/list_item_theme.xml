@@ -1,13 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/list_item_theme_text_view"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:clickable="true"
-    android:focusable="true"
-    android:textSize="18sp"
-    android:layout_margin="@dimen/activity_horizontal_margin"
-    app:drawableEndCompat="@drawable/ic_baseline_radio_button_checked_24"
-    app:drawableTint="@color/white"/>
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/list_item_theme_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/NormalTextViewTheme"
+        app:drawableEndCompat="@drawable/ic_baseline_radio_button_checked_24"
+        app:drawableTint="@color/white"/>
+
+    <LinearLayout
+        android:id="@+id/list_item_theme_layout_time"
+        android:orientation="horizontal"
+        android:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/them_layout_start_time"
+            android:layout_weight="1"
+            android:layout_gravity="start|center_vertical"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            style="@style/NormalTextViewTheme"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/them_layout_end_time"
+            android:layout_weight="1"
+            android:layout_gravity="end|center_vertical"
+            android:gravity="center"
+            style="@style/NormalTextViewTheme"/>
+
+    </LinearLayout>
+
+</LinearLayout>
