@@ -54,6 +54,11 @@ public class EmailPasswordActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
         };
 
+        listener = view -> {
+            startActivity(PasswordListActivity.getIntent(this));
+            progressBar.setVisibility(View.VISIBLE);
+        };
+
         textViewLabel = findViewById(R.id.text_view_main_label);
         textViewSubtitle = findViewById(R.id.text_view_main_subtitle);
 
