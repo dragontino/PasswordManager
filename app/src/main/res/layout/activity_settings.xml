@@ -9,21 +9,34 @@
 
         <TextView
             android:id="@+id/switchTheme"
+            style="@style/NormalTextViewTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/switchThemeText"
-            android:textSize="@dimen/text_view_normal_size"
             android:textColor="@color/black"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_margin="@dimen/activity_vertical_margin"/>
+            android:gravity="center"/>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@android:color/darker_gray" />
+            android:background="@android:color/darker_gray"/>
 
+        <Button
+            android:id="@+id/button_logout"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="60dp"
+            android:text="@string/logout"
+            android:textAllCaps="false"
+            android:textColor="@color/black"
+            android:textStyle="normal"/>
+
+<!--        <View-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="1dp"-->
+<!--            android:background="@android:color/darker_gray"/>-->
     </LinearLayout>
 
 </ScrollView>

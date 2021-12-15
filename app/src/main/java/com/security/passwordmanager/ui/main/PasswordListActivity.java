@@ -33,7 +33,7 @@ public class PasswordListActivity extends AppCompatActivity {
 
     public static Intent getIntent(Context context) {
         Intent intent = new Intent(context, PasswordListActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         return intent;
     }
 

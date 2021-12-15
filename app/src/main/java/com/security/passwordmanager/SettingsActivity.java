@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -21,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -30,12 +32,18 @@ import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
 
+    private static final String EXTRA = "logout_visibility";
+
     private TextView switchTheme;
+    private Button logout;
+
     private Support support;
     private ThemeBottomSheet bottomSheet;
 
-    public static Intent newIntent(Context context) {
-        return new Intent(context, SettingsActivity.class);
+    public static Intent newIntent(Context context, boolean need_logout_button) {
+        Intent intent = new Intent(context, SettingsActivity.class);
+        intent.putExtra(EXTRA, need_logout_button);
+        return intent;
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -47,10 +55,21 @@ public class SettingsActivity extends AppCompatActivity {
 
         support = Support.getInstance(this);
         switchTheme = findViewById(R.id.switchTheme);
+        logout = findViewById(R.id.button_logout);
         bottomSheet = new ThemeBottomSheet(this);
+        boolean need_logout = getIntent().getBooleanExtra(EXTRA, true);
+
+        if (!need_logout)
+            logout.setVisibility(View.GONE);
 
         switchTheme.setOnClickListener(v ->
                 bottomSheet.start());
+
+        logout.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            support.setPasswordIsRemembered(false);
+            startActivity(EmailPasswordActivity.getIntent(this));
+        });
 
         updateTheme();
 
@@ -64,8 +83,11 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void updateTheme() {
         support.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
+
         switchTheme.setText(getCurrentThemeText());
         switchTheme.setTextColor(support.getFontColor());
+
+        logout.setTextColor(support.getFontColor());
     }
 
     @Override
