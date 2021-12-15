@@ -98,7 +98,7 @@ public class PasswordListFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menu_item_settings)
-            startActivity(SettingsActivity.newIntent(getActivity()));
+            startActivity(SettingsActivity.newIntent(getActivity(), true));
         return super.onOptionsItemSelected(item);
     }
 

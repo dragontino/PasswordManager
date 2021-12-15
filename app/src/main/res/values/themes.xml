@@ -1,11 +1,12 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.PasswordManager" parent="Theme.AppCompat.DayNight">
+    <style name="Theme.PasswordManager" parent="Theme.AppCompat.Light">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/raspberry</item>
         <item name="colorPrimaryDark">@color/raspberry</item>
         <item name="colorAccent">@color/teal_200</item>
         <item name="android:textColorPrimary">@color/white</item>
+        <item name="bottomSheetDialogTheme">@style/Theme.MaterialComponents.BottomSheetDialog</item>
         <!-- Customize your theme here. -->
     </style>
 
@@ -35,7 +36,7 @@
     <style name="NormalTextViewTheme">
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">@dimen/text_view_normal_size</item>
         <item name="android:layout_margin">@dimen/activity_horizontal_margin</item>
     </style>
 

@@ -42,6 +42,7 @@ public class Support {
     private static final String APP_PREFERENCES_START_MINUTES = "start_minutes";
     private static final String APP_PREFERENCES_END_HOURS = "end_hours";
     private static final String APP_PREFERENCES_END_MINUTES = "end_minutes";
+    private static final String APP_PREFERENCES_IS_PASSWORD_REMEMBERED = "is_password_remembered";
 
     private static final String[] THEMES = new String[]
             {LIGHT_THEME, DARK_THEME, SYSTEM_THEME, AUTO_THEME};
@@ -217,6 +218,19 @@ public class Support {
     public Pair<Calendar, Calendar> getTimesForAutoTheme() {
         return new Pair<>(START_TIME, END_TIME);
     }
+
+
+    public void setPasswordIsRemembered(boolean isRemembered) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(APP_PREFERENCES_IS_PASSWORD_REMEMBERED, isRemembered);
+        editor.apply();
+    }
+
+    public boolean isPasswordRemembered() {
+        return mPreferences.getBoolean(APP_PREFERENCES_IS_PASSWORD_REMEMBERED, false);
+    }
+
+
 
 
     private void addSettings(Settings settings) {

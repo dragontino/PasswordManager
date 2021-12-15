@@ -3,6 +3,8 @@ package com.security.passwordmanager;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -40,6 +42,7 @@ public class BottomSheet {
         this.mContext = context.getApplicationContext();
 
         bottomSheetDialog = new BottomSheetDialog(context);
+        bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         bottomSheetView = LayoutInflater.from(context).inflate(
                 R.layout.main_bottom_sheet,
                 root.findViewById(R.id.main_bottom_sheet_container)

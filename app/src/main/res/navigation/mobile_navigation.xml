@@ -9,5 +9,5 @@
         android:id="@+id/nav_home"
         android:name="com.security.passwordmanager.ui.main.PasswordListFragment"
         android:label="@string/menu_main_label"
-        tools:layout="@layout/fragment_password_list" />
+        tools:layout="@layout/fragment_password_list"/>
 </navigation>
