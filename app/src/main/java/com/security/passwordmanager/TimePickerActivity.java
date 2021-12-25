@@ -15,6 +15,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.security.passwordmanager.settings.Support;
+
 import java.util.Calendar;
 
 public class TimePickerActivity extends AppCompatActivity {
@@ -48,7 +50,7 @@ public class TimePickerActivity extends AppCompatActivity {
         setContentView(R.layout.dialog_time);
 
         Calendar calendar = (Calendar) getIntent().getSerializableExtra(ARG_TIME);
-        int title = getIntent().getIntExtra(ARG_TITLE, R.string.account);
+        int title = getIntent().getIntExtra(ARG_TITLE, R.string.start_time);
         setTitle(title);
 
         int hours = calendar.get(Calendar.HOUR_OF_DAY);

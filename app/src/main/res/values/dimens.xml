@@ -7,6 +7,6 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="head_size">13sp</dimen>
     <dimen name="text_view_normal_size">16sp</dimen>
-    <dimen name="text_view_corner">6dp</dimen>
+    <dimen name="text_view_corner">7dp</dimen>
     <dimen name="bottom_sheet_corner">30dp</dimen>
 </resources>

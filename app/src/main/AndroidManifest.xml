@@ -9,9 +9,13 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.PasswordManager">
         <activity
+            android:name=".ui.bank.BankCardActivity"
+            android:exported="false"
+            android:label="@string/bank_label"/>
+        <activity
             android:name=".TimePickerActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.DayNight.Dialog"/>
+            android:theme="@style/Theme.AppCompat.DayNight.Dialog" />
         <activity
             android:name=".EmailPasswordActivity"
             android:exported="true"
@@ -33,7 +37,7 @@
         <activity
             android:name=".ui.main.PasswordListActivity"
             android:label="@string/main_label"
-            android:theme="@style/Theme.PasswordManager.NoActionBar"/>
+            android:theme="@style/Theme.PasswordManager.NoActionBar" />
     </application>
 
 </manifest>

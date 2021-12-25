@@ -17,9 +17,11 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.security.passwordmanager.BottomSheet;
 import com.security.passwordmanager.R;
-import com.security.passwordmanager.Support;
+import com.security.passwordmanager.settings.Support;
 import com.security.passwordmanager.ui.account.PasswordActivity;
+import com.security.passwordmanager.ui.bank.BankCardActivity;
 
 import java.util.Objects;
 
@@ -47,9 +49,44 @@ public class PasswordListActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        BottomSheet bottomSheet = new BottomSheet(this);
+
+//        bottomSheet
+//                .addView(R.drawable.ic_baseline_account_circle_24, R.string.password_label, v -> {
+//                    startActivity(PasswordActivity.newIntent(this, ""));
+//                    bottomSheet.stop();
+//                });
+//
+//        bottomSheet.addView(R.drawable.ic_baseline_credit_card_24, R.string.bank_label, v -> {
+//            startActivity(BankCardActivity.getIntent(this));
+//            bottomSheet.stop();
+//        });
+
+        bottomSheet.setOnClickListener(BottomSheet.VIEW_EDIT, v -> {
+            startActivity(PasswordActivity.newIntent(this, ""));
+            bottomSheet.stop();
+        });
+
+        bottomSheet.setOnClickListener(BottomSheet.VIEW_COPY, v -> {
+            startActivity(BankCardActivity.getIntent(this, ""));
+            bottomSheet.stop();
+        });
+
         fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view ->
-                startActivity(PasswordActivity.newIntent(this, "")));
+        fab.setOnClickListener(view -> {
+
+            bottomSheet.updateImageAndText(
+                    new int[] {
+                            R.string.password_label,
+                            R.string.bank_label
+                    },
+                    new int[] {
+                            R.drawable.ic_baseline_account_circle_24,
+                            R.drawable.ic_baseline_credit_card_24
+                    }
+            );
+            bottomSheet.start();
+        });
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);

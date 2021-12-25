@@ -1,11 +1,8 @@
-package com.security.passwordmanager;
+package com.security.passwordmanager.settings;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Window;
@@ -14,10 +11,12 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.StringDef;
 import androidx.appcompat.app.ActionBar;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
 
-import com.security.passwordmanager.databases.PasswordBaseHelper;
-import com.security.passwordmanager.databases.PasswordDBSchema.SupportTable;
-import com.security.passwordmanager.databases.SupportCursorWrapper;
+import com.security.passwordmanager.Pair;
+import com.security.passwordmanager.R;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -49,15 +48,16 @@ public class Support {
 
     private static Calendar START_TIME, END_TIME;
 
-    private final SQLiteDatabase mDatabase;
+
+    private final SettingsRepository mSettingsRepository;
     private final Context mContext;
-    private Settings mSettings;
     private final SharedPreferences mPreferences;
 
     private @ColorInt int backgroundColor, fontColor, headerColor, layoutBackgroundColor;
     private @DrawableRes int backgroundRes, buttonRes;
 
     private static Support sSupport;
+
 
     public static Support getInstance(Context context) {
         if (sSupport == null)
@@ -68,8 +68,7 @@ public class Support {
 
     private Support(Context context) {
         mContext = context.getApplicationContext();
-        mDatabase = new PasswordBaseHelper(context).getWritableDatabase();
-        mSettings = new Settings();
+        mSettingsRepository = new SettingsRepository(mContext);
         mPreferences = mContext.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
 
 
@@ -78,47 +77,16 @@ public class Support {
         END_TIME = getDateFromPreferences(
                 APP_PREFERENCES_END_HOURS, 23, APP_PREFERENCES_END_MINUTES);
 
-        SupportCursorWrapper cursor = querySupports();
-        if (cursor.getCount() == 0)
-            addSettings(mSettings);
-        else {
-            cursor.moveToFirst();
-            mSettings = cursor.getSettings();
-            cursor.close();
-        }
         updateColors();
     }
 
-    private Calendar getDateFromPreferences(
-            String key_hours, int defHours, String key_minutes) {
-
-        int hours = mPreferences.getInt(key_hours, defHours);
-        int minutes = mPreferences.getInt(key_minutes, 0);
-
-        Calendar calendar = new GregorianCalendar();
-        calendar.set(Calendar.HOUR_OF_DAY, hours);
-        calendar.set(Calendar.MINUTE, minutes);
-
-        return calendar;
-    }
-
-    private void setDateToPreferences(String key_hours, String key_minutes, Calendar date) {
-        SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putInt(key_hours, date.get(Calendar.HOUR_OF_DAY));
-        editor.putInt(key_minutes, date.get(Calendar.MINUTE));
-        editor.apply();
-    }
-
-
-
     public @ThemeDef String getTheme() {
-        return mSettings.getTheme();
+        return mSettingsRepository.getTheme();
     }
 
     public void setTheme(@ThemeDef String theme) {
-        mSettings.setTheme(theme);
+        mSettingsRepository.updateTheme(theme);
         updateColors();
-        updateSettings(mSettings);
     }
 
     public int getIndexTheme() {
@@ -203,6 +171,28 @@ public class Support {
     }
 
 
+
+    private Calendar getDateFromPreferences(
+            String key_hours, int defHours, String key_minutes) {
+
+        int hours = mPreferences.getInt(key_hours, defHours);
+        int minutes = mPreferences.getInt(key_minutes, 0);
+
+        Calendar calendar = new GregorianCalendar();
+        calendar.set(Calendar.HOUR_OF_DAY, hours);
+        calendar.set(Calendar.MINUTE, minutes);
+
+        return calendar;
+    }
+
+    private void setDateToPreferences(String key_hours, String key_minutes, Calendar date) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(key_hours, date.get(Calendar.HOUR_OF_DAY));
+        editor.putInt(key_minutes, date.get(Calendar.MINUTE));
+        editor.apply();
+    }
+
+
     public void setStartTimeForAutoTheme(Calendar startTime) {
         START_TIME = startTime;
         setDateToPreferences(APP_PREFERENCES_START_HOURS, APP_PREFERENCES_START_MINUTES, startTime);
@@ -231,40 +221,38 @@ public class Support {
     }
 
 
+    @Entity(tableName = "SettingsTable")
+    public static class Settings {
 
+        @PrimaryKey
+        public int id;
+        public String theme;
 
-    private void addSettings(Settings settings) {
-        ContentValues contentValues = getContentValues(settings);
-        mDatabase.insert(SupportTable.NAME, null, contentValues);
-    }
+        @Ignore
+        public Settings(@ThemeDef String theme) {
+            this(1, theme);
+        }
 
-    private void updateSettings(Settings settings) {
-        ContentValues contentValues = getContentValues(settings);
-        mDatabase.update(
-                SupportTable.NAME,
-                contentValues,
-                SupportTable.Cols.ID + " = ?",
-                new String[]{"1"}
-                );
-    }
+        public Settings(int id, @ThemeDef String theme) {
+            setId(id);
+            setTheme(theme);
+        }
 
-    private static ContentValues getContentValues(Settings settings) {
-        ContentValues values = new ContentValues();
-        values.put(SupportTable.Cols.THEME, settings.getTheme());
-        return values;
-    }
+        @ThemeDef
+        public String getTheme() {
+            return theme;
+        }
 
-    private SupportCursorWrapper querySupports() {
-        Cursor cursor = mDatabase.query(
-                SupportTable.NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
+        public void setTheme(@ThemeDef String theme) {
+            this.theme = theme;
+        }
 
-        return new SupportCursorWrapper(cursor);
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
     }
 }
