@@ -26,6 +26,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
 >>>>>>> 73e2963 (версия 2.5.0 от 08.12.2021)
 
+import com.security.passwordmanager.settings.Support;
+
 import java.util.Calendar;
 
 public class TimePickerActivity extends AppCompatActivity {
@@ -77,7 +79,7 @@ public class TimePickerActivity extends AppCompatActivity {
 >>>>>>> 73e2963 (версия 2.5.0 от 08.12.2021)
 
         Calendar calendar = (Calendar) getIntent().getSerializableExtra(ARG_TIME);
-        int title = getIntent().getIntExtra(ARG_TITLE, R.string.account);
+        int title = getIntent().getIntExtra(ARG_TITLE, R.string.start_time);
         setTitle(title);
 
         int hours = calendar.get(Calendar.HOUR_OF_DAY);

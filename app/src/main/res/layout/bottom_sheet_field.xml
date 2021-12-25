@@ -12,6 +12,7 @@
         android:id="@+id/bottom_sheet_field_image_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:padding="8dp"
         android:contentDescription="@string/delete_password"/>
 
     <Button
@@ -22,6 +23,6 @@
         android:gravity="start"
         style="@style/Widget.AppCompat.Button.Borderless"
         android:textAllCaps="false"
-        android:textSize="18sp"/>
+        android:textSize="17sp"/>
 
 </LinearLayout>

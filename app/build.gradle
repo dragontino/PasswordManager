@@ -11,8 +11,8 @@ android {
         applicationId "com.security.passwordmanager"
         minSdkVersion 29
         targetSdkVersion 31
-        versionCode 2
-        versionName "2.7.0"
+        versionCode 3
+        versionName "3.0.0"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
@@ -68,6 +68,11 @@ dependencies {
     implementation 'androidx.compose.runtime:runtime-livedata:1.0.5'
     implementation 'androidx.compose.runtime:runtime-rxjava2:1.0.5'
     implementation 'com.google.firebase:firebase-database:20.0.3'
+
+    //Room
+    implementation 'androidx.room:room-runtime:2.4.0'
+    annotationProcessor "androidx.room:room-compiler:2.4.0"
+    androidTestImplementation "androidx.room:room-testing:2.4.0"
 
     // UI Tests
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.0.5'

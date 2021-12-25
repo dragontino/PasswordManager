@@ -19,6 +19,9 @@ import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.security.passwordmanager.settings.Support;
+
+import java.util.ArrayList;
 
 public class BottomSheet {
 
@@ -32,11 +35,11 @@ public class BottomSheet {
     private final Support mSupport;
     private final Context mContext;
 
-    private final int[] id = new int[]{
-            R.id.main_bottom_sheet_edit_password,
-            R.id.main_bottom_sheet_copy_info,
-            R.id.main_bottom_sheet_delete_password
-    };
+    private final ArrayList<Integer> id;
+//            R.id.main_bottom_sheet_edit_password,
+//            R.id.main_bottom_sheet_copy_info,
+//            R.id.main_bottom_sheet_delete_password
+//    };
 
     public BottomSheet(@NonNull Context context, @NonNull View root) {
         this.mContext = context.getApplicationContext();
@@ -47,6 +50,12 @@ public class BottomSheet {
                 R.layout.main_bottom_sheet,
                 root.findViewById(R.id.main_bottom_sheet_container)
         );
+
+        id = new ArrayList<>();
+        id.add(R.id.main_bottom_sheet_edit_password);
+        id.add(R.id.main_bottom_sheet_copy_info);
+        id.add(R.id.main_bottom_sheet_delete_password);
+
         mSupport = Support.getInstance(context);
     }
 
@@ -62,7 +71,7 @@ public class BottomSheet {
                 .findViewById(R.id.list_item_text_view_name);
 
         TextView headUrl = head
-                .findViewById(R.id.list_item_text_view_url);
+                .findViewById(R.id.list_item_text_view_subtitle);
 
         headName.setText(headText);
         headUrl.setText(subtitleText);
@@ -71,18 +80,37 @@ public class BottomSheet {
         headUrl.setTextColor(mContext.getColor(android.R.color.darker_gray));
     }
 
+//    public void addView(
+//            @DrawableRes int image, @StringRes int name, View.OnClickListener listener) {
+//
+//        for (int i = 0; i < 3; i++)
+//            bottomSheetView.findViewById(id.get(i)).setVisibility(View.GONE);
+//
+//        View view = LayoutInflater.from(mContext)
+//                .inflate(R.layout.bottom_sheet_field, (ViewGroup) bottomSheetView);
+//
+//        int type = id.size();
+//        id.add(type);
+//        view.setId(type);
+//        updateImageAndText(type, name, image);
+//        setOnClickListener(type, listener);
+//    }
+
     public void updateImageAndText(@StringRes int[] names, @DrawableRes int[] images) {
         int min = Math.min(names.length, images.length);
-        int count = Math.min(min, id.length);
+        int count = Math.min(min, id.size());
 
         for (int i = 0; i < count; i++)
             updateImageAndText(i, names[i], images[i]);
+
+        if (count < id.size()) for (int i = count; i < id.size(); i++)
+            bottomSheetView.findViewById(id.get(i)).setVisibility(View.GONE);
     }
 
 
 
-    public void updateImageAndText(@BottomSheetType int type, @StringRes int text, @DrawableRes Integer image) {
-        LinearLayout layout = bottomSheetView.findViewById(id[type]);
+    public void updateImageAndText(int type, @StringRes int text, @DrawableRes Integer image) {
+        LinearLayout layout = bottomSheetView.findViewById(id.get(type));
         ImageView imageView = layout.findViewById(R.id.bottom_sheet_field_image_view);
         Button button = layout.findViewById(R.id.bottom_sheet_field_button);
         if (image != null)
@@ -99,7 +127,7 @@ public class BottomSheet {
 
     public void setOnClickListener(@BottomSheetType int type, View.OnClickListener listener) {
         Button button = bottomSheetView
-                .findViewById(id[type])
+                .findViewById(id.get(type))
                 .findViewById(R.id.bottom_sheet_field_button);
         button.setOnClickListener(listener);
     }

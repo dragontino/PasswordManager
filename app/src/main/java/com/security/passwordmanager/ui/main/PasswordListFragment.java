@@ -20,22 +20,26 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.security.passwordmanager.BottomSheet;
-import com.security.passwordmanager.Data;
-import com.security.passwordmanager.DataLab;
 import com.security.passwordmanager.R;
 import com.security.passwordmanager.SettingsActivity;
-import com.security.passwordmanager.Support;
+import com.security.passwordmanager.data.BankCard;
+import com.security.passwordmanager.data.Data;
+import com.security.passwordmanager.data.DataViewModel;
+import com.security.passwordmanager.data.Website;
+import com.security.passwordmanager.settings.Support;
 import com.security.passwordmanager.ui.account.PasswordActivity;
+import com.security.passwordmanager.ui.bank.BankCardActivity;
 
 import java.util.List;
 
@@ -50,7 +54,7 @@ public class PasswordListFragment extends Fragment {
     private int openedView;
 
     private Support mSupport;
-    private DataLab mDataLab;
+    private DataViewModel mDataViewModel;
     private List<Data> dataList;
 
     private BottomSheet mBottomSheet;
@@ -60,8 +64,6 @@ public class PasswordListFragment extends Fragment {
 
         View root = inflater.inflate(R.layout.fragment_password_list, container, false);
         mRecyclerView = root.findViewById(R.id.main_recycler_view);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        updateUI();
 
         mBottomSheet = new BottomSheet(requireContext(), root);
 
@@ -75,7 +77,7 @@ public class PasswordListFragment extends Fragment {
 
         MenuItem searchItem = menu.findItem(R.id.menu_item_search);
         searchView = (SearchView) searchItem.getActionView();
-        updateSearchView();
+        drawSearchView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -86,10 +88,9 @@ public class PasswordListFragment extends Fragment {
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public boolean onQueryTextChange(String newText) {
-                dataList = mDataLab.searchData(newText);
+                dataList = mDataViewModel.searchData(newText);
                 openedView = dataList.size() == 1 ? 0 : -1;
                 mAdapter.notifyDataSetChanged();
-                updateSearchView();
                 return true;
             }
         });
@@ -107,7 +108,7 @@ public class PasswordListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mSupport = Support.getInstance(getActivity());
-        mDataLab = DataLab.get(getActivity());
+        mDataViewModel = new ViewModelProvider(this).get(DataViewModel.class);
 
         if (savedInstanceState != null)
             openedView = savedInstanceState.getInt(OPENED_VIEW_KEY);
@@ -129,7 +130,7 @@ public class PasswordListFragment extends Fragment {
 
     @SuppressLint("NotifyDataSetChanged")
     private void updateUI() {
-        dataList = mDataLab.getDataList();
+        dataList = mDataViewModel.getDataList();
 
         if (mAdapter == null) {
             mAdapter = new PasswordAdapter();
@@ -138,7 +139,7 @@ public class PasswordListFragment extends Fragment {
         else mAdapter.notifyDataSetChanged();
     }
 
-    private void updateSearchView() {
+    private void drawSearchView() {
         EditText searchText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
         ImageView searchImage = searchView.findViewById(androidx.appcompat.R.id.search_button);
         ImageView clearView = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
@@ -183,10 +184,23 @@ public class PasswordListFragment extends Fragment {
         public void onBindViewHolder(@NonNull PasswordHolder holder, int position) {
             Data data = dataList.get(position);
             List<Data> accountList;
+
             if (dataList.size() == 1)
                 accountList = dataList;
-            else
-                accountList = mDataLab.getAccountList(data.getAddress());
+            else {
+                String key;
+                @Data.DataType int type;
+
+                if (data.isWebsite()) {
+                    key = ((Website) data).getAddress();
+                    type = Data.TYPE_WEBSITE;
+                } else {
+                    key = ((BankCard) data).getBankName();
+                    type = Data.TYPE_BANK_CARD;
+                }
+
+                accountList = mDataViewModel.getAccountList(key, type);
+            }
 
             holder.bindPassword(accountList, position == openedView);
 
@@ -214,7 +228,7 @@ public class PasswordListFragment extends Fragment {
         private final RecyclerView recyclerView;
         private final LinearLayout mainView;
         private final ImageView imageView;
-        private final TextView textView_name, textView_url;
+        private final TextView textView_name, textView_subtitle;
         private final Button button_more;
         private final MotionLayout motionLayout;
 
@@ -225,14 +239,11 @@ public class PasswordListFragment extends Fragment {
             mainView = itemView.findViewById(R.id.list_item_main_view);
             imageView = itemView.findViewById(R.id.list_item_image_view);
             textView_name = itemView.findViewById(R.id.list_item_text_view_name);
-            textView_url = itemView.findViewById(R.id.list_item_text_view_url);
+            textView_subtitle = itemView.findViewById(R.id.list_item_text_view_subtitle);
             button_more = itemView.findViewById(R.id.list_item_button_more);
-
             recyclerView = itemView.findViewById(R.id.list_item_recycler_view_more_info);
-            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
             button_more.setOnClickListener(this);
-
             motionLayout = itemView.findViewById(R.id.motion_container);
         }
 
@@ -242,12 +253,18 @@ public class PasswordListFragment extends Fragment {
             recyclerView.setAdapter(new MoreInfoAdapter(mAccountList));
 
             updateArrow(isShown);
-            textView_name.setText(accountList.get(0).getNameWebsite());
-            textView_url.setText(accountList.get(0).getAddress());
+            if (accountList.get(0).isWebsite()) {
+                textView_name.setText(((Website) accountList.get(0)).getNameWebsite());
+                textView_subtitle.setText(((Website) accountList.get(0)).getAddress());
+            }
+            else {
+                textView_name.setText(((BankCard) accountList.get(0)).getBankName());
+                textView_subtitle.setText(((BankCard) accountList.get(0)).getCardNumber());
+            }
 
             imageView.setImageTintList(ColorStateList.valueOf(mSupport.getHeaderColor()));
             textView_name.setBackgroundColor(mSupport.getBackgroundColor());
-            textView_url.setBackgroundColor(mSupport.getBackgroundColor());
+            textView_subtitle.setBackgroundColor(mSupport.getBackgroundColor());
             button_more.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
 
             textView_name.setTextColor(mSupport.getFontColor());
@@ -258,8 +275,8 @@ public class PasswordListFragment extends Fragment {
         public void onClick(View v) {
 
             mBottomSheet.setHeading(
-                    mAccountList.get(0).getNameWebsite(),
-                    mAccountList.get(0).getAddress()
+                    ((Website) mAccountList.get(0)).getNameWebsite(),
+                    ((Website) mAccountList.get(0)).getAddress()
             );
 
             mBottomSheet.updateImageAndText(
@@ -276,18 +293,30 @@ public class PasswordListFragment extends Fragment {
             );
 
             mBottomSheet.setOnClickListener(BottomSheet.VIEW_EDIT, v1 -> {
-                startActivity(PasswordActivity
-                        .newIntent(requireContext(), mAccountList.get(0).getAddress()));
+                if (mAccountList.get(0).isWebsite())
+                    startActivity(PasswordActivity.newIntent(
+                            requireContext(),
+                            ((Website) mAccountList.get(0)).getAddress()
+                    ));
+                else
+                    startActivity(BankCardActivity.getIntent(
+                            requireContext(),
+                            ((BankCard) mAccountList.get(0)).getBankName()
+                    ));
                 mBottomSheet.stop();
             });
 
             mBottomSheet.setOnClickListener(BottomSheet.VIEW_COPY, view -> {
-                mDataLab.copyAccountList(mAccountList);
+                mDataViewModel.copyAccountList(mAccountList);
                 mBottomSheet.stop();
             });
 
             mBottomSheet.setOnClickListener(BottomSheet.VIEW_DELETE, v1 -> {
-                mDataLab.deleteData(mAccountList.get(0).getAddress());
+                Data data = mAccountList.get(0);
+                if (data.isBankCard())
+                    mDataViewModel.deleteData(((BankCard) data).getBankName(), Data.TYPE_BANK_CARD);
+                else
+                    mDataViewModel.deleteData(((Website) data).getAddress(), Data.TYPE_WEBSITE);
                 mBottomSheet.stop();
                 updateUI();
             });
@@ -322,15 +351,20 @@ public class PasswordListFragment extends Fragment {
         @NonNull
         @Override
         public MoreInfoHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            @LayoutRes int resId = R.layout.list_item_more_website;
+
+            if (accountList.get(0).isBankCard())
+                resId = R.layout.list_item_more_bank_card;
+
             View view = LayoutInflater.from(getActivity())
-                    .inflate(R.layout.list_item_more_info, parent, false);
+                    .inflate(resId, parent, false);
             return new MoreInfoHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull MoreInfoHolder holder, int position) {
             Data data = accountList.get(position);
-            holder.bindInfo(data);
+            holder.bindInfo((Website) data);
         }
 
         @Override
@@ -348,7 +382,7 @@ public class PasswordListFragment extends Fragment {
         private final ConstraintLayout login, password, comment;
         private final TextView head_login, head_password, head_comment;
         private final Button button_open_url;
-        private Data data;
+        private Website data;
 
         private boolean isPasswordVisible;
 
@@ -373,7 +407,7 @@ public class PasswordListFragment extends Fragment {
             isPasswordVisible = false;
         }
 
-        public void bindInfo(Data data) {
+        public void bindInfo(Website data) {
             this.data = data;
 
             if (data.getComment().length() == 0) {
@@ -435,7 +469,7 @@ public class PasswordListFragment extends Fragment {
             ImageButton visibility = layout.findViewById(R.id.field_item_button_visibility);
 
             copy.setOnClickListener(v ->
-                    mDataLab.copyText(text));
+                    mDataViewModel.copyText(text));
 
             if (needVisibility) {
                 visibility.setVisibility(View.VISIBLE);

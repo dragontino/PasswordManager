@@ -26,6 +26,7 @@ import androidx.core.util.PatternsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
+import com.security.passwordmanager.settings.Support;
 import com.security.passwordmanager.ui.main.PasswordListActivity;
 
 import java.util.Objects;
@@ -144,9 +145,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
 
         mEmailField.setTextColor(mSupport.getFontColor());
         mPasswordField.setTextColor(mSupport.getFontColor());
-
-        mEmailField.setHintTextColor(mSupport.getDarkerGrayColor());
-        mPasswordField.setHintTextColor(mSupport.getDarkerGrayColor());
 
         mEmailField.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
         mPasswordField.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));

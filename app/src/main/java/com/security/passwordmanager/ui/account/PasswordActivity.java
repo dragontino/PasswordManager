@@ -18,37 +18,38 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.security.passwordmanager.BottomSheet;
-import com.security.passwordmanager.Data;
-import com.security.passwordmanager.DataLab;
 import com.security.passwordmanager.R;
-import com.security.passwordmanager.Support;
+import com.security.passwordmanager.data.Data;
+import com.security.passwordmanager.data.DataViewModel;
+import com.security.passwordmanager.data.Website;
+import com.security.passwordmanager.settings.Support;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 public class PasswordActivity extends AppCompatActivity {
 
     private static final String EXTRA_ADDRESS = "extra_address";
 
-    private Support support;
     private RecyclerView recyclerView;
     private AccountAdapter adapter;
-    private DataLab mDataLab;
+
     private BottomSheet mBottomSheet;
 
-    private String address;
+    private Support mSupport;
+    private DataViewModel mDataViewModel;
 
+    private String address;
     private List<Data> accountList;
+    private int startCount;
 
     private EditText url;
     private EditText name;
@@ -65,15 +66,23 @@ public class PasswordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_password);
 
-        support = Support.getInstance(this);
+        mSupport = Support.getInstance(this);
         recyclerView = findViewById(R.id.account_recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mDataLab = DataLab.get(this);
+        mDataViewModel = new ViewModelProvider(this).get(DataViewModel.class);
+
+        address = getIntent().getStringExtra(EXTRA_ADDRESS);
+        accountList = mDataViewModel.getAccountList(address, Data.TYPE_WEBSITE);
+
+        startCount = accountList.size();
+
+        if (accountList.size() == 0)
+            accountList.add(new Website());
 
         mBottomSheet = new BottomSheet(this);
 
         url = findViewById(R.id.url);
         name = findViewById(R.id.name);
+
 
         url.addTextChangedListener(new TextWatcher() {
             @Override
@@ -86,7 +95,7 @@ public class PasswordActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 if (s.length() != 0)
                     for (int i = 0; i < accountList.size(); i++) {
-                        Data data = accountList.get(i);
+                        Website data = getAccount(i);
                         data.setAddress(s.toString());
                         accountList.set(i, data);
                     }
@@ -103,7 +112,7 @@ public class PasswordActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 if (s.length() != 0)
                     for (int i = 0; i < accountList.size(); i++) {
-                        Data data = accountList.get(i);
+                        Website data = getAccount(i);
                         data.setNameWebsite(s.toString());
                         accountList.set(i, data);
                     }
@@ -132,15 +141,12 @@ public class PasswordActivity extends AppCompatActivity {
 
         Button add = findViewById(R.id.add_account);
         add.setOnClickListener(v -> {
-            accountList.add(new Data());
+            accountList.add(new Website());
             adapter.notifyDataSetChanged();
-            recyclerView.scrollToPosition(accountList.size() - 1);
+            Objects.requireNonNull(recyclerView.getLayoutManager())
+                    .scrollToPosition(accountList.size() - 1);
         });
 
-        address = getIntent().getStringExtra(EXTRA_ADDRESS);
-        accountList = mDataLab.getAccountList(address);
-        if (accountList.size() == 0)
-            accountList.add(new Data());
 
         name.setNextFocusDownId(R.id.edit_text_login);
     }
@@ -154,8 +160,8 @@ public class PasswordActivity extends AppCompatActivity {
     @SuppressLint("NotifyDataSetChanged")
     private void updateUI() {
 
-        url.setText(accountList.get(0).getAddress());
-        name.setText(accountList.get(0).getNameWebsite());
+        url.setText(getAccount(0).getAddress());
+        name.setText(getAccount(0).getNameWebsite());
 
         if (adapter == null) {
             adapter = new AccountAdapter();
@@ -163,14 +169,12 @@ public class PasswordActivity extends AppCompatActivity {
         }
         else adapter.notifyDataSetChanged();
 
-        support.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
+        mSupport.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
 
-        url.setBackgroundResource(support.getBackgroundRes());
-        name.setBackgroundResource(support.getBackgroundRes());
-        url.setHintTextColor(getColor(android.R.color.darker_gray));
-        name.setHintTextColor(getColor(android.R.color.darker_gray));
-        url.setTextColor(support.getFontColor());
-        name.setTextColor(support.getFontColor());
+        url.setBackgroundResource(mSupport.getBackgroundRes());
+        name.setBackgroundResource(mSupport.getBackgroundRes());
+        url.setTextColor(mSupport.getFontColor());
+        name.setTextColor(mSupport.getFontColor());
     }
 
     @Override
@@ -182,9 +186,12 @@ public class PasswordActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menu_item_save) {
-            if (url.getText().toString().equals("") || url.getText().toString().equals("")) {
-                Toast.makeText(getApplicationContext(), "Введите адрес сайта и название!",
-                        Toast.LENGTH_SHORT).show();
+            if (url.getText().toString().equals("")) {
+                url.setError("Введите адрес сайта!");
+                return true;
+            }
+            else if (name.getText().toString().equals("")) {
+                name.setError("Введите название сайта!");
                 return true;
             }
 
@@ -200,36 +207,36 @@ public class PasswordActivity extends AppCompatActivity {
                 if (name_account.equals(getNameAccountStart(position + 1)))
                     name_account = "";
 
-                if (login.getText().length() > 0 && password.getText().length() > 0)
-                    if (position >= accountList.size()) {
-                        Data data = new Data(
-                                UUID.randomUUID(),
-                                url.getText().toString(),
-                                name.getText().toString(),
-                                name_account,
-                                login.getText().toString(),
-                                password.getText().toString(),
-                                comment.getText().toString()
-                        );
-                        mDataLab.addData(data);
-                    } else {
-                        Data data = accountList.get(position)
-                                .setAddress(url.getText().toString())
-                                .setNameWebsite(name.getText().toString())
-                                .setNameAccount(name_account)
-                                .setLogin(login.getText().toString())
-                                .setPassword(password.getText().toString())
-                                .setComment(comment.getText().toString());
+                if (login.getText().length() <= 0) {
+                    login.setError(getString(R.string.required));
+                    return true;
+                }
+                else if (password.getText().length() <= 0) {
+                    password.setError(getString(R.string.required));
+                    return true;
+                }
 
-                        mDataLab.updateData(data);
-                    }
+                Website website = getAccount(position);
+                website.setAddress(url.getText().toString());
+                website.setNameWebsite(name.getText().toString());
+                website.setNameAccount(name_account);
+                website.setLogin(login.getText().toString());
+                website.setPassword(password.getText().toString());
+                website.setComment(comment.getText().toString());
+
+                if (position >= startCount)
+                    mDataViewModel.addData(website);
+//                        mDataLab.addData(data);
+                else
+                    mDataViewModel.updateData(website);
+//                        mDataLab.updateData(data);
             }
             finish();
             return true;
         }
         else if (item.getItemId() == R.id.menu_item_delete) {
-            for (int i = 0; i < accountList.size(); i++)
-                mDataLab.deleteData(accountList.get(i).getAddress());
+            mDataViewModel.deleteData(getAccount(0).getAddress(), Data.TYPE_WEBSITE);
+//                mDataLab.deleteData(getAccount(i).getAddress(), Data.TYPE_WEBSITE);
             finish();
             return true;
         }
@@ -239,6 +246,11 @@ public class PasswordActivity extends AppCompatActivity {
 
     private String getNameAccountStart(int position) {
         return getString(R.string.account_start, position);
+    }
+
+
+    private Website getAccount(int index) {
+        return (Website) accountList.get(index);
     }
 
 
@@ -258,11 +270,11 @@ public class PasswordActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull AccountHolder holder, int position) {
-            Data data;
+            Website data;
             if (accountList.size() == 0)
-                data = new Data();
+                data = new Website();
             else
-                data = accountList.get(position);
+                data = getAccount(position);
 
             holder.bindAccount(data, position + 1);
             accountList.set(position, data);
@@ -280,7 +292,7 @@ public class PasswordActivity extends AppCompatActivity {
 
     private class AccountHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        private final EditText name_of_account;
+        private final EditText nameAccount;
         private final Button edit_name;
         private final EditText login;
         private final EditText password;
@@ -296,7 +308,7 @@ public class PasswordActivity extends AppCompatActivity {
 
         public AccountHolder(@NonNull View itemView) {
             super(itemView);
-            name_of_account = itemView.findViewById(R.id.name_of_account);
+            nameAccount = itemView.findViewById(R.id.name_of_account);
             edit_name = itemView.findViewById(R.id.edit_name_of_account);
             login = itemView.findViewById(R.id.edit_text_login);
             password = itemView.findViewById(R.id.edit_text_password);
@@ -309,7 +321,7 @@ public class PasswordActivity extends AppCompatActivity {
             buttonVisibility.setOnClickListener(this);
         }
 
-        private void bindAccount(Data data, int position) {
+        private void bindAccount(Website data, int position) {
 
             this.data = data;
             this.position = position;
@@ -318,31 +330,27 @@ public class PasswordActivity extends AppCompatActivity {
             password.setText(data.getPassword());
             comment.setText(data.getComment());
             if (data.getNameAccount().equals(""))
-                name_of_account.setText(getNameAccountStart(position));
+                nameAccount.setText(getNameAccountStart(position));
             else
-                name_of_account.setText(data.getNameAccount());
+                nameAccount.setText(data.getNameAccount());
 
-            login.setBackgroundResource(support.getBackgroundRes());
-            password.setBackgroundResource(support.getBackgroundRes());
-            comment.setBackgroundResource(support.getBackgroundRes());
+            login.setBackgroundResource(mSupport.getBackgroundRes());
+            password.setBackgroundResource(mSupport.getBackgroundRes());
+            comment.setBackgroundResource(mSupport.getBackgroundRes());
 
-            edit_name.setBackgroundTintList(ColorStateList.valueOf(support.getFontColor()));
+            edit_name.setBackgroundTintList(ColorStateList.valueOf(mSupport.getFontColor()));
 
-            buttonVisibility.setBackgroundColor(support.getBackgroundColor());
+            buttonVisibility.setBackgroundColor(mSupport.getBackgroundColor());
 
-            login.setHintTextColor(support.getDarkerGrayColor());
-            password.setHintTextColor(support.getDarkerGrayColor());
-            comment.setHintTextColor(support.getDarkerGrayColor());
+            login.setTextColor(mSupport.getFontColor());
+            password.setTextColor(mSupport.getFontColor());
+            comment.setTextColor(mSupport.getFontColor());
+            buttonVisibility.setImageTintList(ColorStateList.valueOf(mSupport.getFontColor()));
 
-            login.setTextColor(support.getFontColor());
-            password.setTextColor(support.getFontColor());
-            comment.setTextColor(support.getFontColor());
-            buttonVisibility.setImageTintList(ColorStateList.valueOf(support.getFontColor()));
+            nameAccount.setHintTextColor(mSupport.getDarkerGrayColor());
+            nameAccount.setTextColor(mSupport.getDarkerGrayColor());
 
-            name_of_account.setHintTextColor(support.getDarkerGrayColor());
-            name_of_account.setTextColor(support.getDarkerGrayColor());
-
-            itemView.setBackgroundColor(support.getLayoutBackgroundColor());
+            itemView.setBackgroundColor(mSupport.getLayoutBackgroundColor());
 
             login.addTextChangedListener(new TextWatcher() {
                 @Override
@@ -386,9 +394,9 @@ public class PasswordActivity extends AppCompatActivity {
                 }
             });
 
-            name_of_account.setOnKeyListener((v, keyCode, event) -> {
+            nameAccount.setOnKeyListener((v, keyCode, event) -> {
                 if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                    data.setNameAccount(name_of_account.getText().toString());
+                    data.setNameAccount(nameAccount.getText().toString());
                     changeHeading();
                     renamingText = R.string.rename_account;
                     mBottomSheet.updateImageAndText(BottomSheet.VIEW_EDIT, renamingText, null);
@@ -434,20 +442,23 @@ public class PasswordActivity extends AppCompatActivity {
                 mBottomSheet.setOnClickListener(BottomSheet.VIEW_EDIT, v1 -> {
                     changeHeading();
                     mBottomSheet.stop();
-                    renamingText = name_of_account.isCursorVisible() ?
+                    renamingText = nameAccount.isCursorVisible() ?
                             R.string.cancel_renaming_account :
                             R.string.rename_account;
                 });
 
                 mBottomSheet.setOnClickListener(BottomSheet.VIEW_COPY, view -> {
-                    mDataLab.copyData(data);
+                    mDataViewModel.copyData(data);
+//                    mDataLab.copyWebsite((Website) data);
                     mBottomSheet.stop();
                 });
 
                 mBottomSheet.setOnClickListener(BottomSheet.VIEW_DELETE, v1 -> {
                     mBottomSheet.stop();
-                    mDataLab.deleteData(data);
-                    accountList = mDataLab.getAccountList(address);
+                    mDataViewModel.deleteData(data);
+                    accountList = mDataViewModel.getAccountList(address, Data.TYPE_WEBSITE);
+//                    mDataLab.deleteData(data);
+//                    accountList = mDataLab.getAccountList(address, Data.TYPE_WEBSITE);
                     if (accountList.size() == 0) finish();
 
                     adapter.notifyDataSetChanged();
@@ -460,23 +471,26 @@ public class PasswordActivity extends AppCompatActivity {
         }
 
         private void changeHeading() {
-            boolean blocking = name_of_account.isCursorVisible();
+            boolean blocking = nameAccount.isCursorVisible();
             //true - заблокирует, false - разблокирует
             String full = getNameAccountStart(position);
             String Null = "";
 
-            name_of_account.setEnabled(!blocking);
-            name_of_account.setCursorVisible(!blocking);
+            nameAccount.setEnabled(!blocking);
+            nameAccount.setCursorVisible(!blocking);
 
-            if (blocking && name_of_account.getText().length() == 0)
-                name_of_account.setText(full);
-            else if (!blocking && name_of_account.getText().toString().equals(full))
-                name_of_account.setText(Null);
+            if (blocking && nameAccount.getText().length() == 0)
+                nameAccount.setText(full);
+            else if (!blocking && nameAccount.getText().toString().equals(full))
+                nameAccount.setText(Null);
 
-            if (blocking)
-                name_of_account.setTextColor(support.getDarkerGrayColor());
-            else
-                name_of_account.setTextColor(support.getFontColor());
+            if (blocking) {
+                nameAccount.setTextColor(mSupport.getDarkerGrayColor());
+                nameAccount.setBackgroundTintList(ColorStateList.valueOf(mSupport.getDarkerGrayColor()));
+            } else {
+                nameAccount.setTextColor(mSupport.getFontColor());
+                nameAccount.setBackgroundTintList(ColorStateList.valueOf(mSupport.getHeaderColor()));
+            }
         }
     }
 }

@@ -3,7 +3,7 @@
     <string name="main_label">Менеджер паролей</string>
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 2.7.0 от 15 декабря 2021</string>
+    <string name="app_version">Версия 3.0.0 от 25 декабря 2021</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Настройки</string>
 
@@ -61,5 +61,15 @@
     <string name="login_failed">Неверный логин или пароль! Проверьте правильность введённых данных</string>
     <string name="logout">Выйти из аккаунта</string>
     <string name="remember_password">Запомнить пароль</string>
+
+    <string name="bank_label">Банковская карта</string>
+    <string name="bank_name">Название банка</string>
+    <string name="bank_head">Основные данные</string>
+    <string name="card_number">Номер карты</string>
+    <string name="card_holder">Владелец карты</string>
+    <string name="validity_period">Срок действия</string>
+    <string name="card_cvv">CVC/CVV</string>
+    <string name="pin_code">PIN</string>
+    <string name="add_more_cards">Добавить карту</string>
 
 </resources>
