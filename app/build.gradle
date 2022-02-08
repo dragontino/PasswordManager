@@ -12,7 +12,7 @@ android {
         applicationId "com.security.passwordmanager"
         minSdkVersion 29
         targetSdkVersion 31
-        versionCode 0
+        versionCode 1
         versionName "0.5.0"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
