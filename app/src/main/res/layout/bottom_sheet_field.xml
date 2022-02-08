@@ -1,28 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+<Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bottom_sheet_field"
+    style="@style/Widget.AppCompat.Button.Borderless"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="6dp"
-    android:layout_marginHorizontal="6dp">
-
-    <ImageView
-        android:layout_weight="1"
-        android:id="@+id/bottom_sheet_field_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:padding="8dp"
-        android:contentDescription="@string/delete_password"/>
-
-    <Button
-        android:id="@+id/bottom_sheet_field_button"
-        android:layout_weight="8"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:gravity="start"
-        style="@style/Widget.AppCompat.Button.Borderless"
-        android:textAllCaps="false"
-        android:textSize="17sp"/>
-
-</LinearLayout>
+    android:layout_marginHorizontal="6dp"
+    android:gravity="start"
+    android:textAllCaps="false"
+    android:textSize="18sp"
+    android:drawableStart="@drawable/account_image"
+    android:drawableTint="@color/white"
+    android:drawablePadding="8dp"/>

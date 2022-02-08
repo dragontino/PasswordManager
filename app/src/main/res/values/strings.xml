@@ -3,7 +3,7 @@
     <string name="main_label">Менеджер паролей</string>
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 3.0.0 от 25 декабря 2021</string>
+    <string name="app_version">Версия 0.5.0 от 08 февраля 2022</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Настройки</string>
 
@@ -38,7 +38,7 @@
     <string name="delete_password">Удалить</string>
     <string name="show_password">Показать пароль</string>
     <string name="hide_password">Скрыть пароль</string>
-    <string name="edit_password">Редактировать</string>
+    <string name="edit">Редактировать</string>
     <string name="button_open_url">Открыть в браузере</string>
 
     <string name="rename_account">Переименовать</string>
@@ -46,6 +46,7 @@
     <string name="delete_account">Удалить аккаунт</string>
     <string name="more_info">Больше информации</string>
     <string name="cancel_renaming_account">Отменить переименование</string>
+    <string name="move_data">Переместить</string>
     <string name="prompt_email">Email</string>
     <string name="clipText">Скопировано в буфер обмена</string>
     <string name="required">Обязательно</string>
@@ -71,5 +72,7 @@
     <string name="card_cvv">CVC/CVV</string>
     <string name="pin_code">PIN</string>
     <string name="add_more_cards">Добавить карту</string>
+    <string name="required_url">Введите адрес сайта!</string>
+    <string name="required_website_name">Введите название сайта!</string>
 
 </resources>

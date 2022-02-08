@@ -39,6 +39,7 @@
             </androidx.constraintlayout.motion.widget.MotionLayout>
 
             <include
+                android:id="@+id/list_item_text_view"
                 layout="@layout/layout_main_header"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -59,12 +60,19 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list_item_recycler_view_more_info_bank"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list_item_recycler_view_more_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
     <View

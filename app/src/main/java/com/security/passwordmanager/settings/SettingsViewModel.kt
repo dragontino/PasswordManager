@@ -1,0 +1,160 @@
+package com.security.passwordmanager.settings
+
+import android.app.Application
+import android.content.Context
+import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.util.Log
+import android.view.Window
+import androidx.annotation.ColorInt
+import androidx.annotation.DrawableRes
+import androidx.appcompat.app.ActionBar
+import androidx.lifecycle.AndroidViewModel
+import com.security.passwordmanager.ActionBottom
+import com.security.passwordmanager.Pair
+import com.security.passwordmanager.R
+import com.security.passwordmanager.data.MainDatabase
+import com.security.passwordmanager.settings.EnumPreferences.*
+import java.util.*
+
+class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val mApplication = application
+    private val settingsRepository : SettingsRepository
+    private val preferences = application.getSharedPreferences(APP_PREFERENCES.name, Context.MODE_PRIVATE)
+    private var startTime = getDateFromPreferences(
+        keyHours = APP_PREFERENCES_START_HOURS,
+        keyMinutes = APP_PREFERENCES_START_MINUTES,
+        defHours = 7
+    )
+
+    private var endTime = getDateFromPreferences(
+        keyHours = APP_PREFERENCES_END_HOURS,
+        keyMinutes = APP_PREFERENCES_END_MINUTES,
+        defHours = 23
+    )
+
+    var theme : ThemeDef
+        get() = ThemeDef.getTheme(settingsRepository.getTheme())
+        set(value) {
+            settingsRepository.updateTheme(value.themeName)
+            updateColors()
+        }
+
+//    val liveTheme : LiveData<ThemeDef> = MutableLiveData(theme)
+
+
+    @ColorInt var backgroundColor = Color.WHITE
+    @ColorInt var fontColor = Color.BLACK
+    @ColorInt var headerColor = application.getColor(R.color.raspberry)
+    @ColorInt var layoutBackgroundColor = application.getColor(R.color.light_gray)
+    @ColorInt var darkerGrayColor = application.getColor(android.R.color.darker_gray)
+
+    @DrawableRes var backgroundRes = R.drawable.text_view_style
+    @DrawableRes var buttonRes = R.drawable.button_style
+
+    var isPasswordRemembered
+        get() = preferences.getBoolean(APP_PREFERENCES_IS_PASSWORD_REMEMBERED.title, false)
+        set(value) {
+            val editor = preferences.edit()
+            editor.putBoolean(APP_PREFERENCES_IS_PASSWORD_REMEMBERED.title, value)
+            editor.apply()
+        }
+
+    init {
+        val settingsDao = MainDatabase.getDatabase(application).settingsDao()
+        settingsRepository = SettingsRepository(settingsDao)
+        updateColors()
+    }
+
+    fun updateThemeInScreen(window: Window?, actionBar: ActionBar?) {
+        if (window == null || actionBar == null) return
+
+        Log.d(ActionBottom.TAG, "проверка цвета = ${backgroundColor == Color.WHITE}")
+
+        window.decorView.setBackgroundColor(backgroundColor)
+        window.statusBarColor = headerColor
+        actionBar.setBackgroundDrawable(ColorDrawable(headerColor))
+    }
+
+    fun isLightTheme() = when(theme) {
+        ThemeDef.LIGHT_THEME -> true
+        ThemeDef.DARK_THEME -> false
+        ThemeDef.SYSTEM_THEME -> {
+            val currentNightMode : Int =
+                mApplication.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+
+            currentNightMode == Configuration.UI_MODE_NIGHT_NO
+        }
+        ThemeDef.AUTO_THEME -> {
+            val date = Date(System.currentTimeMillis())
+
+            date.after(startTime.time) && date.before(endTime.time) || date == startTime.time
+        }
+    }
+
+    private fun updateColors() = if (isLightTheme()) {
+        backgroundColor = Color.WHITE
+        fontColor = Color.BLACK
+        headerColor = mApplication.getColor(R.color.raspberry)
+        layoutBackgroundColor = mApplication.getColor(R.color.light_gray)
+        backgroundRes = R.drawable.text_view_style
+        buttonRes = R.drawable.button_style
+    }
+    else {
+        backgroundColor = mApplication.getColor(R.color.background_dark)
+        fontColor = Color.WHITE
+        headerColor = mApplication.getColor(R.color.header_dark)
+        layoutBackgroundColor = mApplication.getColor(R.color.gray)
+        backgroundRes = R.drawable.text_view_dark_style
+        buttonRes = R.drawable.button_style_dark
+    }
+
+
+    fun getIndexTheme() = ThemeDef.getIndexTheme(theme)
+
+    fun setStartTime(startTime : Calendar) {
+        this.startTime = startTime
+        setDateToPreferences(
+            keyMinutes = APP_PREFERENCES_START_MINUTES,
+            keyHours = APP_PREFERENCES_START_HOURS,
+            date = startTime
+        )
+        updateColors()
+    }
+
+    fun setEndTime(endTime: Calendar) {
+        this.endTime = endTime
+        setDateToPreferences(
+            keyHours = APP_PREFERENCES_END_HOURS,
+            keyMinutes = APP_PREFERENCES_END_MINUTES,
+            date = endTime
+        )
+        updateColors()
+    }
+
+    fun getTimes() = Pair(startTime, endTime)
+
+
+    private fun getDateFromPreferences(
+        keyHours: EnumPreferences, defHours: Int, keyMinutes: EnumPreferences): Calendar {
+
+        val hours = preferences.getInt(keyHours.title, defHours)
+        val minutes = preferences.getInt(keyMinutes.title, 0)
+        val calendar = GregorianCalendar()
+
+        calendar[Calendar.HOUR_OF_DAY] = hours
+        calendar[Calendar.MINUTE] = minutes
+        return calendar
+    }
+
+    private fun setDateToPreferences(
+        keyHours: EnumPreferences, keyMinutes: EnumPreferences, date : Calendar) {
+
+        val editor = preferences.edit()
+        editor.putInt(keyHours.title, date[Calendar.HOUR_OF_DAY])
+        editor.putInt(keyMinutes.title, date[Calendar.MINUTE])
+        editor.apply()
+    }
+}
