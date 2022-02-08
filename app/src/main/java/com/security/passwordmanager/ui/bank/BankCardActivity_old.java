@@ -8,7 +8,6 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -16,41 +15,36 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.security.passwordmanager.BottomSheet;
 import com.security.passwordmanager.R;
 import com.security.passwordmanager.data.BankCard;
-import com.security.passwordmanager.data.Data;
 import com.security.passwordmanager.data.DataViewModel;
 import com.security.passwordmanager.data.Website;
-import com.security.passwordmanager.settings.Support;
+import com.security.passwordmanager.settings.SettingsViewModel;
 
-import java.util.List;
 import java.util.Objects;
 
-public class BankCardActivity extends AppCompatActivity {
+public class BankCardActivity_old extends AppCompatActivity {
 
     private static final String EXTRA_NAME = "extra_bank_name";
 
-    private Support mSupport;
+    private SettingsViewModel settings;
     private DataViewModel mDataViewModel;
 
-    private RecyclerView mRecyclerView;
-    private BankAdapter mBankAdapter;
+    private BankRecyclerView mRecyclerView;
 
     private EditText name, number, cardHolder, period, pin, cvv;
     private TextView head;
     private Button add_account, add_card;
 
     private String bankName;
-    private List<Data> mBankCardList;
+//    private List<Data> mBankCardList;
     private int startCount;
 
-    private BottomSheet mBottomSheet;
+//    private BottomSheet bottomDialogFragment;
 
     public static Intent getIntent(Context context, String bankName) {
-        Intent intent = new Intent(context, BankCardActivity.class);
+        Intent intent = new Intent(context, BankCardActivity_old.class);
         intent.putExtra(EXTRA_NAME, bankName);
         return intent;
     }
@@ -59,10 +53,16 @@ public class BankCardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bank_card);
-        mSupport = Support.getInstance(this);
+
+        settings = new ViewModelProvider(this).get(SettingsViewModel.class);
         mDataViewModel = new ViewModelProvider(this).get(DataViewModel.class);
 
-        mRecyclerView = findViewById(R.id.bank_card_recycler_view);
+        bankName = getIntent().getStringExtra(EXTRA_NAME);
+
+        mRecyclerView = new BankRecyclerView(
+                this, R.id.bank_card_recycler_view, bankName);
+
+        startCount = mRecyclerView.getItemCount();
 
         name = findViewById(R.id.bank_name);
         number = findViewById(R.id.card_number);
@@ -71,29 +71,16 @@ public class BankCardActivity extends AppCompatActivity {
         cvv = findViewById(R.id.card_cvv);
         pin = findViewById(R.id.pin_code);
 
-        bankName = getIntent().getStringExtra(EXTRA_NAME);
-        mBankCardList = mDataViewModel.getAccountList(bankName, Data.TYPE_BANK_CARD);
-        startCount = mBankCardList.size();
-
-        if (mBankCardList.size() == 0)
-            mBankCardList.add(new BankCard());
-
-        mBottomSheet = new BottomSheet(this);
+//        bottomDialogFragment = new BottomSheet(this);
 
         head = findViewById(R.id.bank_head);
 
         add_account = findViewById(R.id.add_account);
         add_card = findViewById(R.id.add_new_card);
 
-        add_account.setOnClickListener(v -> {
-            mBankCardList.add(new Website());
+        add_account.setOnClickListener(v -> mRecyclerView.addData(new Website()));
 
-        });
-
-        add_card.setOnClickListener(v -> {
-            mBankCardList.add(new BankCard());
-
-        });
+        add_card.setOnClickListener(v -> mRecyclerView.addData(new BankCard()));
 
         number.addTextChangedListener(new TextWatcher() {
             @Override
@@ -134,7 +121,13 @@ public class BankCardActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menu_item_save) {
-            BankCard bankCard = new BankCard();
+
+            //TODO сделать проверку
+
+            for (int i = 0; i < mRecyclerView.getItemCount(); i++) {
+                View view = mRecyclerView.get(i);
+
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -148,57 +141,22 @@ public class BankCardActivity extends AppCompatActivity {
 
     private void updateUI() {
 
-        if (mBankAdapter == null) {
-            mBankAdapter = new BankAdapter();
-            mRecyclerView.setAdapter(mBankAdapter);
-        }
-        //TODO обновление notify
+        mRecyclerView.updateRecyclerView();
 
-        mSupport.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
-        name.setBackgroundResource(mSupport.getBackgroundRes());
-        number.setBackgroundResource(mSupport.getBackgroundRes());
-        cardHolder.setBackgroundResource(mSupport.getBackgroundRes());
-        period.setBackgroundResource(mSupport.getBackgroundRes());
-        cvv.setBackgroundResource(mSupport.getBackgroundRes());
-        pin.setBackgroundResource(mSupport.getBackgroundRes());
+        settings.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
+        name.setBackgroundResource(settings.getBackgroundRes());
+        number.setBackgroundResource(settings.getBackgroundRes());
+        cardHolder.setBackgroundResource(settings.getBackgroundRes());
+        period.setBackgroundResource(settings.getBackgroundRes());
+        cvv.setBackgroundResource(settings.getBackgroundRes());
+        pin.setBackgroundResource(settings.getBackgroundRes());
 
-        name.setTextColor(mSupport.getFontColor());
-        head.setTextColor(mSupport.getFontColor());
-        number.setTextColor(mSupport.getFontColor());
-        cardHolder.setTextColor(mSupport.getFontColor());
-        period.setTextColor(mSupport.getFontColor());
-        cvv.setTextColor(mSupport.getFontColor());
-        pin.setTextColor(mSupport.getFontColor());
-    }
-
-
-    private class BankAdapter extends RecyclerView.Adapter<BankHolder> {
-
-        @NonNull
-        @Override
-        public BankHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = getLayoutInflater()
-                    .inflate(R.layout.list_item_new_bank_card, parent, false);
-
-            return new BankHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull BankHolder holder, int position) {
-
-        }
-
-        @Override
-        public int getItemCount() {
-            return mBankCardList.size();
-        }
-    }
-
-
-    private class BankHolder extends RecyclerView.ViewHolder {
-
-        public BankHolder(@NonNull View itemView) {
-            super(itemView);
-        }
+        name.setTextColor(settings.getFontColor());
+        head.setTextColor(settings.getFontColor());
+        number.setTextColor(settings.getFontColor());
+        cardHolder.setTextColor(settings.getFontColor());
+        period.setTextColor(settings.getFontColor());
+        cvv.setTextColor(settings.getFontColor());
+        pin.setTextColor(settings.getFontColor());
     }
 }

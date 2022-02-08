@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:id="@+id/card_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/AccountTextViewTheme"
+        android:hint="@string/card_number"
+        android:inputType="numberDecimal"
+        android:autofillHints="name"/>
+
+    <EditText
+        android:id="@+id/card_holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/AccountTextViewTheme"
+        android:hint="@string/card_holder"
+        android:inputType="textCapCharacters|textNoSuggestions|textPersonName"
+        android:autofillHints="name"/>
+
+    <EditText
+        android:id="@+id/validity_period"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/AccountTextViewTheme"
+        android:hint="@string/validity_period"
+        android:inputType="numberDecimal"
+        android:autofillHints="name"/>
+
+    <EditText
+        android:id="@+id/card_cvv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/AccountTextViewTheme"
+        android:hint="@string/card_cvv"
+        android:inputType="numberPassword"
+        android:autofillHints="name"/>
+
+    <EditText
+        android:id="@+id/pin_code"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/AccountTextViewTheme"
+        android:hint="@string/pin_code"
+        android:inputType="numberPassword"
+        android:autofillHints="name"/>
+
+</LinearLayout>
