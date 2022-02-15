@@ -48,8 +48,6 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteRecords(data : Data) = dataRepository.deleteRecords(data)
 
-    fun swap(first : Data, second : Data) = dataRepository.swap(first, second)
-
     fun copyText(text : String) {
         val clipboard = mApplication.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(COPY_LABEL, text)

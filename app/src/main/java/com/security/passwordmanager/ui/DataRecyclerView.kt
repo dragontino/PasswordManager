@@ -43,7 +43,7 @@ abstract class DataRecyclerView(
     private val layoutManager: LinearLayoutManager =
         recyclerView.layoutManager as LinearLayoutManager
 
-    protected val settings = ViewModelProvider(activity)[SettingsViewModel::class.java]
+    protected val settings = SettingsViewModel.getInstance(activity)
     protected val dataViewModel = ViewModelProvider(activity)[DataViewModel::class.java]
 
     protected lateinit var accountList : ArrayList<Data>
@@ -63,7 +63,6 @@ abstract class DataRecyclerView(
                 else BankCard()
             )
         }
-
     }
 
     fun copyAccountList() =

@@ -51,7 +51,7 @@ class BankCardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bank_card)
 
-        settings = ViewModelProvider(this)[SettingsViewModel::class.java]
+        settings = SettingsViewModel.getInstance(this)
         dataViewModel = ViewModelProvider(this)[DataViewModel::class.java]
 
         val bankName = intent.getStringExtra(EXTRA_NAME, "")

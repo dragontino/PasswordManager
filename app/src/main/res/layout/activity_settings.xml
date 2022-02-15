@@ -1,42 +1,47 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_weight="30">
 
-        <TextView
-            android:id="@+id/switchTheme"
-            style="@style/NormalTextViewTheme"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/switchThemeText"
-            android:textColor="@color/black"
-            android:gravity="center"/>
+            android:orientation="vertical">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@android:color/darker_gray"/>
+            <TextView
+                android:id="@+id/switchTheme"
+                style="@style/NormalTextViewTheme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/switchThemeText"
+                android:textColor="@color/black"
+                android:gravity="center"/>
 
-        <Button
-            android:id="@+id/button_logout"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="60dp"
-            android:text="@string/logout"
-            android:textAllCaps="false"
-            android:textColor="@color/black"
-            android:textStyle="normal"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"/>
+        </LinearLayout>
+    </ScrollView>
 
-<!--        <View-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="1dp"-->
-<!--            android:background="@android:color/darker_gray"/>-->
-    </LinearLayout>
+    <Button
+        android:id="@+id/button_questions"
+        style="@style/AboutButtons"
+        android:layout_weight="0"
+        android:layout_marginVertical="60dp"
+        android:gravity="top|center"
+        android:textColor="@color/black"
+        android:text="@string/have_questions"/>
 
-</ScrollView>
+    <Button
+        android:id="@+id/button_logout"
+        style="@style/AboutButtons"
+        android:layout_weight="1"
+        android:text="@string/logout"
+        android:textColor="@color/raspberry"/>
+</LinearLayout>

@@ -3,7 +3,7 @@
     android:autoMirrored="true"
     android:width="24dp"
     android:height="24dp"
-    android:tint="?attr/colorControlNormal"
+    android:tint="@color/raspberry"
     android:viewportHeight="24"
     android:viewportWidth="24">
 

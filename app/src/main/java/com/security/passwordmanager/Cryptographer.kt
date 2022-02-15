@@ -3,7 +3,6 @@ package com.security.passwordmanager
 import android.annotation.SuppressLint
 import android.content.Context
 import android.provider.Settings.Secure
-import java.lang.StringBuilder
 
 class Cryptographer(val context: Context) {
 
@@ -81,7 +80,7 @@ class Cryptographer(val context: Context) {
 
     @SuppressLint("HardwareIds")
     private fun fillData() {
-        val key: String = checkedKey(
+        val key = checkedKey(
                 Secure.getString(context.contentResolver, Secure.ANDROID_ID))
         var code = 32
 

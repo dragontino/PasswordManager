@@ -7,14 +7,11 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.util.PatternsCompat
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -35,7 +32,7 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private lateinit var progressBar: ProgressBar
-    private lateinit var mSupport: SettingsViewModel
+    private lateinit var settings: SettingsViewModel
     private lateinit var mEmailField: EditText
     private lateinit var mPasswordField: EditText
     private lateinit var signIn: Button
@@ -53,7 +50,7 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
         setContentView(R.layout.activity_main)
 
         mAuth = FirebaseAuth.getInstance()
-        mSupport = ViewModelProvider(this)[SettingsViewModel::class.java]
+        settings = SettingsViewModel.getInstance(this)
 
         label = findViewById(R.id.text_view_main_label)
         subtitle = findViewById(R.id.text_view_main_subtitle)
@@ -64,7 +61,7 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
         val signUp = findViewById<Button>(R.id.signUp)
 
         isPasswordRemember = findViewById(R.id.remember_password)
-        isPasswordRemember.isChecked = mSupport.isPasswordRemembered
+        isPasswordRemember.isChecked = settings.isPasswordRemembered
 
         if (isPasswordRemember.isChecked)
             startActivity(PasswordListActivity.getIntent(this))
@@ -74,7 +71,7 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
                 (TextUtils.isEmpty(mPasswordField.text) || TextUtils.isEmpty(mEmailField.text)))
                     isPasswordRemember.isChecked = false
 
-            mSupport.isPasswordRemembered = isChecked
+            settings.isPasswordRemembered = isChecked
         }
 
         progressBar = findViewById(R.id.loading)
@@ -82,8 +79,8 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
         signIn.setOnClickListener(this)
         signUp.setOnClickListener(this)
 
-        addTextChangedListener(mEmailField, true)
-        addTextChangedListener(mPasswordField, false)
+        mEmailField.addTextChangedListener(true)
+        mPasswordField.addTextChangedListener(false)
     }
 
 
@@ -93,22 +90,9 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
         updateUI()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main, menu)
-        menu.findItem(R.id.menu_item_search).isVisible = false
-        return true
-    }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.menu_item_settings)
-            startActivity(SettingsActivity.getIntent(this, false))
-
-        return super.onOptionsItemSelected(item)
-    }
-
-
-    private fun addTextChangedListener(view : EditText?, email : Boolean) {
-        view?.addTextChangedListener(object : TextWatcher {
+    private fun EditText.addTextChangedListener(email : Boolean) {
+        addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 if (email)
@@ -117,15 +101,15 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
                     validateForm(null, s.toString())
             }
 
-            override fun afterTextChanged(s: Editable) {}
-        }) ?: return
+            override fun afterTextChanged(s: Editable) = Unit
+        })
     }
 
 
     private fun updateUI() {
-        mSupport.updateThemeInScreen(window, supportActionBar)
+        settings.updateThemeInScreen(window, supportActionBar)
 
-        mSupport.fontColor.let {
+        settings.fontColor.let {
             label.setTextColor(it)
             subtitle.setTextColor(it)
             mEmailField.setTextColor(it)
@@ -135,8 +119,8 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
             mPasswordField.backgroundTintList = ColorStateList.valueOf(it)
         }
 
-        signIn.setBackgroundResource(mSupport.buttonRes)
-        isPasswordRemember.buttonTintList = ColorStateList.valueOf(mSupport.headerColor)
+        signIn.setBackgroundResource(settings.buttonRes)
+        isPasswordRemember.buttonTintList = ColorStateList.valueOf(settings.headerColor)
     }
 
 

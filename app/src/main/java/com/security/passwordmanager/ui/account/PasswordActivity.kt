@@ -35,7 +35,7 @@ class PasswordActivity : AppCompatActivity() {
             return intent
         }
     }
-    private lateinit var support : SettingsViewModel
+    private lateinit var settings : SettingsViewModel
     private lateinit var dataViewModel : DataViewModel
     private lateinit var recyclerView : AccountRecyclerView
 
@@ -46,7 +46,7 @@ class PasswordActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_password)
 
-        support = ViewModelProvider(this)[SettingsViewModel::class.java]
+        settings = SettingsViewModel.getInstance(this)
         dataViewModel = ViewModelProvider(this)[DataViewModel::class.java]
 
         val address = intent.getStringExtra(EXTRA_ADDRESS, "")
@@ -103,14 +103,14 @@ class PasswordActivity : AppCompatActivity() {
 
         recyclerView.updateRecyclerView()
 
-        support.updateThemeInScreen(window, supportActionBar)
+        settings.updateThemeInScreen(window, supportActionBar)
 
-        support.backgroundRes.let {
+        settings.backgroundRes.let {
             url.setBackgroundResource(it)
             name.setBackgroundResource(it)
         }
 
-        support.fontColor.let {
+        settings.fontColor.let {
             url.setTextColor(it)
             name.setTextColor(it)
         }

@@ -12,8 +12,8 @@ android {
         applicationId "com.security.passwordmanager"
         minSdkVersion 29
         targetSdkVersion 31
-        versionCode 1
-        versionName "0.5.0"
+        versionCode 5
+        versionName "5.0.3"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
@@ -40,11 +40,13 @@ android {
 
 dependencies {
 
+    //Firebase
     implementation platform('com.google.firebase:firebase-bom:29.0.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.android.gms:play-services-auth:20.1.0'
     implementation 'com.google.firebase:firebase-core:20.0.2'
+    implementation 'com.google.firebase:firebase-database:20.0.3'
 
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'
@@ -77,11 +79,12 @@ dependencies {
     // Integration with observables
     implementation 'androidx.compose.runtime:runtime-livedata:1.0.5'
     implementation 'androidx.compose.runtime:runtime-rxjava2:1.0.5'
-    implementation 'com.google.firebase:firebase-database:20.0.3'
+
 
     //Room
     implementation 'androidx.room:room-runtime:2.4.1'
     implementation 'androidx.room:room-ktx:2.4.1'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt "androidx.room:room-compiler:2.4.1"
     androidTestImplementation "androidx.room:room-testing:2.4.1"
 

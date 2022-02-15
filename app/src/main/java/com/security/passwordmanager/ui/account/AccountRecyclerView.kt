@@ -15,8 +15,7 @@ import com.security.passwordmanager.data.DataType
 import com.security.passwordmanager.data.Website
 import com.security.passwordmanager.show
 import com.security.passwordmanager.ui.DataRecyclerView
-
-
+import kotlin.math.min
 
 
 class AccountRecyclerView : DataRecyclerView {
@@ -57,6 +56,7 @@ class AccountRecyclerView : DataRecyclerView {
 
 
     private inner class AccountAdapter : RecyclerView.Adapter<AccountHolder>() {
+        private var minHeight = activity.window.decorView.height
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AccountHolder {
             val layoutRes = if (editable)
@@ -65,12 +65,19 @@ class AccountRecyclerView : DataRecyclerView {
                 R.layout.list_item_more_website
 
             val view = LayoutInflater.from(activity).inflate(layoutRes, parent, false)
+
             return AccountHolder(view)
         }
 
         override fun onBindViewHolder(holder: AccountHolder, position: Int) {
             val website = getData(position)
             holder.bindAccount(website, position)
+
+            if (!editable) {
+                minHeight = min(minHeight, holder.itemView.height)
+                if (position == itemCount - 1)
+                    recyclerView.minimumHeight = minHeight
+            }
         }
 
         override fun getItemCount() = accountList.size
@@ -273,8 +280,9 @@ class AccountRecyclerView : DataRecyclerView {
                 else -> nameAccount.text.toString()
             }
             val subtitle = when {
-                editable || heading.isNotEmpty() -> null
-                else -> website.login
+                editable -> null
+                nameAccount.text.isEmpty() -> website.login
+                else -> null
             }
 
             bottomDialogFragment.setHeading(heading, subtitle)
