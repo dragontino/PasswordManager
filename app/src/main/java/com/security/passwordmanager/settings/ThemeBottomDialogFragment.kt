@@ -2,7 +2,6 @@ package com.security.passwordmanager.settings
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.TextViewCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -44,7 +42,7 @@ class ThemeBottomDialogFragment(private val theme: Theme, private val activity: 
     ): View {
 
         rootView = inflater.inflate(R.layout.switch_theme_layout, container, false)
-        support = ViewModelProvider(activity)[SettingsViewModel::class.java]
+        support = SettingsViewModel.getInstance(activity)
         recyclerView = rootView.findViewById(R.id.theme_bottom_sheet_container)
 
         rootView.backgroundTintList = ColorStateList.valueOf(support.backgroundColor)
@@ -79,7 +77,7 @@ class ThemeBottomDialogFragment(private val theme: Theme, private val activity: 
 
             holder.setOnClickListener {
                 dismiss()
-                support.theme = ThemeDef.getTheme(position)
+                support.theme = ThemeDef.values()[position]
                 theme.updateTheme()
             }
         }
@@ -107,7 +105,7 @@ class ThemeBottomDialogFragment(private val theme: Theme, private val activity: 
             }
 
             val color = if (isChecked)
-                context?.getColor(R.color.raspberry) ?: Color.WHITE
+                SettingsViewModel.RASPBERRY
             else
                 support.backgroundColor
 

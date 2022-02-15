@@ -10,7 +10,6 @@ import android.widget.TimePicker
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import com.security.passwordmanager.settings.SettingsViewModel
 import java.util.*
 
@@ -55,7 +54,7 @@ class TimePickerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.dialog_time)
 
-        val support = ViewModelProvider(this)[SettingsViewModel::class.java]
+        val settings = SettingsViewModel.getInstance(this)
         val calendar = intent.getSerializableExtra(ARG_TIME) as Calendar
         val title = intent.getIntExtra(ARG_TITLE, R.string.start_time)
 
@@ -65,7 +64,7 @@ class TimePickerActivity : AppCompatActivity() {
         val minutes = calendar[Calendar.MINUTE]
 
         timePicker = layoutInflater.inflate(
-            if (support.isLightTheme()) R.layout.time_picker_light
+            if (settings.isLightTheme()) R.layout.time_picker_light
             else R.layout.time_picker_dark,
             null
         ) as TimePicker
@@ -79,7 +78,7 @@ class TimePickerActivity : AppCompatActivity() {
         val buttonCancel = findViewById<Button>(R.id.dialog_button_cancel)
         val buttonOk = findViewById<Button>(R.id.dialog_button_ok)
 
-        findViewById<View>(R.id.constraint_layout_buttons).setBackgroundColor(support.backgroundColor)
+        findViewById<View>(R.id.constraint_layout_buttons).setBackgroundColor(settings.backgroundColor)
 
         buttonCancel.setOnClickListener {
             setResult(RESULT_CANCELED)

@@ -48,11 +48,6 @@ class DataRepository(private val dataDao: DataDao) {
         else -> dataDao.deleteBankCard(data.getKey())
     }
 
-    fun swap(first : Data, second : Data) {
-        // TODO: 27.01.2022 сделать функцию перестановки местами двух элементов Data
-    }
-
-
 
     private fun sortedConcat(
             websiteList: MutableList<Website>, bankCardList: MutableList<BankCard>) : List<Data> {

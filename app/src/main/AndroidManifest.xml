@@ -12,7 +12,7 @@
         <activity
             android:name=".ui.bank.BankCardActivity"
             android:exported="false"
-            android:label="@string/bank_label"/>
+            android:label="@string/bank_label" />
         <activity
             android:name=".TimePickerActivity"
             android:exported="false"
@@ -29,7 +29,7 @@
         </activity>
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"
+            android:label="@string/settings_label"
             android:parentActivityName=".ui.main.PasswordListActivity" />
         <activity
             android:name=".ui.account.PasswordActivity"

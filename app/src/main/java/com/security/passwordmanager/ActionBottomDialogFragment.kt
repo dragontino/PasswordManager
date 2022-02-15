@@ -3,6 +3,7 @@ package com.security.passwordmanager
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Rect
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,7 +16,6 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.security.passwordmanager.settings.SettingsViewModel
 
@@ -37,7 +37,7 @@ class ActionBottomDialogFragment(private val activity: AppCompatActivity) : Bott
             savedInstanceState: Bundle?) : View {
 
         rootView = inflater.inflate(R.layout.bottom_sheet, container, false)
-        settings = ViewModelProvider(activity)[SettingsViewModel::class.java]
+        settings = SettingsViewModel.getInstance(activity)
         rootView.backgroundTintList = ColorStateList.valueOf(settings.backgroundColor)
 
         return rootView
@@ -68,7 +68,11 @@ class ActionBottomDialogFragment(private val activity: AppCompatActivity) : Bott
 
 
     fun setHeading(headText : String, subtitleText : String?) {
+        setHeading(headText, subtitleText, false)
+    }
 
+
+    fun setHeading(headText: String, subtitleText: String?, beautifulDesign: Boolean) {
         val empty = ""
 
         if (!isCreated) {
@@ -79,12 +83,19 @@ class ActionBottomDialogFragment(private val activity: AppCompatActivity) : Bott
 
         val heading = rootView.findViewById<LinearLayout>(R.id.bottom_sheet_heading)
         heading.visibility = View.VISIBLE
+        rootView.findViewById<View>(R.id.header_divider).visibility = View.VISIBLE
 
         val head = heading.findViewById<TextView>(R.id.list_item_text_view_name)
         val subtitle = heading.findViewById<TextView>(R.id.list_item_text_view_subtitle)
 
         head.text = headText
         head.setTextColor(settings.fontColor)
+
+        if (beautifulDesign) {
+            //TODO не работает, переделать
+            head.textSize = 70F
+            head.typeface = Typeface.createFromAsset(activity.assets, "fonts/beautiful_font.otf")
+        }
 
         if (subtitleText == empty)
             subtitle.visibility = View.GONE
@@ -115,7 +126,7 @@ class ActionBottomDialogFragment(private val activity: AppCompatActivity) : Bott
 
         TextViewCompat.setCompoundDrawableTintList(
             child,
-            ColorStateList.valueOf(settings.fontColor)
+            ColorStateList.valueOf(SettingsViewModel.RASPBERRY)
         )
 
         val drawableImage = context?.let { ContextCompat.getDrawable(it, image) }

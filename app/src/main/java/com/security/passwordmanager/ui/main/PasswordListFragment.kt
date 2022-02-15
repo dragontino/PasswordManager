@@ -87,7 +87,7 @@ class PasswordListFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.menu_item_settings)
-            startActivity(SettingsActivity.getIntent(context, true))
+            startActivity(SettingsActivity.getIntent(context))
         return super.onOptionsItemSelected(item)
     }
 
@@ -96,7 +96,7 @@ class PasswordListFragment : Fragment() {
         setHasOptionsMenu(true)
 
         activity?.let {
-            settings = ViewModelProvider(it)[SettingsViewModel::class.java]
+            settings = SettingsViewModel.getInstance(it)
             dataViewModel = ViewModelProvider(it)[DataViewModel::class.java]
         }
 
@@ -117,6 +117,11 @@ class PasswordListFragment : Fragment() {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun updateUI() {
+        // TODO: 09.02.2022 убрать!!!
+//        activity?.let {
+//            settings = ViewModelProvider(it)[SettingsViewModel::class.java]
+//        }
+
         if (adapter == null) {
             adapter = PasswordAdapter()
             mainRecyclerView.adapter = adapter

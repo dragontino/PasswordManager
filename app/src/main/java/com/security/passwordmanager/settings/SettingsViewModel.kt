@@ -11,6 +11,8 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.ActionBar
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.security.passwordmanager.ActionBottom
 import com.security.passwordmanager.Pair
 import com.security.passwordmanager.R
@@ -20,8 +22,28 @@ import java.util.*
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
+    companion object {
+        val RASPBERRY = Color.rgb(250, 5, 107)
+
+        @Volatile
+        private var INSTANCE: SettingsViewModel? = null
+
+        fun getInstance(owner: ViewModelStoreOwner) : SettingsViewModel {
+            val temp = INSTANCE
+            if (temp != null)
+                return temp
+
+            synchronized(this) {
+                val instance = ViewModelProvider(owner)[SettingsViewModel::class.java]
+
+                INSTANCE = instance
+                return instance
+            }
+        }
+    }
+
     private val mApplication = application
-    private val settingsRepository : SettingsRepository
+    private val settingsRepository: SettingsRepository
     private val preferences = application.getSharedPreferences(APP_PREFERENCES.name, Context.MODE_PRIVATE)
     private var startTime = getDateFromPreferences(
         keyHours = APP_PREFERENCES_START_HOURS,
@@ -36,18 +58,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     )
 
     var theme : ThemeDef
-        get() = ThemeDef.getTheme(settingsRepository.getTheme())
+        get() = ThemeDef.values().find {
+            it.themeName == settingsRepository.getTheme()
+        } ?: ThemeDef.LIGHT_THEME
         set(value) {
             settingsRepository.updateTheme(value.themeName)
             updateColors()
         }
 
-//    val liveTheme : LiveData<ThemeDef> = MutableLiveData(theme)
-
 
     @ColorInt var backgroundColor = Color.WHITE
     @ColorInt var fontColor = Color.BLACK
-    @ColorInt var headerColor = application.getColor(R.color.raspberry)
+    @ColorInt var headerColor = RASPBERRY
     @ColorInt var layoutBackgroundColor = application.getColor(R.color.light_gray)
     @ColorInt var darkerGrayColor = application.getColor(android.R.color.darker_gray)
 
@@ -82,7 +104,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         ThemeDef.LIGHT_THEME -> true
         ThemeDef.DARK_THEME -> false
         ThemeDef.SYSTEM_THEME -> {
-            val currentNightMode : Int =
+            val currentNightMode =
                 mApplication.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
             currentNightMode == Configuration.UI_MODE_NIGHT_NO
@@ -97,7 +119,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private fun updateColors() = if (isLightTheme()) {
         backgroundColor = Color.WHITE
         fontColor = Color.BLACK
-        headerColor = mApplication.getColor(R.color.raspberry)
+        headerColor = RASPBERRY
         layoutBackgroundColor = mApplication.getColor(R.color.light_gray)
         backgroundRes = R.drawable.text_view_style
         buttonRes = R.drawable.button_style
@@ -112,7 +134,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
 
-    fun getIndexTheme() = ThemeDef.getIndexTheme(theme)
+    fun getIndexTheme() = ThemeDef.values().indexOf(theme)
 
     fun setStartTime(startTime : Calendar) {
         this.startTime = startTime

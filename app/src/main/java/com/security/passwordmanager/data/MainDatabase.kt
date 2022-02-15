@@ -30,7 +30,6 @@ abstract class MainDatabase : RoomDatabase() {
                         MainDatabase::class.java,
                         "PasswordBase"
                 )
-                    .fallbackToDestructiveMigration()
                     .allowMainThreadQueries()
                     .build()
 
