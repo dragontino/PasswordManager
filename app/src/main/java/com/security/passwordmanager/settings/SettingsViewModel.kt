@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.Window
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
+import androidx.annotation.StyleRes
 import androidx.appcompat.app.ActionBar
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -71,6 +72,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
 
     @DrawableRes var backgroundRes = R.drawable.text_view_style
     @DrawableRes var buttonRes = R.drawable.button_style
+    @StyleRes var switchStyle = R.style.SwitchLight
 
     var isPasswordRemembered
         get() = preferences.getBoolean(APP_PREFERENCES_IS_PASSWORD_REMEMBERED.title, false)
@@ -119,6 +121,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         layoutBackgroundColor = mApplication.getColor(R.color.light_gray)
         backgroundRes = R.drawable.text_view_style
         buttonRes = R.drawable.button_style
+        switchStyle = R.style.SwitchLight
     }
     else {
         backgroundColor = mApplication.getColor(R.color.background_dark)
@@ -127,6 +130,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         layoutBackgroundColor = mApplication.getColor(R.color.gray)
         backgroundRes = R.drawable.text_view_dark_style
         buttonRes = R.drawable.button_style_dark
+        switchStyle = R.style.SwitchDark
     }
 
 

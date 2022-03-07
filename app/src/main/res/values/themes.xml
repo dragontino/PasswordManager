@@ -88,4 +88,16 @@
         <item name="android:textSize">17sp</item>
         <item name="android:textAllCaps">false</item>
     </style>
+    
+    <style name="SwitchLight" parent="Theme.MaterialComponents.Light">
+        <item name="colorControlActivated">@color/raspberry</item>
+        <item name="colorSwitchThumbNormal">@color/light_gray</item>
+        <item name="android:colorForeground">@android:color/darker_gray</item>
+    </style>
+
+    <style name="SwitchDark" parent="Theme.MaterialComponents.DayNight">
+        <item name="colorControlActivated">@color/header_dark</item>
+        <item name="colorSwitchThumbNormal">@color/light_gray</item>
+        <item name="android:colorForeground">@color/white</item>
+    </style>
 </resources>

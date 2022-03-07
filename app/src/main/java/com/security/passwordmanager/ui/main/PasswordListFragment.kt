@@ -54,6 +54,7 @@ class PasswordListFragment : Fragment() {
     ): View {
 
         binding = FragmentPasswordListBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 
@@ -66,7 +67,7 @@ class PasswordListFragment : Fragment() {
         drawSearchView()
 
         searchView.setOnQueryTextListener(
-            object : SearchView.OnQueryTextListener {
+            object: SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String) = false
 
                 @SuppressLint("NotifyDataSetChanged")
@@ -97,30 +98,26 @@ class PasswordListFragment : Fragment() {
             dataViewModel = ViewModelProvider(it)[DataViewModel::class.java]
         }
 
-        dataList = dataViewModel.getDataList()
-
         openedView = savedInstanceState.getInt(OPENED_VIEW_KEY, -1)
     }
 
+
+    @SuppressLint("NotifyDataSetChanged")
     override fun onResume() {
         super.onResume()
-        updateUI()
+
+        dataList = dataViewModel.getDataList()
+        if (adapter == null) {
+            adapter = PasswordAdapter()
+            binding.mainRecyclerView.adapter = adapter
+        } else
+            adapter?.notifyDataSetChanged()
     }
+
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(OPENED_VIEW_KEY, openedView)
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    private fun updateUI() {
-
-        if (adapter == null) {
-            adapter = PasswordAdapter()
-            binding.mainRecyclerView.adapter = adapter
-        }
-        else
-            adapter?.notifyDataSetChanged()
     }
 
     private fun drawSearchView() {
@@ -133,11 +130,6 @@ class PasswordListFragment : Fragment() {
         searchImage.imageTintList = ColorStateList.valueOf(Color.WHITE)
         clearView.imageTintList = ColorStateList.valueOf(Color.WHITE)
     }
-
-    private fun getOpenedData() = if (openedView == -1)
-        Website()
-    else
-        dataList[openedView]
 
 
 
@@ -170,28 +162,7 @@ class PasswordListFragment : Fragment() {
         }
 
         override fun getItemCount() = dataList.size
-
     }
-
-    private fun LinearLayout.getTextFields() = Pair(
-        first = findViewById<TextView>(R.id.text_view_name),
-        second = findViewById<TextView>(R.id.text_view_subtitle)
-    )
-
-
-    private fun LinearLayout.setText(headingText: String, subtitleText: String) {
-        val fields = getTextFields()
-        fields[0].text = headingText
-        fields[1].text = subtitleText
-        fields.setAll { it.setBackgroundColor(settings.backgroundColor) }
-        fields[0].setTextColor(settings.fontColor)
-    }
-
-    private fun LinearLayout.getText() : Pair<String, String> {
-        val fields = getTextFields()
-        return getPair { fields[it].text.toString() }
-    }
-
 
 
 
@@ -200,48 +171,42 @@ class PasswordListFragment : Fragment() {
         RecyclerView.ViewHolder(itemBinding.root), View.OnClickListener {
 
         private lateinit var accountList: ArrayList<Data>
-
-//        private val mainInfoRecyclerView: DataRecyclerView
-//        private val accountRecyclerView = AccountRecyclerView(
-//            activity = activity as AppCompatActivity,
-//            recyclerView = itemBinding.recyclerViewMoreInfo,
-//            false
-//        )
-//        private var bankRecyclerView: BankRecyclerView? = null
-
         private var moreInfoAdapter: MoreInfoAdapter? = null
 
         private lateinit var data: Data
 
         init {
-//            if (openedView != -1 && getOpenedData() is BankCard)
-//                bankRecyclerView = BankRecyclerView(
-//                    activity = activity as AppCompatActivity,
-//                    recyclerView = itemBinding.bankRecyclerViewMoreInfo,
-//                    editable = false
-//                )
-//
-//            mainInfoRecyclerView = bankRecyclerView ?: accountRecyclerView
-
             itemBinding.buttonMore.setOnClickListener(this)
         }
 
-        @SuppressLint("NotifyDataSetChanged")
+
+        private fun LinearLayout.getTextFields() = Pair(
+            first = findViewById<TextView>(R.id.text_view_name),
+            second = findViewById<TextView>(R.id.text_view_subtitle)
+        )
+
+
+        private fun LinearLayout.setText(headingText: String, subtitleText: String) {
+            val fields = getTextFields()
+            fields[0].text = headingText
+            fields[1].text = subtitleText
+            fields.setAll { it.setBackgroundColor(settings.backgroundColor) }
+            fields[0].setTextColor(settings.fontColor)
+        }
+
+        private fun LinearLayout.getText() : Pair<String, String> {
+            val fields = getTextFields()
+            return getPair { fields[it].text.toString() }
+        }
+
+
+
         fun bindPassword(data: Data, isShown: Boolean) {
             this.data = data
             accountList = dataViewModel.getAccountList(data) as ArrayList<Data>
 
             moreInfoAdapter = MoreInfoAdapter(accountList)
             itemBinding.recyclerViewMoreInfo.adapter = moreInfoAdapter
-
-//            accountRecyclerView.key = data.key
-//
-//            if (data is BankCard) {
-//                bankRecyclerView?.key = data.key
-//
-//                if (accountRecyclerView.isEmpty())
-//                    accountRecyclerView.setVisibility(View.GONE)
-//            }
 
             updateArrow(isShown)
             setVisibility(isShown)
@@ -260,12 +225,6 @@ class PasswordListFragment : Fragment() {
         private fun setVisibility(visible: Boolean) {
             val visibility = if (visible) View.VISIBLE else View.GONE
             itemBinding.recyclerViewMoreInfo.visibility = visibility
-
-            if (visible)
-                itemBinding.recyclerViewMoreInfo.post {
-                    itemBinding.recyclerViewMoreInfo.scrollToPosition(accountList.size - 1)
-                }
-//            bankRecyclerView?.setVisibility(visibility)
         }
 
         override fun onClick(v: View?) {
@@ -288,14 +247,15 @@ class PasswordListFragment : Fragment() {
 
             bottomDialogFragment.addView(R.drawable.copy, R.string.copy_info) {
                 dataViewModel.copyAccountList(accountList)
-//                mainInfoRecyclerView.copyAccountList()
                 bottomDialogFragment.dismiss()
             }
 
             bottomDialogFragment.addView(R.drawable.delete, R.string.delete_password) {
                 dataViewModel.deleteRecords(data)
+                // TODO: 07.03.2022 удалить нахуй
+                dataList = dataViewModel.getDataList()
                 bottomDialogFragment.dismiss()
-                updateUI()
+                adapter?.notifyItemRemoved(adapterPosition)
             }
             openBottomSheet(bottomDialogFragment)
         }
@@ -325,10 +285,10 @@ class PasswordListFragment : Fragment() {
                 val layoutInflater = LayoutInflater.from(context)
 
                 val moreInfoBinding = when(viewType) {
-                    DataType.BANK_CARD.number -> ListItemMoreBankCardBinding
+                    DataType.BANK_CARD.number -> MoreBankCardBinding
                         .inflate(layoutInflater, parent, false)
 
-                    else -> ListItemMoreWebsiteBinding
+                    else -> MoreWebsiteBinding
                         .inflate(layoutInflater, parent, false)
                 }
 
@@ -347,7 +307,7 @@ class PasswordListFragment : Fragment() {
 
 
         private inner class MoreInfoHolder(private val moreInfoBinding: ViewBinding):
-            RecyclerView.ViewHolder(moreInfoBinding.root), View.OnClickListener {
+            RecyclerView.ViewHolder(moreInfoBinding.root) {
 
             private lateinit var data: Data
             private var pos = 0
@@ -372,15 +332,19 @@ class PasswordListFragment : Fragment() {
 
             init {
                 when (moreInfoBinding) {
-                    is ListItemMoreWebsiteBinding -> {
-                        moreInfoBinding.buttonOpenUrl.setOnClickListener(this)
+                    is MoreWebsiteBinding -> {
+                        moreInfoBinding.buttonOpenUrl.setOnClickListener {
+                            openUrl()
+                        }
 
                         moreInfoBinding.password.buttonVisibility.show()
-                        moreInfoBinding.password.buttonVisibility.setOnClickListener(this)
+                        moreInfoBinding.password.buttonVisibility.setOnClickListener {
+                            updatePasswordView()
+                        }
 
                         updatePasswordView(isPasswordVisible)
                     }
-                    is ListItemMoreBankCardBinding -> {
+                    is MoreBankCardBinding -> {
                         //todo доделать bankCard binding
                     }
                 }
@@ -391,36 +355,32 @@ class PasswordListFragment : Fragment() {
                 this.pos = position
 
                 when (moreInfoBinding) {
-                    is ListItemMoreWebsiteBinding -> {
+                    is MoreWebsiteBinding -> {
                         if (data !is Website) return
 
-                        moreInfoBinding.apply {
+                        moreInfoBinding.run {
                             login.setText(data.login)
                             password.setText(data.password)
                             comment.setText(data.comment)
-                        }
 
-                        if (data.nameAccount.isEmpty())
-                            moreInfoBinding.nameAccount.hide()
-                        else
-                            moreInfoBinding.nameAccount.setText(data.nameAccount)
+                            if (data.nameAccount.isEmpty())
+                                nameAccount.hide()
+                            else
+                                nameAccount.setText(data.nameAccount)
 
-                        if (data.comment.isEmpty()) {
-                            moreInfoBinding.comment.apply {
-                                textView.hide()
-                                fieldItemButtonCopy.hide()
+                            if (data.comment.isEmpty()) {
+                                comment.textView.hide()
+                                comment.fieldItemButtonCopy.hide()
+                                commentHead.hide()
                             }
-                            moreInfoBinding.commentHead.hide()
-                        }
 
-                        createBottomSheet()
+                            createBottomSheet()
 
-                        //colors
-                        moreInfoBinding.apply {
+                            //colors
+                            root.backgroundTintList =
+                                ColorStateList.valueOf(settings.layoutBackgroundColor)
 
-                            root.backgroundTintList = ColorStateList.valueOf(settings.layoutBackgroundColor)
-
-                            for(item in arrayOf(login, password, comment)) {
+                            for (item in arrayOf(login, password, comment)) {
                                 item.textView.setBackgroundColor(settings.layoutBackgroundColor)
                                 item.textView.setTextColor()
                             }
@@ -457,7 +417,7 @@ class PasswordListFragment : Fragment() {
             }
 
             fun updatePasswordView(visibility: Boolean) =
-                (moreInfoBinding as ListItemMoreWebsiteBinding).apply {
+                (moreInfoBinding as MoreWebsiteBinding).apply {
                     if (visibility) {
                         password.textView.inputType = InputType.TYPE_CLASS_TEXT
                         password.buttonVisibility.setImageResource(R.drawable.visibility_off)
@@ -473,7 +433,7 @@ class PasswordListFragment : Fragment() {
 
             //todo нужно ли в bankCard?
             fun createBottomSheet() {
-                moreInfoBinding as ListItemMoreWebsiteBinding
+                moreInfoBinding as MoreWebsiteBinding
 
                 val heading = if (moreInfoBinding.nameAccount.isEmpty()) {
                     (data as Website).login
@@ -501,13 +461,6 @@ class PasswordListFragment : Fragment() {
 
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(address))
                 startActivity(intent)
-            }
-
-            override fun onClick(v: View?) {
-                when (v?.id) {
-                    R.id.button_visibility -> updatePasswordView()
-                    R.id.button_open_url -> openUrl()
-                }
             }
         }
     }

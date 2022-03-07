@@ -1,4 +1,6 @@
 package com.security.passwordmanager.data
+import com.security.passwordmanager.data.DataType.BANK_CARD
+import com.security.passwordmanager.data.DataType.WEBSITE
 import kotlin.math.min
 
 class DataRepository(private val dataDao: DataDao) {
@@ -19,12 +21,22 @@ class DataRepository(private val dataDao: DataDao) {
         val websiteList = dataDao.getWebsiteList()
         val bankCardList = dataDao.getBankCardList()
 
-        return sortedConcat(websiteList = websiteList, bankCardList = bankCardList)
+        return sortedConcat(websiteList, bankCardList)
     }
 
-    fun getAccountList(key : String, type : DataType) = when(type) {
-        DataType.WEBSITE -> dataDao.getAccountList(key)
-        DataType.BANK_CARD -> dataDao.getBankAccountList(key)
+    fun getAccountList(key : String, type : DataType): List<Data> {
+        val accountList = dataDao.getAccountList(key)
+
+        return when (type) {
+            BANK_CARD -> {
+                val bankAccountList = dataDao.getBankAccountList(key)
+
+                sortedConcat(accountList, bankAccountList) { d1, d2 ->
+                    d1.id > d2.id
+                }
+            }
+            WEBSITE -> accountList
+        }
     }
 
     fun searchData(query : String?) : List<Data> {
@@ -50,7 +62,11 @@ class DataRepository(private val dataDao: DataDao) {
 
 
     private fun sortedConcat(
-            websiteList: MutableList<Website>, bankCardList: MutableList<BankCard>) : List<Data> {
+        websiteList: MutableList<Website>,
+        bankCardList: MutableList<BankCard>,
+        //TODO переделать
+        funCompare: (Data, Data) -> Boolean = { d1, d2 -> d1 > d2 }
+    ): List<Data> {
 
         if (bankCardList.isEmpty())
             return websiteList.check()
@@ -60,12 +76,13 @@ class DataRepository(private val dataDao: DataDao) {
         val dataList = ArrayList<Data>()
 
         val min = min(websiteList.size, bankCardList.size)
-        var w = 0; var b = 0
+        var w = 0
+        var b = 0
 
         while (w < min && b < min) {
             val website = websiteList[w]
             val bankCard = bankCardList[b]
-            if (website > bankCard) {
+            if (funCompare(website, bankCard)) {
                 dataList.checkAndAdd(website)
                 w++
             } else {

@@ -42,6 +42,12 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
         else -> DataType.WEBSITE
     })
 
+
+//    fun observe(owner: LifecycleOwner) {
+//
+//    }
+
+
     fun searchData(query: String): List<Data> = dataRepository.searchData(query)
 
     fun deleteData(data : Data) = dataRepository.deleteData(data)
