@@ -10,29 +10,28 @@ import android.widget.*
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.security.passwordmanager.ActionBottom
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.DataType
 import com.security.passwordmanager.data.Website
+import com.security.passwordmanager.isEmpty
 import com.security.passwordmanager.show
 import com.security.passwordmanager.ui.DataRecyclerView
-import kotlin.math.min
 
 
 class AccountRecyclerView : DataRecyclerView {
 
     constructor(
         activity: AppCompatActivity,
-        @IdRes recyclerIdRes: Int,
+        recyclerView: RecyclerView,
         address: String,
-    ) : super(activity, recyclerIdRes, DataType.WEBSITE, address)
+    ) : super(activity, recyclerView, DataType.WEBSITE, address)
 
     constructor(
-        rootView: View,
         activity: AppCompatActivity,
-        @IdRes recyclerIdRes: Int,
+        recyclerView: RecyclerView,
         editable: Boolean
-    ) : super(rootView, activity, recyclerIdRes, DataType.WEBSITE, editable)
-
+    ) : super(activity, recyclerView, DataType.WEBSITE, editable = editable)
 
 
     private var adapter : AccountAdapter? = null
@@ -56,7 +55,6 @@ class AccountRecyclerView : DataRecyclerView {
 
 
     private inner class AccountAdapter : RecyclerView.Adapter<AccountHolder>() {
-        private var minHeight = activity.window.decorView.height
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AccountHolder {
             val layoutRes = if (editable)
@@ -72,12 +70,6 @@ class AccountRecyclerView : DataRecyclerView {
         override fun onBindViewHolder(holder: AccountHolder, position: Int) {
             val website = getData(position)
             holder.bindAccount(website, position)
-
-            if (!editable) {
-                minHeight = min(minHeight, holder.itemView.height)
-                if (position == itemCount - 1)
-                    recyclerView.minimumHeight = minHeight
-            }
         }
 
         override fun getItemCount() = accountList.size
@@ -87,7 +79,7 @@ class AccountRecyclerView : DataRecyclerView {
 
     private inner class AccountHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener {
-        private val nameAccount = itemView.findViewById<EditText>(R.id.list_item_name_of_account)
+        private val nameAccount = itemView.findViewById<EditText>(R.id.name_account)
 
         private val login: TextView
         private val password: TextView
@@ -113,38 +105,40 @@ class AccountRecyclerView : DataRecyclerView {
 
         private var renamingText = R.string.rename_account
 
+        private val bottomDialogFragment = ActionBottom.newInstance(activity)
+
         init {
             if (editable) {
-                login = itemView.findViewById(R.id.list_item_login)
-                password = itemView.findViewById(R.id.list_item_password)
-                comment = itemView.findViewById(R.id.list_item_comment)
+                login = itemView.findViewById(R.id.login)
+                password = itemView.findViewById(R.id.password)
+                comment = itemView.findViewById(R.id.comment)
 
-                passwordVisibility = itemView.findViewById(R.id.field_item_button_visibility)
+                passwordVisibility = itemView.findViewById(R.id.button_visibility)
 
                 editName = itemView.findViewById(R.id.edit_name_of_account)
                 editName?.setOnClickListener(this)
             }
             else {
-                login = itemView.getTextViewFromLayout(R.id.list_item_login)
-                password = itemView.getTextViewFromLayout(R.id.list_item_password)
-                comment = itemView.getTextViewFromLayout(R.id.list_item_comment)
+                login = itemView.getTextViewFromLayout(R.id.login)
+                password = itemView.getTextViewFromLayout(R.id.password)
+                comment = itemView.getTextViewFromLayout(R.id.comment)
 
-                loginHead = itemView.findViewById(R.id.list_item_login_head)
-                passwordHead = itemView.findViewById(R.id.list_item_password_head)
-                commentHead = itemView.findViewById(R.id.list_item_comment_head)
+                loginHead = itemView.findViewById(R.id.login_head)
+                passwordHead = itemView.findViewById(R.id.password_head)
+                commentHead = itemView.findViewById(R.id.comment_head)
 
-                loginCopy = itemView.getButtonCopyFromLayout(R.id.list_item_login)
-                passwordCopy = itemView.getButtonCopyFromLayout(R.id.list_item_password)
-                commentCopy = itemView.getButtonCopyFromLayout(R.id.list_item_comment)
+                loginCopy = itemView.getButtonCopyFromLayout(R.id.login)
+                passwordCopy = itemView.getButtonCopyFromLayout(R.id.password)
+                commentCopy = itemView.getButtonCopyFromLayout(R.id.comment)
 
-                passwordVisibility = itemView.findViewById<LinearLayout>(R.id.list_item_password)
-                    .findViewById(R.id.field_item_button_visibility)
+                passwordVisibility = itemView.findViewById<LinearLayout>(R.id.password)
+                    .findViewById(R.id.button_visibility)
 
-                buttonOpenUrl = itemView.findViewById(R.id.list_item_button_open_url)
+                buttonOpenUrl = itemView.findViewById(R.id.button_open_url)
                 buttonOpenUrl?.setOnClickListener(this)
             }
 
-            passwordVisibility.visibility = View.VISIBLE
+            passwordVisibility.show()
             passwordVisibility.setOnClickListener(this)
 
             updatePasswordView(isPasswordVisible)
@@ -152,15 +146,14 @@ class AccountRecyclerView : DataRecyclerView {
 
         private fun View.getTextViewFromLayout(@IdRes resId : Int) =
             findViewById<LinearLayout>(resId)
-                .findViewById<TextView>(R.id.field_item_text_view)
+                .findViewById<TextView>(R.id.text_view)
 
         private fun View.getButtonCopyFromLayout(@IdRes resId: Int) =
             findViewById<LinearLayout>(resId)
                 .findViewById<ImageButton>(R.id.field_item_button_copy)
 
-        private fun TextView.setTextColor() {
+        private fun TextView.setTextColor() =
             setTextColor(settings.fontColor)
-        }
 
         fun TextView.hide(@IdRes headId: Int) {
             visibility = View.GONE
@@ -200,11 +193,11 @@ class AccountRecyclerView : DataRecyclerView {
             }
 
             if (!editable && website.comment.isEmpty()) {
-                comment.hide(R.id.list_item_comment_head)
+                comment.hide(R.id.comment_head)
                 commentCopy?.visibility = View.GONE
             }
 
-            itemView.setBackgroundColor(settings.layoutBackgroundColor)
+            itemView.backgroundTintList = ColorStateList.valueOf(settings.layoutBackgroundColor)
 
             login.setBackground()
             password.setBackground()
@@ -250,10 +243,10 @@ class AccountRecyclerView : DataRecyclerView {
                 editName?.setOnClickListener {
                     bottomDialogFragment.show(activity.supportFragmentManager)
                 }
-            else
-                itemView.setOnClickListener {
-                    bottomDialogFragment.show(activity.supportFragmentManager)
-                }
+//            else
+//                itemView.findViewById<LinearLayout>(R.id.website_layout).setOnClickListener {
+//                    bottomDialogFragment.show(activity.supportFragmentManager)
+//                }
         }
 
         fun updatePasswordView() {
@@ -261,7 +254,7 @@ class AccountRecyclerView : DataRecyclerView {
             updatePasswordView(isPasswordVisible)
         }
 
-        fun updatePasswordView(visibility : Boolean) = if (visibility) {
+        fun updatePasswordView(visibility: Boolean) = if (visibility) {
             password.inputType = InputType.TYPE_CLASS_TEXT
             passwordVisibility.setImageResource(R.drawable.visibility_off)
             passwordVisibility.contentDescription = activity.getString(R.string.hide_password)
@@ -276,12 +269,12 @@ class AccountRecyclerView : DataRecyclerView {
         fun createBottomSheet() {
             val heading = when {
                 editable -> website.nameAccount
-                nameAccount.text.isEmpty() -> website.nameWebsite
+                nameAccount.isEmpty() -> website.nameWebsite
                 else -> nameAccount.text.toString()
             }
             val subtitle = when {
                 editable -> null
-                nameAccount.text.isEmpty() -> website.login
+                nameAccount.isEmpty() -> website.login
                 else -> null
             }
 
@@ -373,8 +366,8 @@ class AccountRecyclerView : DataRecyclerView {
 
         override fun onClick(v: View?) {
             when(v?.id) {
-                R.id.field_item_button_visibility -> updatePasswordView()
-                R.id.list_item_button_open_url -> openUrl()
+                R.id.button_visibility -> updatePasswordView()
+                R.id.button_open_url -> openUrl()
             }
         }
     }

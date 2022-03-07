@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:visibility="gone"
     android:layout_margin="@dimen/activity_horizontal_margin">
 
+    <include
+        layout="@layout/divider_view"/>
+
     <TextView
-        android:id="@+id/list_item_theme_text_view"
+        android:id="@+id/times_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/NormalTextViewTheme"
-        android:layout_margin="0dp"
-        android:textSize="17sp"
-        app:drawableEndCompat="@drawable/ic_baseline_radio_button_checked_24"
-        app:drawableTint="@color/white"/>
+        android:layout_marginTop="4dp"
+        android:alpha="0.8"
+        android:paddingHorizontal="8dp"
+        android:gravity="start|center"
+        android:fontFamily="@font/beautiful_font"
+        android:text="@string/changing_theme_time"
+        android:textSize="18sp"/>
 
     <LinearLayout
-        android:id="@+id/list_item_theme_layout_time"
         android:orientation="horizontal"
-        android:layout_marginTop="16dp"
         android:layout_marginBottom="0dp"
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -44,5 +46,4 @@
             style="@style/NormalTextViewTheme"/>
 
     </LinearLayout>
-
 </LinearLayout>

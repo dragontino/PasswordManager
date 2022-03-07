@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:layout_margin="@dimen/activity_vertical_margin"
-    android:background="@color/light_gray">
+    android:background="@drawable/data_element_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,7 +14,7 @@
         android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/list_item_name_of_account"
+            android:id="@+id/name_account"
             android:layout_weight="4"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -22,7 +22,7 @@
             android:inputType="text"
             android:text="@string/account_start"
             android:focusable="true"
-            android:nextFocusDown="@id/list_item_login"
+            android:nextFocusDown="@id/login"
             tools:ignore="Autofill,LabelFor" />
 
         <Button
@@ -36,7 +36,7 @@
     </LinearLayout>
 
     <EditText
-        android:id="@+id/list_item_login"
+        android:id="@+id/login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/AccountTextViewTheme"
@@ -46,7 +46,7 @@
         android:inputType="textNoSuggestions"
         android:textIsSelectable="true"
         android:autofillHints="@string/login"
-        android:nextFocusDown="@id/list_item_password"/>
+        android:nextFocusDown="@id/password"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -55,7 +55,7 @@
         android:layout_margin="@dimen/activity_horizontal_margin">
 
         <EditText
-            android:id="@+id/list_item_password"
+            android:id="@+id/password"
             style="@style/AccountTextViewTheme"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -64,7 +64,7 @@
             android:background="@drawable/text_view_gray_style"
             android:hint="@string/password"
             android:inputType="textPassword"
-            android:nextFocusDown="@id/list_item_comment"
+            android:nextFocusDown="@id/comment"
             android:textIsSelectable="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -72,21 +72,21 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
-            android:id="@+id/field_item_button_visibility"
+            android:id="@+id/button_visibility"
             style="@style/UtilityButtons"
             android:contentDescription="@string/show_password"
             android:src="@drawable/visibility_on"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/list_item_password"
+            app:layout_constraintEnd_toEndOf="@+id/password"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintVertical_bias="0.5"
-            app:layout_constraintStart_toStartOf="@+id/list_item_password"
+            app:layout_constraintStart_toStartOf="@+id/password"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <EditText
-        android:id="@+id/list_item_comment"
+        android:id="@+id/comment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/AccountTextViewTheme"

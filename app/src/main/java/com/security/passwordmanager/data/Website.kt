@@ -3,34 +3,34 @@ package com.security.passwordmanager.data
 import android.content.Context
 import androidx.room.Entity
 import androidx.room.Ignore
-import com.security.passwordmanager.Cryptographer
 import com.security.passwordmanager.R
 
 
 @Entity(tableName = "WebsiteTable")
 class Website(
-        id: Int,
-        var address: String,
-        var nameWebsite: String,
-        var nameAccount: String,
-        var login: String,
-        var password: String,
-        var comment: String) : Data(id) {
+        id: Int = 0,
+        var address: String = "",
+        var nameWebsite: String = "",
+        var nameAccount: String = "",
+        var login: String = "",
+        var password: String = "",
+        var comment: String = "") : Data(id) {
 
     @Ignore
-    constructor() : this(0, "", "", "", "", "", "")
+    override val key = address
 
-    override fun getKey() = address
+    @Ignore
+    override val type = DataType.WEBSITE
 
-    override fun encrypt(cryptographer: Cryptographer): Data {
-//        login = cryptographer.encrypt(login)
-//        password = cryptographer.encrypt(password)
+    override fun encrypt(encrypt: (String) -> (String)): Data {
+//        login = encrypt(login)
+//        password = encrypt(password)
         return this
     }
 
-    override fun decrypt(cryptographer: Cryptographer): Data {
-//        login = cryptographer.decrypt(login)
-//        password = cryptographer.decrypt(password)
+    override fun decrypt(decrypt: (String) -> String): Data {
+//        login = decrypt(login)
+//        password = decrypt(password)
         return this
     }
 

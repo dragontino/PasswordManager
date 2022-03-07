@@ -9,7 +9,6 @@ import com.security.passwordmanager.settings.ThemeBottomDialogFragment
 class ActionBottom {
 
     companion object {
-
         const val TAG = "ActionBottomDialog"
 
         fun newInstance(activity: AppCompatActivity) = ActionBottomDialogFragment(activity)

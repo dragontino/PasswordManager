@@ -17,7 +17,7 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
 
     private val mApplication : Application = application
     private val dataRepository : DataRepository
-    private val mCryptographer = Cryptographer(application)
+    private val cryptographer = Cryptographer(application)
 
     init {
         val dataDao = MainDatabase.getDatabase(application).dataDao()
@@ -25,22 +25,22 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addData(data : Data) =
-        dataRepository.addData(data.encrypt(mCryptographer))
+        dataRepository.addData(data.encrypt(cryptographer::encrypt))
 
     fun updateData(data: Data) =
-        dataRepository.updateData(data.encrypt(mCryptographer))
+        dataRepository.updateData(data.encrypt(cryptographer::decrypt))
 
-    fun getDataList(): List<Data> {
-        val dataList = dataRepository.getDataList()
-        decryptList(dataList.toMutableList())
-        return dataList
-    }
+    fun getDataList() =
+        dataRepository.getDataList()
 
-    fun getAccountList(key : String, type : DataType) : List<Data> {
-        val accountList = dataRepository.getAccountList(key, type)
-        decryptList(accountList.toMutableList())
-        return accountList
-    }
+    fun getAccountList(key: String, type: DataType) =
+        dataRepository.getAccountList(key, type)
+
+    fun getAccountList(data: Data) = getAccountList(data.key, when(data) {
+        is Website -> DataType.WEBSITE
+        is BankCard -> DataType.BANK_CARD
+        else -> DataType.WEBSITE
+    })
 
     fun searchData(query: String): List<Data> = dataRepository.searchData(query)
 
@@ -56,13 +56,13 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun copyData(data: Data) {
-        val dataString = data.toString(mApplication, true)
+        val dataString = data.toString(mApplication)
         copyText(dataString)
     }
 
     fun copyAccountList(accountList: List<Data>) {
         val builder = StringBuilder(
-                accountList[0].toString(mApplication, true))
+                accountList[0].toString(mApplication))
 
         for (index in 1 until accountList.size) {
             val d = accountList[index]
@@ -76,7 +76,7 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
     private fun decryptList(list: MutableList<Data>) {
         for (i in list.indices) {
             val data = list[i]
-            list[i] = data.decrypt(mCryptographer)
+            list[i] = data.decrypt(cryptographer::decrypt)
         }
     }
 }

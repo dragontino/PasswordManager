@@ -20,11 +20,8 @@ import com.security.passwordmanager.data.MainDatabase
 import com.security.passwordmanager.settings.EnumPreferences.*
 import java.util.*
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-
+class SettingsViewModel(private val mApplication: Application) : AndroidViewModel(mApplication) {
     companion object {
-        val RASPBERRY = Color.rgb(250, 5, 107)
-
         @Volatile
         private var INSTANCE: SettingsViewModel? = null
 
@@ -42,9 +39,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private val mApplication = application
     private val settingsRepository: SettingsRepository
-    private val preferences = application.getSharedPreferences(APP_PREFERENCES.name, Context.MODE_PRIVATE)
+    private val preferences = mApplication.getSharedPreferences(APP_PREFERENCES.name, Context.MODE_PRIVATE)
     private var startTime = getDateFromPreferences(
         keyHours = APP_PREFERENCES_START_HOURS,
         keyMinutes = APP_PREFERENCES_START_MINUTES,
@@ -69,9 +65,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     @ColorInt var backgroundColor = Color.WHITE
     @ColorInt var fontColor = Color.BLACK
-    @ColorInt var headerColor = RASPBERRY
-    @ColorInt var layoutBackgroundColor = application.getColor(R.color.light_gray)
-    @ColorInt var darkerGrayColor = application.getColor(android.R.color.darker_gray)
+    @ColorInt var headerColor = mApplication.getColor(R.color.raspberry)
+    @ColorInt var layoutBackgroundColor = mApplication.getColor(R.color.light_gray)
+    @ColorInt var darkerGrayColor = mApplication.getColor(android.R.color.darker_gray)
 
     @DrawableRes var backgroundRes = R.drawable.text_view_style
     @DrawableRes var buttonRes = R.drawable.button_style
@@ -85,7 +81,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
 
     init {
-        val settingsDao = MainDatabase.getDatabase(application).settingsDao()
+        val settingsDao = MainDatabase.getDatabase(mApplication).settingsDao()
         settingsRepository = SettingsRepository(settingsDao)
         updateColors()
     }
@@ -119,7 +115,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private fun updateColors() = if (isLightTheme()) {
         backgroundColor = Color.WHITE
         fontColor = Color.BLACK
-        headerColor = RASPBERRY
+        headerColor = mApplication.getColor(R.color.raspberry)
         layoutBackgroundColor = mApplication.getColor(R.color.light_gray)
         backgroundRes = R.drawable.text_view_style
         buttonRes = R.drawable.button_style

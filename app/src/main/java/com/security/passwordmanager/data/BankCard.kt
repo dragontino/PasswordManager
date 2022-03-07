@@ -3,7 +3,6 @@ package com.security.passwordmanager.data
 import android.content.Context
 import androidx.room.Entity
 import androidx.room.Ignore
-import com.security.passwordmanager.Cryptographer
 import com.security.passwordmanager.R
 
 @Entity(tableName = "BankTable")
@@ -36,23 +35,27 @@ class BankCard(
         this.pin = pin.toInt()
     }
 
-    override fun getKey() = bankName
+    @Ignore
+    override val key = bankName
 
-    override fun encrypt(cryptographer: Cryptographer): Data {
-        cardNumber = cryptographer.encrypt(cardNumber)
-        cardHolder = cryptographer.encrypt(cardHolder)
-        validity = cryptographer.encrypt(validity)
-        setCvv(cryptographer.encrypt(getCvv()))
-        setPin(cryptographer.encrypt(getPin()))
+    @Ignore
+    override val type = DataType.BANK_CARD
+
+    override fun encrypt(encrypt: (String) -> String): Data {
+        cardNumber = encrypt(cardNumber)
+        cardHolder = encrypt(cardHolder)
+        validity = encrypt(validity)
+        setCvv(encrypt(getCvv()))
+        setPin(encrypt(getPin()))
         return this
     }
 
-    override fun decrypt(cryptographer: Cryptographer): Data {
-        cardNumber = cryptographer.decrypt(cardNumber)
-        cardHolder = cryptographer.decrypt(cardHolder)
-        validity = cryptographer.decrypt(validity)
-        setCvv(cryptographer.decrypt(getCvv()))
-        setPin(cryptographer.decrypt(getPin()))
+    override fun decrypt(decrypt: (String) -> String): Data {
+        cardNumber = decrypt(cardNumber)
+        cardHolder = decrypt(cardHolder)
+        validity = decrypt(validity)
+        setCvv(decrypt(getCvv()))
+        setPin(decrypt(getPin()))
         return this
     }
 

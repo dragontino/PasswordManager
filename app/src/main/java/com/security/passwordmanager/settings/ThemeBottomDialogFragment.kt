@@ -1,20 +1,12 @@
 package com.security.passwordmanager.settings
 
 import android.annotation.SuppressLint
-import android.content.res.ColorStateList
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.TextViewCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.security.passwordmanager.Pair
-import com.security.passwordmanager.R
+import com.security.passwordmanager.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,138 +16,175 @@ interface Theme {
 }
 
 
-class ThemeBottomDialogFragment(private val theme: Theme, private val activity: AppCompatActivity)
-    : BottomSheetDialogFragment() {
+@SuppressLint("InflateParams")
+class ThemeBottomDialogFragment(private val theme: Theme, activity: AppCompatActivity)
+    : ActionBottomDialogFragment(activity) {
 
-    private lateinit var rootView : View
-    private lateinit var support : SettingsViewModel
-    private lateinit var adapter: ThemeAdapter
-    private lateinit var themes: Array<String>
-    private lateinit var recyclerView : RecyclerView
+    private val timeLayout: LinearLayout by lazy {
+        layoutInflater.inflate(R.layout.auto_theme_times, null, false)
+                as LinearLayout
+    }
 
-    override fun getTheme() = R.style.AppBottomSheetDialogTheme
+    init {
+        val listener = View.OnClickListener {
+            settings.theme = ThemeDef.values()[it.id]
+            if (settings.theme == ThemeDef.AUTO_THEME) {
+                timeLayout.show()
+            } else
+                dismiss()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+            theme.updateTheme()
+            updateColors()
+        }
 
-        rootView = inflater.inflate(R.layout.switch_theme_layout, container, false)
-        support = SettingsViewModel.getInstance(activity)
-        recyclerView = rootView.findViewById(R.id.theme_bottom_sheet_container)
-
-        rootView.backgroundTintList = ColorStateList.valueOf(support.backgroundColor)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-
-        themes = resources.getStringArray(R.array.themes)
-
-        return rootView
+        activity.resources.getStringArray(R.array.themes).forEach {
+            addView(
+                image = R.drawable.radio_button_checked,
+                imageBound = ImageBounds.RIGHT,
+                text = it,
+                listener = listener
+            )
+        }
     }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        adapter = ThemeAdapter()
-        recyclerView.adapter = adapter
+        super.onViewCreated(view, savedInstanceState)
+        timeLayout.update()
+        addView(timeLayout)
+        updateColors()
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    fun notifyAdapter() =
-        adapter.notifyDataSetChanged()
-
-
-    private inner class ThemeAdapter : RecyclerView.Adapter<ThemeHolder>() {
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ThemeHolder {
-            val view = layoutInflater.inflate(R.layout.list_item_theme, parent, false)
-            return ThemeHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ThemeHolder, position: Int) {
-            val text = themes[position]
-            val isChecked = position == support.getIndexTheme()
-            holder.bindTheme(text, isChecked)
-
-            holder.setOnClickListener {
-                dismiss()
-                support.theme = ThemeDef.values()[position]
-                theme.updateTheme()
-            }
-        }
-
-        override fun getItemCount() = themes.size
+    private fun LinearLayout.update() = if (settings.theme != ThemeDef.AUTO_THEME) {
+        hide()
+    }
+    else {
+        show()
+        val header = findViewById<TextView>(R.id.times_header)
+        header.setTextColor(settings.fontColor)
+        setBackgroundColor(settings.backgroundColor)
+        updateTimes(this)
     }
 
+    override fun updateColors() {
+        super.updateColors()
 
-
-    private inner class ThemeHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
-        private val textViewTheme = itemView.findViewById<TextView>(R.id.list_item_theme_text_view)
-        private val times = itemView.findViewById<LinearLayout>(R.id.list_item_theme_layout_time)
-        private var calendarPair: Pair<Calendar, Calendar> =
-            support.getTimes()
-
-
-        fun bindTheme(text : String, isChecked : Boolean) {
-            textViewTheme.text = text
-
-            textViewTheme.setTextColor(support.fontColor)
-            support.backgroundColor.let {
-                textViewTheme.setBackgroundColor(it)
-                itemView.setBackgroundColor(it)
-            }
-
-            val color = if (isChecked)
-                SettingsViewModel.RASPBERRY
+        for(index in ThemeDef.values().indices) {
+            if (index == settings.getIndexTheme())
+                getView(index).setDrawables()
             else
-                support.backgroundColor
-
-            TextViewCompat.setCompoundDrawableTintList(
-                textViewTheme,
-                ColorStateList.valueOf(color)
-            )
-
-            if (isChecked && support.theme == ThemeDef.AUTO_THEME) {
-                times.visibility = View.VISIBLE
-                updateTimes()
-            } else
-                times.visibility = View.GONE
+                getView(index).removeDrawables()
         }
 
-        fun setOnClickListener(listener : View.OnClickListener) =
-            textViewTheme.setOnClickListener(listener)
+        timeLayout.update()
+    }
 
 
-        private fun updateTimes() {
-            calendarPair = support.getTimes()
 
-            val startTime = getStringFromCalendar(calendarPair.first)
-            val endTime = getStringFromCalendar(calendarPair.second)
+    private fun updateTimes(root: LinearLayout) {
+        val calendarPair = settings.getTimes()
 
-            val start = times.findViewById<TextView>(R.id.theme_layout_start_time)
-            val end = times.findViewById<TextView>(R.id.theme_layout_end_time)
+        val startTime = getStringFromCalendar(calendarPair.first)
+        val endTime = getStringFromCalendar(calendarPair.second)
 
-            start.setOnClickListener(theme.timeListener(calendarPair))
-            end.setOnClickListener(theme.timeListener(calendarPair))
+        val start = root.findViewById<TextView>(R.id.theme_layout_start_time)
+        val end = root.findViewById<TextView>(R.id.theme_layout_end_time)
 
-            start.text = startTime
-            end.text = endTime
+        start.setOnClickListener(theme.timeListener(calendarPair))
+        end.setOnClickListener(theme.timeListener(calendarPair))
 
-            support.fontColor.let {
-                start.setTextColor(it)
-                end.setTextColor(it)
-            }
+        start.text = startTime
+        end.text = endTime
 
-            support.backgroundRes.let {
-                start.setBackgroundResource(it)
-                end.setBackgroundResource(it)
-            }
-
-            times.setBackgroundColor(support.backgroundColor)
+        settings.fontColor.let {
+            start.setTextColor(it)
+            end.setTextColor(it)
         }
 
-        private fun getStringFromCalendar(calendar: Calendar) : String {
-            val format = SimpleDateFormat("HH:mm", Locale.getDefault())
-            return format.format(calendar.time)
+        settings.backgroundRes.let {
+            start.setBackgroundResource(it)
+            end.setBackgroundResource(it)
         }
     }
+
+    private fun getStringFromCalendar(calendar: Calendar) : String {
+        val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+        return format.format(calendar.time)
+    }
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        removeView(timeLayout)
+    }
+
+//    @SuppressLint("NotifyDataSetChanged")
+//    fun notifyAdapter() =
+//        adapter.notifyDataSetChanged()
+
+
+//    private inner class ThemeAdapter : RecyclerView.Adapter<ThemeHolder>() {
+//        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ThemeHolder {
+//            val view = layoutInflater.inflate(R.layout.auto_theme_times, parent, false)
+//            return ThemeHolder(view)
+//        }
+//
+//        override fun onBindViewHolder(holder: ThemeHolder, position: Int) {
+//            val text = themes[position]
+//            val isChecked = position == settings.getIndexTheme()
+//            holder.bindTheme(text, isChecked)
+//
+//            holder.setOnClickListener {
+//                settings.theme = ThemeDef.values()[position]
+//                if (settings.theme != ThemeDef.AUTO_THEME)
+//                    dismiss()
+//                theme.updateTheme()
+//            }
+//        }
+//
+//        override fun getItemCount() = themes.size
+//    }
+
+
+
+//    private inner class ThemeHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+//
+//        private val textViewTheme = itemView.findViewById<TextView>(R.id.list_item_theme_text_view)
+//        private val times = itemView.findViewById<LinearLayout>(R.id.list_item_theme_layout_time)
+//        private var calendarPair: Pair<Calendar, Calendar> =
+//            settings.getTimes()
+//
+//
+//        fun bindTheme(text : String, isChecked : Boolean) {
+//            textViewTheme.text = text
+//
+//            textViewTheme.setTextColor(settings.fontColor)
+//            settings.backgroundColor.let {
+//                textViewTheme.setBackgroundColor(it)
+//                itemView.setBackgroundColor(it)
+//            }
+//
+//            val color = if (isChecked)
+//                activity.getColor(R.color.raspberry)
+//            else
+//                settings.backgroundColor
+//
+//            TextViewCompat.setCompoundDrawableTintList(
+//                textViewTheme,
+//                ColorStateList.valueOf(color)
+//            )
+//
+//            if (isChecked && settings.theme == ThemeDef.AUTO_THEME) {
+//                times.visibility = View.VISIBLE
+//                updateTimes()
+//            } else
+//                times.visibility = View.GONE
+//        }
+//
+//        fun setOnClickListener(listener : View.OnClickListener) =
+//            textViewTheme.setOnClickListener(listener)
+//
+//
+//
+//    }
 }
