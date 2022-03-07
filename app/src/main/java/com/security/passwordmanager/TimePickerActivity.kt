@@ -28,9 +28,8 @@ class TimePickerActivity : AppCompatActivity() {
             return intent
         }
 
-        fun parseIntent(intent: Intent) : Calendar {
-            return intent.getSerializableExtra(EXTRA_TIME) as Calendar
-        }
+        fun parseIntent(intent: Intent) =
+            intent.getSerializableExtra(EXTRA_TIME) as Calendar
 
 
 

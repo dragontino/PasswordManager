@@ -9,12 +9,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.BankCard
+import com.security.passwordmanager.data.DataType
 import com.security.passwordmanager.data.DataViewModel
 import com.security.passwordmanager.data.Website
 import com.security.passwordmanager.databinding.ActivityBankCardBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.settings.getStringExtra
-import com.security.passwordmanager.ui.account.AccountRecyclerView
+import com.security.passwordmanager.ui.DataEditableRecyclerView
 
 class BankCardActivity : AppCompatActivity() {
 
@@ -22,14 +23,9 @@ class BankCardActivity : AppCompatActivity() {
         private const val EXTRA_NAME = "extra_bank_name"
         private const val EXTRA_POSITION = "extra_position"
 
-        fun getIntent(context: Context, bankName : String) : Intent {
+        fun getIntent(context: Context, bankName : String, startPosition: Int = 1) : Intent {
             val intent = Intent(context, BankCardActivity::class.java)
             intent.putExtra(bankName, EXTRA_NAME)
-            return intent
-        }
-
-        fun getIntent(context: Context, bankName: String, startPosition: Int) : Intent {
-            val intent = getIntent(context, bankName)
             intent.putExtra(EXTRA_POSITION, startPosition)
             return intent
         }
@@ -39,8 +35,8 @@ class BankCardActivity : AppCompatActivity() {
 
     private lateinit var settings: SettingsViewModel
     private lateinit var dataViewModel: DataViewModel
-    private lateinit var bankAccountRecyclerView: BankRecyclerView
-    private lateinit var accountRecyclerView: AccountRecyclerView
+
+    private lateinit var recyclerView: DataEditableRecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityBankCardBinding.inflate(layoutInflater)
@@ -54,21 +50,17 @@ class BankCardActivity : AppCompatActivity() {
         val bankName = intent.getStringExtra(EXTRA_NAME, "")
         val startPosition = intent.getIntExtra(EXTRA_POSITION, 1)
 
-        bankAccountRecyclerView = BankRecyclerView(
+        recyclerView = DataEditableRecyclerView(
             this,
             binding.bankCardRecyclerView,
-            bankName
+            bankName,
+            DataType.BANK_CARD
         )
 
-        accountRecyclerView = AccountRecyclerView(
-            this,
-            binding.bankAccountRecyclerView,
-            bankName)
+        recyclerView.scrollToPosition(startPosition)
 
-        bankAccountRecyclerView.scrollToPosition(startPosition)
-
-        binding.addAccount.setOnClickListener { accountRecyclerView.addData(Website()) }
-        binding.addCard.setOnClickListener { bankAccountRecyclerView.addData(BankCard()) }
+        binding.addAccount.setOnClickListener { recyclerView.addData(Website()) }
+        binding.addCard.setOnClickListener { recyclerView.addData(BankCard()) }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -90,7 +82,6 @@ class BankCardActivity : AppCompatActivity() {
     }
 
     private fun updateUI() {
-        accountRecyclerView.updateRecyclerView()
-        bankAccountRecyclerView.updateRecyclerView()
+
     }
 }

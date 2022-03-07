@@ -3,10 +3,14 @@ package com.security.passwordmanager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.SwitchCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.security.passwordmanager.TimePickerActivity.Companion.TimePickerActivityContract
 import com.security.passwordmanager.databinding.ActivitySettingsBinding
@@ -73,10 +77,20 @@ class SettingsActivity : AppCompatActivity(), Theme {
 
         actionBottomFragment.addViews(images, strings, bottomClickListener)
 
-
         binding.switchTheme.setOnClickListener {
             themeBottomFragment.show(supportFragmentManager)
         }
+
+        binding.beautifulFont.run {
+            textViewName.setText(R.string.beautiful_font)
+            textViewName.textSize = 18F
+
+            textViewSubtitle.setText(R.string.beautiful_font_explain)
+            textViewSubtitle.textSize = 15F
+
+            root.setOnClickListener { binding.switchBeautifulFont.switch() }
+        }
+
 
         binding.buttonLogout.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
@@ -99,6 +113,23 @@ class SettingsActivity : AppCompatActivity(), Theme {
         actionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
+    private fun SwitchCompat.switch() {
+        isChecked = !isChecked
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as Vibrator
+        } else return
+
+        if (vibrator.hasVibrator())
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    300,
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
+    }
+
+
+    //слушает нажатия на timeLayout в ThemeBottomFragment
     override fun timeListener(calendarPair: Pair<Calendar, Calendar>) = View.OnClickListener { v ->
         when (v.id) {
             R.id.theme_layout_start_time -> startLauncher.launch(calendarPair.first)
@@ -114,6 +145,7 @@ class SettingsActivity : AppCompatActivity(), Theme {
             binding.apply {
                 switchTheme.setTextColor(it)
                 haveQuestions.setTextColor(it)
+                beautifulFont.textViewName.setTextColor(it)
             }
         }
     }
@@ -123,7 +155,7 @@ class SettingsActivity : AppCompatActivity(), Theme {
         return super.onSupportNavigateUp()
     }
 
-    private var startLauncher = registerForActivityResult(
+    private val startLauncher = registerForActivityResult(
         TimePickerActivityContract(R.string.start_time)
     ) { result: Calendar? ->
         if (result != null) {

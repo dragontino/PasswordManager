@@ -3,7 +3,7 @@
     <string name="main_label">Менеджер паролей</string>
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 5.0.5 от 07 марта 2022</string>
+    <string name="app_version">Версия 5.0.6 от 07 марта 2022</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="add_record">Создать новую запись</string>
     <string name="clipText">Скопировано в буфер обмена</string>
@@ -18,6 +18,7 @@
 
 
     <!--Вход-->
+    <string name="helloText">Добро пожаловать в приложение\nPasswordManager by CuteCat!</string>
     <string name="action_sign_in">Войти</string>
     <string name="action_sign_up">Зарегестрироваться</string>
     <string name="valid_email">Введите корректный email адрес, пожалуйста!</string>
@@ -43,6 +44,7 @@
 
     <string name="start_time">Время рассвета</string>
     <string name="end_time">Время заката</string>
+    <string name="changing_theme_time">Время перемен</string>
 
     <string name="button_cancel">Отмена</string>
     <string name="button_ok">ОК</string>
@@ -69,7 +71,7 @@
 
     <string name="edit">Редактировать</string>
     <string name="rename_account">Переименовать</string>
-    <string name="cancel_renaming_account">Отменить переименование</string>
+    <string name="cancel_renaming_account">Сохранить новое название</string>
     <string name="copy_info">Копировать</string>
     <string name="delete_password">Удалить</string>
     <string name="delete_account">Удалить аккаунт</string>
@@ -97,7 +99,8 @@
     <string name="instagram">Подписаться на Instagram :)</string>
     <string name="email">Написать на почту</string>
     <string name="feedback">Обратная связь</string>
-    <string name="helloText">Добро пожаловать в приложение\nPasswordManager by CuteCat!</string>
     <string name="have_questions">Есть вопросы?</string>
-    <string name="changing_theme_time">Время перемен</string>
+
+    <string name="beautiful_font">Использовать красивый шрифт</string>
+    <string name="beautiful_font_explain">На выдвигающемся меню будет отображаться красивый шрифт</string>
 </resources>

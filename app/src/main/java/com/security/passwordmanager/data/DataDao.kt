@@ -24,10 +24,10 @@ abstract class DataDao {
     abstract fun getBankCardList(): MutableList<BankCard>
 
     @Query("SELECT * FROM WebsiteTable WHERE address = :address")
-    abstract fun getAccountList(address: String): List<Website>
+    abstract fun getAccountList(address: String): MutableList<Website>
 
     @Query("SELECT * FROM BankTable WHERE bankName = :bankName")
-    abstract fun getBankAccountList(bankName: String): List<BankCard>
+    abstract fun getBankAccountList(bankName: String): MutableList<BankCard>
 
     @Query("SELECT * FROM WebsiteTable " +
             "WHERE nameWebsite LIKE '%' || :query || '%' OR " +

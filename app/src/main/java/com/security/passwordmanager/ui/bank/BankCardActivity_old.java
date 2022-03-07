@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -17,9 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.security.passwordmanager.R;
-import com.security.passwordmanager.data.BankCard;
 import com.security.passwordmanager.data.DataViewModel;
-import com.security.passwordmanager.data.Website;
 import com.security.passwordmanager.settings.SettingsViewModel;
 
 import java.util.Objects;
@@ -31,7 +27,7 @@ public class BankCardActivity_old extends AppCompatActivity {
     private SettingsViewModel settings;
     private DataViewModel mDataViewModel;
 
-    private BankRecyclerView mRecyclerView;
+//    private BankRecyclerView mRecyclerView;
 
     private EditText name, number, cardHolder, period, pin, cvv;
     private TextView head;
@@ -59,7 +55,7 @@ public class BankCardActivity_old extends AppCompatActivity {
 
         bankName = getIntent().getStringExtra(EXTRA_NAME);
 
-        startCount = mRecyclerView.getItemCount();
+//        startCount = mRecyclerView.getItemCount();
 
         name = findViewById(R.id.bank_name);
         number = findViewById(R.id.card_number);
@@ -75,9 +71,9 @@ public class BankCardActivity_old extends AppCompatActivity {
         add_account = findViewById(R.id.add_account);
         add_card = findViewById(R.id.add_card);
 
-        add_account.setOnClickListener(v -> mRecyclerView.addData(new Website()));
+//        add_account.setOnClickListener(v -> mRecyclerView.addData(new Website()));
 
-        add_card.setOnClickListener(v -> mRecyclerView.addData(new BankCard()));
+//        add_card.setOnClickListener(v -> mRecyclerView.addData(new BankCard()));
 
         number.addTextChangedListener(new TextWatcher() {
             @Override
@@ -116,21 +112,6 @@ public class BankCardActivity_old extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.menu_item_save) {
-
-            //TODO сделать проверку
-
-            for (int i = 0; i < mRecyclerView.getItemCount(); i++) {
-                View view = mRecyclerView.get(i);
-
-            }
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         updateUI();
@@ -138,7 +119,7 @@ public class BankCardActivity_old extends AppCompatActivity {
 
     private void updateUI() {
 
-        mRecyclerView.updateRecyclerView();
+//        mRecyclerView.updateRecyclerView();
 
         settings.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
         name.setBackgroundResource(settings.getBackgroundRes());

@@ -72,7 +72,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
-            android:id="@+id/button_visibility"
+            android:id="@+id/password_visibility"
             style="@style/UtilityButtons"
             android:contentDescription="@string/show_password"
             android:src="@drawable/visibility_on"

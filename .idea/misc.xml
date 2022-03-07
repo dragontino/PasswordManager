@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/petro/.gradle/caches/transforms-3/5f01077ca5a294ea94d917794a6c69c1/transformed/appcompat-1.4.1/res/drawable-v21/abc_edit_text_material.xml" value="0.13385416666666666" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable-anydpi/ic_action_info.xml" value="0.26510416666666664" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable-anydpi/ic_action_search.xml" value="0.26510416666666664" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable-anydpi/ic_menu_home.xml" value="0.261025641025641" />
@@ -55,14 +56,17 @@
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/list_item_theme.xml" value="0.12107396149949341" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/main_bottom_sheet.xml" value="0.12107396149949341" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/nav_header_main.xml" value="0.12107396149949341" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/new_account.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/switch_theme_layout.xml" value="0.1" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/text_view_field.xml" value="0.16" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/time_picker_dark.xml" value="0.24895833333333334" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/time_picker_light.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/time_picker_view.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/menu/activity_main_drawer.xml" value="0.24512820512820513" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/menu/enter.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/menu/main.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/menu/password.xml" value="0.23333333333333334" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/mipmap-anydpi-v26/ic_app_icon.xml" value="0.26510416666666664" />
       </map>
     </option>
   </component>

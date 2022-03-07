@@ -7,15 +7,16 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.security.passwordmanager.R
+import com.security.passwordmanager.data.DataType
 import com.security.passwordmanager.data.DataViewModel
 import com.security.passwordmanager.data.Website
 import com.security.passwordmanager.databinding.ActivityPasswordBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.settings.getStringExtra
+import com.security.passwordmanager.ui.DataEditableRecyclerView
 
 class PasswordActivity : AppCompatActivity() {
 
@@ -23,14 +24,9 @@ class PasswordActivity : AppCompatActivity() {
         private const val EXTRA_ADDRESS = "extra_address"
         private const val EXTRA_POSITION = "extra_position"
 
-        fun getIntent(context: Context?, address : String) : Intent {
+        fun getIntent(context: Context?, address : String, startPosition: Int = 1) : Intent {
             val intent = Intent(context, PasswordActivity::class.java)
             intent.putExtra(EXTRA_ADDRESS, address)
-            return intent
-        }
-
-        fun getIntent(context: Context?, address: String, startPosition : Int) : Intent {
-            val intent: Intent = getIntent(context, address)
             intent.putExtra(EXTRA_POSITION, startPosition)
             return intent
         }
@@ -40,7 +36,7 @@ class PasswordActivity : AppCompatActivity() {
 
     private lateinit var settings : SettingsViewModel
     private lateinit var dataViewModel : DataViewModel
-    private lateinit var recyclerView : AccountRecyclerView
+    private lateinit var recyclerView : DataEditableRecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityPasswordBinding.inflate(layoutInflater)
@@ -54,14 +50,16 @@ class PasswordActivity : AppCompatActivity() {
         val address = intent.getStringExtra(EXTRA_ADDRESS, "")
         val startPosition = intent.getIntExtra(EXTRA_POSITION, 1)
 
-        recyclerView = AccountRecyclerView(
+        recyclerView = DataEditableRecyclerView(
             activity = this,
             recyclerView = binding.accountRecyclerView,
-            address = address,
+            key = address,
+            type = DataType.WEBSITE
         )
 
         recyclerView.scrollToPosition(startPosition)
 
+        // TODO: 07.03.2022 улучшить
         binding.websiteName.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             if (hasFocus && binding.websiteName.text.isEmpty() && binding.url.text.isNotEmpty()) {
                 val builder = StringBuilder(binding.url.text)
@@ -85,7 +83,6 @@ class PasswordActivity : AppCompatActivity() {
         val buttonAdd = findViewById<Button>(R.id.add_account)
         buttonAdd.setOnClickListener {
             recyclerView.addData(Website())
-            recyclerView.scrollToEnd()
         }
 
         binding.websiteName.nextFocusDownId = R.id.login
@@ -97,10 +94,10 @@ class PasswordActivity : AppCompatActivity() {
     }
 
     private fun updateUI() {
-        binding.url.setText(recyclerView.getData(0).address)
-        binding.websiteName.setText(recyclerView.getData(0).nameWebsite)
+        val website = recyclerView.getData(0) as Website
 
-        recyclerView.updateRecyclerView()
+        binding.url.setText(website.address)
+        binding.websiteName.setText(website.nameWebsite)
 
         settings.updateThemeInScreen(window, supportActionBar)
 
@@ -123,47 +120,20 @@ class PasswordActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_item_save -> {
-                if (binding.url.text.toString() == "") {
+                if (binding.url.text.isBlank()) {
                     binding.url.error = getString(R.string.required_url)
                     return true
-                } else if (binding.websiteName.text.toString() == "") {
+                } else if (binding.websiteName.text.isBlank()) {
                     binding.websiteName.error = getString(R.string.required_website_name)
                     return true
                 }
 
                 for (position in 0 until recyclerView.itemCount) {
-                    val view = recyclerView[position]
-                    val textViewNameAccount =
-                        view.findViewById<TextView>(R.id.name_account)
-
-                    val login = view.findViewById<TextView>(R.id.login)
-                    val password = view.findViewById<TextView>(R.id.password)
-                    val comment = view.findViewById<TextView>(R.id.comment)
-
-                    val startCount = recyclerView.startCount
-
-                    var nameAccount = textViewNameAccount.text.toString()
-
-                    if (nameAccount == getNameAccountStart(position + 1))
-                        nameAccount = ""
-
-                    if (login.text.isEmpty()) {
-                        login.error = getString(R.string.required)
-                        return true
-                    } else if (password.text.isEmpty()) {
-                        password.error = getString(R.string.required)
-                        return true
-                    }
-
-                    val website = recyclerView.getData(position)
-                    website.address = binding.url.text.toString()
+                    val website = recyclerView.getData(position) as Website
                     website.nameWebsite = binding.websiteName.text.toString()
-                    website.nameAccount = nameAccount
-                    website.login = login.text.toString()
-                    website.password = password.text.toString()
-                    website.comment = comment.text.toString()
+                    website.address = binding.url.text.toString()
 
-                    if (position >= startCount)
+                    if (position >= recyclerView.startCount)
                         dataViewModel.addData(website)
                     else
                         dataViewModel.updateData(website)
@@ -180,7 +150,4 @@ class PasswordActivity : AppCompatActivity() {
             else -> return super.onOptionsItemSelected(item)
         }
     }
-
-    private fun getNameAccountStart(position : Int) =
-        getString(R.string.account_start, position)
 }
