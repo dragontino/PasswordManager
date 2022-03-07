@@ -59,9 +59,6 @@ public class BankCardActivity_old extends AppCompatActivity {
 
         bankName = getIntent().getStringExtra(EXTRA_NAME);
 
-        mRecyclerView = new BankRecyclerView(
-                this, R.id.bank_card_recycler_view, bankName);
-
         startCount = mRecyclerView.getItemCount();
 
         name = findViewById(R.id.bank_name);
@@ -76,7 +73,7 @@ public class BankCardActivity_old extends AppCompatActivity {
         head = findViewById(R.id.bank_head);
 
         add_account = findViewById(R.id.add_account);
-        add_card = findViewById(R.id.add_new_card);
+        add_card = findViewById(R.id.add_card);
 
         add_account.setOnClickListener(v -> mRecyclerView.addData(new Website()));
 

@@ -3,7 +3,7 @@
     <string name="main_label">Менеджер паролей</string>
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 5.0.3 от 15 февраля 2022</string>
+    <string name="app_version">Версия 5.0.5 от 07 марта 2022</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="add_record">Создать новую запись</string>
     <string name="clipText">Скопировано в буфер обмена</string>
@@ -34,12 +34,12 @@
 
 
     <!--Темы-->
-    <string name="dark_theme">Тёмная</string>
-    <string name="light_theme">Светлая</string>
-    <string name="system_theme">Системная</string>
-    <string name="auto_theme">Авто</string>
+    <string name="dark_theme">Включена</string>
+    <string name="light_theme">Выключена</string>
+    <string name="system_theme">Как на устройстве</string>
+    <string name="auto_theme">Автоматически</string>
 
-    <string name="switchThemeText">Тема: %s</string>
+    <string name="switchThemeText">Тёмная тема: %s</string>
 
     <string name="start_time">Время рассвета</string>
     <string name="end_time">Время заката</string>
@@ -94,9 +94,10 @@
     <!--Экран "О приложении"-->
     <string name="vk">Написать в VK</string>
     <string name="telegram">Написать в Telegram</string>
-    <string name="instagram">Написать в Instagram</string>
+    <string name="instagram">Подписаться на Instagram :)</string>
     <string name="email">Написать на почту</string>
     <string name="feedback">Обратная связь</string>
     <string name="helloText">Добро пожаловать в приложение\nPasswordManager by CuteCat!</string>
     <string name="have_questions">Есть вопросы?</string>
+    <string name="changing_theme_time">Время перемен</string>
 </resources>

@@ -5,15 +5,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.BankCard
 import com.security.passwordmanager.data.DataViewModel
 import com.security.passwordmanager.data.Website
+import com.security.passwordmanager.databinding.ActivityBankCardBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.settings.getStringExtra
 import com.security.passwordmanager.ui.account.AccountRecyclerView
@@ -37,19 +35,18 @@ class BankCardActivity : AppCompatActivity() {
         }
     }
 
+    private lateinit var binding: ActivityBankCardBinding
+
     private lateinit var settings: SettingsViewModel
     private lateinit var dataViewModel: DataViewModel
     private lateinit var bankAccountRecyclerView: BankRecyclerView
     private lateinit var accountRecyclerView: AccountRecyclerView
 
-    private lateinit var name: EditText
-    private lateinit var head: TextView
-    private lateinit var addAccount: Button
-    private lateinit var addCard: Button
-
     override fun onCreate(savedInstanceState: Bundle?) {
+        binding = ActivityBankCardBinding.inflate(layoutInflater)
+
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_bank_card)
+        setContentView(binding.root)
 
         settings = SettingsViewModel.getInstance(this)
         dataViewModel = ViewModelProvider(this)[DataViewModel::class.java]
@@ -59,24 +56,19 @@ class BankCardActivity : AppCompatActivity() {
 
         bankAccountRecyclerView = BankRecyclerView(
             this,
-            R.id.bank_card_recycler_view,
+            binding.bankCardRecyclerView,
             bankName
         )
 
         accountRecyclerView = AccountRecyclerView(
             this,
-            R.id.bank_account_recycler_view,
+            binding.bankAccountRecyclerView,
             bankName)
 
         bankAccountRecyclerView.scrollToPosition(startPosition)
 
-        name = findViewById(R.id.bank_name)
-        head = findViewById(R.id.bank_head)
-        addAccount = findViewById(R.id.add_account)
-        addCard = findViewById(R.id.add_new_card)
-
-        addAccount.setOnClickListener { accountRecyclerView.addData(Website()) }
-        addCard.setOnClickListener { bankAccountRecyclerView.addData(BankCard()) }
+        binding.addAccount.setOnClickListener { accountRecyclerView.addData(Website()) }
+        binding.addCard.setOnClickListener { bankAccountRecyclerView.addData(BankCard()) }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

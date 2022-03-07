@@ -3,7 +3,6 @@ package com.security.passwordmanager.ui.bank
 import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.security.passwordmanager.data.BankCard
@@ -14,16 +13,15 @@ class BankRecyclerView : DataRecyclerView {
 
     constructor(
         activity: AppCompatActivity,
-        @IdRes recyclerIdRes: Int,
+        recyclerView: RecyclerView,
         bankName: String,
-    ) : super(activity, recyclerIdRes, DataType.BANK_CARD, bankName)
+    ) : super(activity, recyclerView, DataType.BANK_CARD, bankName)
 
     constructor(
-        rootView: View,
         activity: AppCompatActivity,
-        @IdRes recyclerIdRes: Int,
+        recyclerView: RecyclerView,
         editable: Boolean
-    ) : super(rootView, activity, recyclerIdRes, DataType.BANK_CARD, editable)
+    ) : super(activity, recyclerView, DataType.BANK_CARD, editable = editable)
 
     private var adapter : BankCardAdapter? = null
 

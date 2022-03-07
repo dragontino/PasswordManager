@@ -1,27 +1,24 @@
 package com.security.passwordmanager
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.firebase.auth.FirebaseAuth
 import com.security.passwordmanager.TimePickerActivity.Companion.TimePickerActivityContract
+import com.security.passwordmanager.databinding.ActivitySettingsBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.settings.Theme
 import com.security.passwordmanager.settings.ThemeBottomDialogFragment
 import java.util.*
 
 class SettingsActivity : AppCompatActivity(), Theme {
-
-    private lateinit var switchTheme: TextView
-    private lateinit var questions: Button
     private lateinit var settings: SettingsViewModel
+
+    private lateinit var binding: ActivitySettingsBinding
     private lateinit var themeBottomFragment : ThemeBottomDialogFragment
 
     private val currentThemeText: String
@@ -34,21 +31,18 @@ class SettingsActivity : AppCompatActivity(), Theme {
             )
         }
 
-    @SuppressLint("NonConstantResourceId")
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         settings = SettingsViewModel.getInstance(this)
-        switchTheme = findViewById(R.id.switchTheme)
-        val logout = findViewById<Button>(R.id.button_logout)
-        questions = findViewById(R.id.button_questions)
         themeBottomFragment = ActionBottom.themeInstance(this, this)
 
         val actionBottomFragment = ActionBottom.newInstance(this)
-        actionBottomFragment.setHeading(getString(R.string.feedback), null, true)
+        actionBottomFragment.setHeading(getString(R.string.feedback), beautifulDesign = true)
 
         val bottomClickListener = View.OnClickListener {
             val address = when(it.id) {
@@ -63,23 +57,34 @@ class SettingsActivity : AppCompatActivity(), Theme {
             startActivity(intent)
         }
 
-        actionBottomFragment.addView(R.drawable.vk_icon, R.string.vk, bottomClickListener)
-        actionBottomFragment.addView(R.drawable.telegram_icon, R.string.telegram, bottomClickListener)
-        actionBottomFragment.addView(R.drawable.instagram_icon, R.string.instagram, bottomClickListener)
-        actionBottomFragment.addView(R.drawable.email, R.string.email, bottomClickListener)
+        val images = intArrayOf(
+            R.drawable.vk_icon,
+            R.drawable.telegram_icon,
+            R.drawable.instagram_icon,
+            R.drawable.email
+        )
+
+        val strings = intArrayOf(
+            R.string.vk,
+            R.string.telegram,
+            R.string.instagram,
+            R.string.email
+        )
+
+        actionBottomFragment.addViews(images, strings, bottomClickListener)
 
 
-        switchTheme.setOnClickListener {
+        binding.switchTheme.setOnClickListener {
             themeBottomFragment.show(supportFragmentManager)
         }
 
-        logout.setOnClickListener {
+        binding.buttonLogout.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             settings.isPasswordRemembered = false
             startActivity(EmailPasswordActivity.getIntent(this))
         }
 
-        questions.setOnClickListener {
+        binding.haveQuestions.setOnClickListener {
             actionBottomFragment.show(supportFragmentManager)
         }
 
@@ -95,20 +100,21 @@ class SettingsActivity : AppCompatActivity(), Theme {
     }
 
     override fun timeListener(calendarPair: Pair<Calendar, Calendar>) = View.OnClickListener { v ->
-        if (v.id == R.id.theme_layout_start_time)
-            startLauncher.launch(calendarPair.first)
-        else
-            endLauncher.launch(calendarPair.second)
-
+        when (v.id) {
+            R.id.theme_layout_start_time -> startLauncher.launch(calendarPair.first)
+            else -> endLauncher.launch(calendarPair.second)
+        }
     }
 
     override fun updateTheme() {
         settings.updateThemeInScreen(window, supportActionBar)
-        switchTheme.text = currentThemeText
+        binding.switchTheme.text = currentThemeText
 
         settings.fontColor.let {
-            switchTheme.setTextColor(it)
-            questions.setTextColor(it)
+            binding.apply {
+                switchTheme.setTextColor(it)
+                haveQuestions.setTextColor(it)
+            }
         }
     }
 
@@ -122,7 +128,7 @@ class SettingsActivity : AppCompatActivity(), Theme {
     ) { result: Calendar? ->
         if (result != null) {
             settings.setStartTime(result)
-            themeBottomFragment.notifyAdapter()
+            themeBottomFragment.updateColors()
             updateTheme()
         }
     }
@@ -132,7 +138,7 @@ class SettingsActivity : AppCompatActivity(), Theme {
     ) { result: Calendar? ->
         if (result != null) {
             settings.setEndTime(result)
-            themeBottomFragment.notifyAdapter()
+            themeBottomFragment.updateColors()
             updateTheme()
         }
     }

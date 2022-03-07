@@ -9,4 +9,5 @@
     <dimen name="text_view_normal_size">16sp</dimen>
     <dimen name="text_view_corner">7dp</dimen>
     <dimen name="bottom_sheet_corner">18dp</dimen>
+    <dimen name="data_element_corner">12dp</dimen>
 </resources>

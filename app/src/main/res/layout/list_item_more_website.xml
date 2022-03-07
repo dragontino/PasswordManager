@@ -1,55 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/list_item_linear_layout_more"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:layout_marginVertical="8dp"
     android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
-    android:layout_gravity="center_vertical"
-    android:orientation="vertical"
-    android:background="@color/light_gray">
+    android:background="@drawable/data_element_background">
 
     <EditText
-        android:id="@+id/list_item_name_of_account"
+        android:id="@+id/name_account"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/AccountHeadingTheme"
         android:inputType="none"
-        tools:ignore="Autofill,LabelFor" />
+        tools:ignore="Autofill,LabelFor"/>
 
     <TextView
-        android:id="@+id/list_item_login_head"
+        android:id="@+id/login_head"
         style="@style/MainTextViewTheme"
         android:text="@string/login"
         android:textSize="@dimen/head_size" />
 
     <include
-        android:id="@+id/list_item_login"
+        android:id="@+id/login"
         layout="@layout/text_view_field"/>
 
     <TextView
-        android:id="@+id/list_item_password_head"
+        android:id="@+id/password_head"
         style="@style/MainTextViewTheme"
         android:text="@string/password"
         android:textSize="@dimen/head_size" />
 
     <include
-        android:id="@+id/list_item_password"
+        android:id="@+id/password"
         layout="@layout/text_view_field"/>
 
     <TextView
-        android:id="@+id/list_item_comment_head"
+        android:id="@+id/comment_head"
         style="@style/MainTextViewTheme"
         android:text="@string/comment"
         android:textSize="@dimen/head_size" />
 
     <include
-        android:id="@+id/list_item_comment"
+        android:id="@+id/comment"
         layout="@layout/text_view_field"/>
 
     <Button
-        android:id="@+id/list_item_button_open_url"
+        android:id="@+id/button_open_url"
         style="@style/MainTextViewTheme"
         android:text="@string/button_open_url" />
 

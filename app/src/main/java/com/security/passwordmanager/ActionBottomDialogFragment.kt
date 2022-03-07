@@ -2,8 +2,10 @@ package com.security.passwordmanager
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
+import android.content.res.Resources
 import android.graphics.Rect
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,35 +14,39 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.security.passwordmanager.databinding.BottomSheetBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 
-class ActionBottomDialogFragment(private val activity: AppCompatActivity) : BottomSheetDialogFragment() {
+open class ActionBottomDialogFragment(protected val activity: AppCompatActivity) : BottomSheetDialogFragment() {
 
-    private lateinit var rootView : View
-    private lateinit var settings : SettingsViewModel
+    protected lateinit var settings: SettingsViewModel
     private val headingBuffer = Array(2) { String() }
-    private val viewBuffer = ArrayList<IntArray>()
-    private val listenerBuffer = ArrayList<View.OnClickListener>()
+    private var beautifulDesign = false
+    private val viewBuffer = ArrayList<BottomView>()
+
+    private lateinit var binding: BottomSheetBinding
 
     private var isCreated = false
 
     override fun getTheme() = R.style.AppBottomSheetDialogTheme
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?) : View {
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
-        rootView = inflater.inflate(R.layout.bottom_sheet, container, false)
+        binding = BottomSheetBinding.inflate(inflater, container, false)
         settings = SettingsViewModel.getInstance(activity)
-        rootView.backgroundTintList = ColorStateList.valueOf(settings.backgroundColor)
+        binding.root.backgroundTintList = ColorStateList.valueOf(settings.backgroundColor)
 
-        return rootView
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,16 +54,13 @@ class ActionBottomDialogFragment(private val activity: AppCompatActivity) : Bott
 
         isCreated = true
         if (headingBuffer[0] != "")
-            setHeading(headingBuffer[0], headingBuffer[1])
+            setHeading(headingBuffer[0], headingBuffer[1], beautifulDesign)
 
         if (viewBuffer.isNotEmpty()) {
-            for (pos in 0 until viewBuffer.size)
-                addView(
-                    id = pos,
-                    image = viewBuffer[pos][0],
-                    text = viewBuffer[pos][1],
-                    listener = listenerBuffer[pos]
-                )
+            viewBuffer.forEachIndexed { pos, bottomView ->
+                bottomView.id = pos
+                addView(bottomView)
+            }
         }
     }
 
@@ -67,38 +70,40 @@ class ActionBottomDialogFragment(private val activity: AppCompatActivity) : Bott
     }
 
 
-    fun setHeading(headText : String, subtitleText : String?) {
-        setHeading(headText, subtitleText, false)
-    }
-
-
-    fun setHeading(headText: String, subtitleText: String?, beautifulDesign: Boolean) {
+    fun setHeading(
+        headText: String,
+        subtitleText: String? = null,
+        beautifulDesign: Boolean = false
+    ) {
         val empty = ""
 
         if (!isCreated) {
             headingBuffer[0] = headText
             headingBuffer[1] = subtitleText ?: empty
+            this.beautifulDesign = beautifulDesign
             return
         }
 
-        val heading = rootView.findViewById<LinearLayout>(R.id.bottom_sheet_heading)
-        heading.visibility = View.VISIBLE
-        rootView.findViewById<View>(R.id.header_divider).visibility = View.VISIBLE
+        val heading = binding.root.findViewById<LinearLayout>(R.id.bottom_sheet_heading)
+        heading.show()
+        binding.headerDivider.show()
 
-        val head = heading.findViewById<TextView>(R.id.list_item_text_view_name)
-        val subtitle = heading.findViewById<TextView>(R.id.list_item_text_view_subtitle)
+        val head = heading.findViewById<TextView>(R.id.text_view_name)
+        val subtitle = heading.findViewById<TextView>(R.id.text_view_subtitle)
 
         head.text = headText
         head.setTextColor(settings.fontColor)
 
         if (beautifulDesign) {
-            //TODO не работает, переделать
-            head.textSize = 70F
-            head.typeface = Typeface.createFromAsset(activity.assets, "fonts/beautiful_font.otf")
+            head.textSize = 24F
+            head.typeface = Typeface.create(
+                Typeface.createFromAsset(activity.assets, "fonts/beautiful_font.otf"),
+                Typeface.BOLD
+            )
         }
 
         if (subtitleText == empty)
-            subtitle.visibility = View.GONE
+            subtitle.hide()
         else {
             subtitle.text = subtitleText
             subtitle.setTextColor(settings.fontColor)
@@ -106,65 +111,158 @@ class ActionBottomDialogFragment(private val activity: AppCompatActivity) : Bott
     }
 
 
-    fun addView(@DrawableRes image : Int, @StringRes text : Int, listener: View.OnClickListener) {
-        val array = intArrayOf(image, text)
-        if (viewBuffer.inArray(array))
-            return
-        viewBuffer.add(intArrayOf(image, text))
-        listenerBuffer.add(listener)
-    }
-
-    @SuppressLint("InflateParams")
-    private fun addView(
-        id: Int,
+    fun addView(
         @DrawableRes image: Int,
         @StringRes text: Int,
-        listener: View.OnClickListener) {
+        listener: View.OnClickListener
+    ) {
+        val view = BottomView(image, text, activity.resources, listener)
+
+        if (view !in viewBuffer)
+            viewBuffer += view
+    }
+
+    fun addView(
+        @DrawableRes image: Int,
+        imageBound: ImageBounds,
+        text: String,
+        listener: View.OnClickListener
+    ) {
+        val view = BottomView(image = image, text = text, listener = listener)
+        view.imageBound = imageBound
+
+        if (view !in viewBuffer)
+            viewBuffer += view
+    }
+
+    fun addViews(images: IntArray, strings: IntArray, listener: View.OnClickListener) {
+        if (images.size != strings.size)
+            return
+
+        for (index in images.indices) {
+            addView(images[index], strings[index], listener)
+        }
+    }
+
+
+    //использовать только в паре с removeView(view: View)
+    protected fun addView(view: View) =
+        binding.root.addView(view)
+
+    protected fun removeView(view: View) =
+        binding.root.removeView(view)
+
+
+    @SuppressLint("InflateParams")
+    private fun addView(view: BottomView) {
 
         val child = layoutInflater
-            .inflate(R.layout.bottom_sheet_field, null, false) as Button
+            .inflate(view.itemViewId, null, false) as Button
 
-        TextViewCompat.setCompoundDrawableTintList(
-            child,
-            ColorStateList.valueOf(SettingsViewModel.RASPBERRY)
-        )
+        child.setDrawables(view)
+        child.updateColors()
 
-        val drawableImage = context?.let { ContextCompat.getDrawable(it, image) }
+        child.text = view.text
+        child.setOnClickListener(view.listener)
+        child.id = view.id
+
+        addView(child)
+    }
+
+
+    fun editView(id: Int, @StringRes text: Int) {
+        viewBuffer[id].text = activity.getString(text)
+    }
+
+    fun getView(id: Int): Button =
+        binding.root.findViewById(id)
+
+
+    private fun TextView.updateColors() {
+        setTextColor(settings.fontColor)
+        setCompoundDrawableColor(activity.getColor(R.color.raspberry))
+    }
+
+    open fun updateColors() {
+        binding.root.backgroundTintList = ColorStateList.valueOf(settings.backgroundColor)
+
+        for (id in viewBuffer.indices)
+            getView(id).updateColors()
+    }
+
+
+    private fun Button.setDrawables(
+        left: Drawable?,
+        right: Drawable?,
+        top: Drawable? = null,
+        bottom: Drawable? = null
+    ) =
+        setCompoundDrawablesWithIntrinsicBounds(left, top, right, bottom)
+
+
+    protected fun Button.setDrawables(view: BottomView? = null) {
+        val v = if (view == null) {
+            val index = id
+            if (index >= viewBuffer.size)
+                return
+
+            viewBuffer[index]
+        }
+        else view
+
+        val drawableImage = context?.let { ContextCompat.getDrawable(it, v.image) }
         drawableImage?.bounds = Rect(0, 0, 0, 0)
-        child.setCompoundDrawablesWithIntrinsicBounds(drawableImage, null, null, null)
 
-        child.setText(text)
-        child.setTextColor(settings.fontColor)
-
-        child.setOnClickListener(listener)
-
-        child.id = id
-
-        (rootView as ViewGroup).addView(child)
-    }
-
-
-    fun editView(id : Int, @StringRes text : Int) {
-        viewBuffer[id][1] = text
-    }
-
-    //проверяет вхождение элемента в список (true - элемент уже есть в списке; false - нет)
-    private fun ArrayList<IntArray>.inArray(element: IntArray) : Boolean {
-        forEach {
-            if (it.equal(element))
-                return@inArray true
+        when (v.imageBound) {
+            ImageBounds.LEFT -> setDrawables(drawableImage, null)
+            ImageBounds.RIGHT -> setDrawables(null, drawableImage)
         }
-        return false
     }
 
-    private fun IntArray.equal(otherArray: IntArray) : Boolean {
-        if (size != otherArray.size)
-            return false
 
-        for (index in 0 until size) {
-            if (this[index] != otherArray[index])
-                return false
-        }
-        return true
-    }
+    fun Button.removeDrawables() =
+        setDrawables(null, null)
+
+
+    private fun TextView.setCompoundDrawableColor(color: Int) =
+        TextViewCompat.setCompoundDrawableTintList(this, ColorStateList.valueOf(color))
 }
+
+
+
+
+
+
+data class BottomView(
+        @LayoutRes val itemViewId: Int = R.layout.bottom_sheet_field,
+        @DrawableRes val image: Int,
+        var text: String,
+        val listener: View.OnClickListener
+) {
+    constructor(
+        @DrawableRes image: Int,
+        @StringRes text: Int,
+        resources: Resources,
+        listener: View.OnClickListener
+    ) : this(
+        image = image,
+        text = resources.getString(text),
+        listener = listener
+    )
+
+    var id = -1
+    var imageBound = ImageBounds.LEFT
+}
+
+enum class ImageBounds {
+    LEFT,
+    RIGHT
+}
+
+
+
+
+
+
+
+

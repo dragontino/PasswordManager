@@ -5,14 +5,14 @@
     android:orientation="horizontal">
 
     <TextView
-        android:id="@+id/field_item_text_view"
+        android:id="@+id/text_view"
         style="@style/MainTextViewTheme"
         android:textSize="17sp"
         android:layout_weight="1"
         android:layout_width="0dp"/>
 
     <ImageButton
-        android:id="@+id/field_item_button_visibility"
+        android:id="@+id/button_visibility"
         style="@style/UtilityButtons"
         android:contentDescription="@string/show_password"
         android:src="@drawable/visibility_on"

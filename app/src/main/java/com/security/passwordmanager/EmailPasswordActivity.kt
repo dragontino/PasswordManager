@@ -8,7 +8,10 @@ import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
 import android.view.View
-import android.widget.*
+import android.widget.CompoundButton
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.util.PatternsCompat
@@ -16,10 +19,14 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.security.passwordmanager.databinding.ActivityMainBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.ui.main.PasswordListActivity
 
 class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
+
+    private fun TextView.isEmpty() =
+        TextUtils.isEmpty(text)
 
     companion object {
 //        private const val TAG = "EmailPassword"
@@ -31,62 +38,45 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
-    private lateinit var progressBar: ProgressBar
     private lateinit var settings: SettingsViewModel
-    private lateinit var mEmailField: EditText
-    private lateinit var mPasswordField: EditText
-    private lateinit var signIn: Button
-    private lateinit var isPasswordRemember: CheckBox
 
-    private lateinit var label: TextView
-    private lateinit var subtitle: TextView
-
+    private lateinit var binding: ActivityMainBinding
     private lateinit var mAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        binding = ActivityMainBinding.inflate(layoutInflater)
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(binding.root)
 
         mAuth = FirebaseAuth.getInstance()
         settings = SettingsViewModel.getInstance(this)
 
-        label = findViewById(R.id.text_view_main_label)
-        subtitle = findViewById(R.id.text_view_main_subtitle)
+        binding.rememberPassword.isChecked = settings.isPasswordRemembered
 
-        mEmailField = findViewById(R.id.username)
-        mPasswordField = findViewById(R.id.password)
-        signIn = findViewById(R.id.signIn)
-        val signUp = findViewById<Button>(R.id.signUp)
-
-        isPasswordRemember = findViewById(R.id.remember_password)
-        isPasswordRemember.isChecked = settings.isPasswordRemembered
-
-        if (isPasswordRemember.isChecked)
+        if (binding.rememberPassword.isChecked)
             startActivity(PasswordListActivity.getIntent(this))
 
-        isPasswordRemember.setOnCheckedChangeListener {_: CompoundButton?, isChecked: Boolean ->
+        binding.rememberPassword.setOnCheckedChangeListener {_: CompoundButton?, isChecked: Boolean ->
             if (isChecked &&
-                (TextUtils.isEmpty(mPasswordField.text) || TextUtils.isEmpty(mEmailField.text)))
-                    isPasswordRemember.isChecked = false
+                (binding.password.isEmpty() || binding.login.isEmpty()))
+                    binding.rememberPassword.isChecked = false
 
             settings.isPasswordRemembered = isChecked
         }
 
-        progressBar = findViewById(R.id.loading)
+        binding.signIn.setOnClickListener(this)
+        binding.signUp.setOnClickListener(this)
 
-        signIn.setOnClickListener(this)
-        signUp.setOnClickListener(this)
-
-        mEmailField.addTextChangedListener(true)
-        mPasswordField.addTextChangedListener(false)
+        binding.login.addTextChangedListener(true)
+        binding.password.addTextChangedListener(false)
     }
 
 
     override fun onResume() {
         super.onResume()
-        progressBar.visibility = View.GONE
+        binding.loading.hide()
         updateUI()
     }
 
@@ -110,26 +100,26 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
         settings.updateThemeInScreen(window, supportActionBar)
 
         settings.fontColor.let {
-            label.setTextColor(it)
-            subtitle.setTextColor(it)
-            mEmailField.setTextColor(it)
-            mPasswordField.setTextColor(it)
-            isPasswordRemember.setTextColor(it)
-            mEmailField.backgroundTintList = ColorStateList.valueOf(it)
-            mPasswordField.backgroundTintList = ColorStateList.valueOf(it)
+            binding.mainLabel.setTextColor(it)
+            binding.mainSubtitle.setTextColor(it)
+            binding.login.setTextColor(it)
+            binding.password.setTextColor(it)
+            binding.rememberPassword.setTextColor(it)
+            binding.login.backgroundTintList = ColorStateList.valueOf(it)
+            binding.password.backgroundTintList = ColorStateList.valueOf(it)
         }
 
-        signIn.setBackgroundResource(settings.buttonRes)
-        isPasswordRemember.buttonTintList = ColorStateList.valueOf(settings.headerColor)
+        binding.signIn.setBackgroundResource(settings.buttonRes)
+        binding.rememberPassword.buttonTintList = ColorStateList.valueOf(settings.headerColor)
     }
 
 
     private fun registerUser() {
-        val email = mEmailField.text.toString().trim()
-        val password = mPasswordField.text.toString().trim()
+        val email = binding.login.text.toString().trim()
+        val password = binding.password.text.toString().trim()
 
         if (!validateForm(email, password)) {
-            progressBar.visibility = View.GONE
+            binding.loading.hide()
             return
         }
 
@@ -157,7 +147,7 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
                                     R.string.register_failed,
                                     Toast.LENGTH_LONG
                                 ).show()
-                                progressBar.visibility = View.GONE
+                                binding.loading.hide()
                             }
                     }
                 } else {
@@ -166,18 +156,18 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
                         R.string.register_failed,
                         Toast.LENGTH_LONG
                     ).show()
-                    progressBar.visibility = View.GONE
+                    binding.loading.hide()
                 }
             }
     }
 
 
     private fun loginUser() {
-        val email = mEmailField.text.toString().trim()
-        val password = mPasswordField.text.toString().trim()
+        val email = binding.login.text.toString().trim()
+        val password = binding.password.text.toString().trim()
 
         if (!validateForm(email, password)) {
-            progressBar.visibility = View.GONE
+            binding.loading.hide()
             return
         }
 
@@ -200,42 +190,42 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
         if (email != null) {
             when {
                 email.isEmpty() -> {
-                    mEmailField.error = getString(R.string.required)
-                    mEmailField.requestFocus()
+                    binding.login.error = getString(R.string.required)
+                    binding.login.requestFocus()
                     return false
                 }
                 !PatternsCompat.EMAIL_ADDRESS.matcher(email).matches() -> {
-                    mEmailField.error = getString(R.string.valid_email)
-                    mEmailField.requestFocus()
+                    binding.login.error = getString(R.string.valid_email)
+                    binding.login.requestFocus()
                     return false
                 }
-                else -> mEmailField.error = null
+                else -> binding.login.error = null
             }
         }
 
         if (password != null) when {
             password.isEmpty() -> {
-                mPasswordField.error = getString(R.string.required)
-                mPasswordField.requestFocus()
+                binding.password.error = getString(R.string.required)
+                binding.password.requestFocus()
                 return false
             }
             password.length < 6 -> {
-                mPasswordField.error = getString(R.string.min_password_length)
-                mPasswordField.requestFocus()
+                binding.password.error = getString(R.string.min_password_length)
+                binding.password.requestFocus()
                 return false
             }
-            else -> mPasswordField.error = null
+            else -> binding.password.error = null
         }
         return true
     }
 
 
     override fun onClick(v: View?) {
-        progressBar.visibility = View.VISIBLE
+        binding.loading.show()
 
         when(v?.id) {
-            R.id.signUp -> registerUser()
-            R.id.signIn -> loginUser()
+            R.id.sign_up -> registerUser()
+            R.id.sign_in -> loginUser()
         }
     }
 }

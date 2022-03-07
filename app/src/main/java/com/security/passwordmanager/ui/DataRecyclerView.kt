@@ -1,37 +1,22 @@
 package com.security.passwordmanager.ui
 
 import android.view.View
-import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.security.passwordmanager.ActionBottom
 import com.security.passwordmanager.data.*
 import com.security.passwordmanager.settings.SettingsViewModel
 
 abstract class DataRecyclerView(
-    rootView: View,
     protected val activity: AppCompatActivity,
-    @IdRes recyclerIdRes: Int,
+    protected val recyclerView: RecyclerView,
     private val type: DataType,
-    key: String,
-    val editable: Boolean) {
+    key: String = "",
+    val editable: Boolean = true
+) {
 
-    constructor(
-        activity: AppCompatActivity,
-        @IdRes recyclerIdRes: Int,
-        type: DataType,
-        key: String
-    ) : this(activity.window.decorView, activity, recyclerIdRes, type, key, true)
-
-    constructor(
-        rootView: View,
-        activity: AppCompatActivity,
-        @IdRes recyclerIdRes: Int,
-        type: DataType,
-        editable: Boolean
-    ) : this(rootView, activity, recyclerIdRes, type, "", editable)
+    //todo попробовать имплементить iterable<View>
 
     var key = key
         set(value) {
@@ -39,7 +24,6 @@ abstract class DataRecyclerView(
             updateAccountList()
         }
 
-    protected val recyclerView: RecyclerView = rootView.findViewById(recyclerIdRes)
     private val layoutManager: LinearLayoutManager =
         recyclerView.layoutManager as LinearLayoutManager
 
@@ -48,8 +32,6 @@ abstract class DataRecyclerView(
 
     protected lateinit var accountList : ArrayList<Data>
     val startCount : Int
-
-    protected val bottomDialogFragment = ActionBottom.newInstance(activity)
 
     abstract fun updateRecyclerView()
 
@@ -69,10 +51,10 @@ abstract class DataRecyclerView(
         dataViewModel.copyAccountList(accountList)
 
     protected fun updateAccountList() {
-        accountList = if (key.isEmpty())
+        accountList = (if (key.isEmpty())
             ArrayList()
         else
-            dataViewModel.getAccountList(key, type) as ArrayList<Data>
+            dataViewModel.getAccountList(key, type) as ArrayList<Data>)
         updateRecyclerView()
     }
 
@@ -82,7 +64,9 @@ abstract class DataRecyclerView(
 
     fun isEmpty() = accountList.isEmpty()
 
-    fun scrollToPosition(position : Int) = recyclerView.scrollToPosition(position)
+    fun scrollToPosition(position : Int) = recyclerView.post {
+        recyclerView.smoothScrollToPosition(position)
+    }
 
     fun scrollToEnd() = scrollToPosition(itemCount - 1)
 
