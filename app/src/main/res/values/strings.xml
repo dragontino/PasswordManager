@@ -3,7 +3,7 @@
     <string name="main_label">Менеджер паролей</string>
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 5.0.6 от 07 марта 2022</string>
+    <string name="app_version">Версия 5.1.0 от 15 марта 2022</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="add_record">Создать новую запись</string>
     <string name="clipText">Скопировано в буфер обмена</string>
@@ -103,4 +103,9 @@
 
     <string name="beautiful_font">Использовать красивый шрифт</string>
     <string name="beautiful_font_explain">На выдвигающемся меню будет отображаться красивый шрифт</string>
+    <string name="blank_fields">Некоторые поля незаполнены!</string>
+    <string name="data_hints_description">Заполнении поля «Название сайта» при редактировании раздела «Сайт» будет происходить автоматически, если заполнено поле «адрес»</string>
+    <string name="data_hints">Включить подсказки</string>
+    <string name="using_bottom_view">Включить выдвигающееся меню в главном меню</string>
+    <string name="bottom_view_explain">В главном меню при нажатии на элемент с данными будет выдвигаться меню, при нажатии на которое можно будет перейти непосредственно к этому элементу</string>
 </resources>

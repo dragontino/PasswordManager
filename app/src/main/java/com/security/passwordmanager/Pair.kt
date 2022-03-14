@@ -1,6 +1,6 @@
 package com.security.passwordmanager
 
-class Pair<X, Y>(var first : X, var second : Y)
+class Pair<X, Y>(var first: X, var second: Y)
 
 operator fun <A>Pair<A, A>.get(index : Int): A = if (index == 0) first
 else second

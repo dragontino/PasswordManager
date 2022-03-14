@@ -18,8 +18,6 @@ import com.security.passwordmanager.R;
 import com.security.passwordmanager.data.DataViewModel;
 import com.security.passwordmanager.settings.SettingsViewModel;
 
-import java.util.Objects;
-
 public class BankCardActivity_old extends AppCompatActivity {
 
     private static final String EXTRA_NAME = "extra_bank_name";
@@ -121,7 +119,7 @@ public class BankCardActivity_old extends AppCompatActivity {
 
 //        mRecyclerView.updateRecyclerView();
 
-        settings.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
+//        settings.updateThemeInScreen(getWindow(), Objects.requireNonNull(getSupportActionBar()));
         name.setBackgroundResource(settings.getBackgroundRes());
         number.setBackgroundResource(settings.getBackgroundRes());
         cardHolder.setBackgroundResource(settings.getBackgroundRes());

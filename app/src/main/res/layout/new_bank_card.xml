@@ -2,51 +2,56 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <EditText
         android:id="@+id/card_number"
+        style="@style/AccountTextViewTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/AccountTextViewTheme"
+        android:autofillHints="name"
         android:hint="@string/card_number"
         android:inputType="numberDecimal"
-        android:autofillHints="name"/>
+        android:minHeight="48dp" />
 
     <EditText
         android:id="@+id/card_holder"
+        style="@style/AccountTextViewTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/AccountTextViewTheme"
+        android:autofillHints="name"
         android:hint="@string/card_holder"
         android:inputType="textCapCharacters|textNoSuggestions|textPersonName"
-        android:autofillHints="name"/>
+        android:minHeight="48dp" />
 
     <EditText
         android:id="@+id/validity_period"
+        style="@style/AccountTextViewTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/AccountTextViewTheme"
+        android:autofillHints="name"
         android:hint="@string/validity_period"
         android:inputType="numberDecimal"
-        android:autofillHints="name"/>
+        android:minHeight="48dp" />
 
     <EditText
         android:id="@+id/card_cvv"
+        style="@style/AccountTextViewTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/AccountTextViewTheme"
+        android:autofillHints="name"
         android:hint="@string/card_cvv"
         android:inputType="numberPassword"
-        android:autofillHints="name"/>
+        android:minHeight="48dp" />
 
     <EditText
         android:id="@+id/pin_code"
+        style="@style/AccountTextViewTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/AccountTextViewTheme"
+        android:autofillHints="name"
         android:hint="@string/pin_code"
         android:inputType="numberPassword"
-        android:autofillHints="name"/>
+        android:minHeight="48dp" />
 
 </LinearLayout>

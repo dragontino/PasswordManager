@@ -16,7 +16,7 @@
             <TextView
                 android:id="@+id/switch_theme"
                 style="@style/NormalTextViewTheme"
-                android:textSize="19sp"
+                android:textSize="16sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
@@ -27,31 +27,23 @@
             <include
                 layout="@layout/divider_view"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginVertical="@dimen/activity_vertical_margin">
+            <include
+                android:id="@+id/beautiful_font"
+                layout="@layout/switch_view"/>
 
-                <include
-                    android:id="@+id/beautiful_font"
-                    layout="@layout/layout_main_header"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+            <include
+                layout="@layout/divider_view"/>
 
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switch_beautiful_font"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                    android:checked="true"
-                    android:scaleX="1.2"
-                    android:scaleY="1.2"
-                    android:theme="@style/SwitchLight"/>
+            <include
+                android:id="@+id/dats_hints"
+                layout="@layout/switch_view"/>
 
-            </LinearLayout>
+            <include
+                layout="@layout/divider_view"/>
+
+            <include
+                android:id="@+id/show_bottom_view"
+                layout="@layout/switch_view"/>
 
             <include
                 layout="@layout/divider_view"/>

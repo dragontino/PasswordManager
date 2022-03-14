@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -34,14 +35,14 @@ class PasswordListFragment : Fragment() {
 
     private lateinit var binding: FragmentPasswordListBinding
 
-    private var adapter: PasswordAdapter? = null
+    private lateinit var adapter: PasswordAdapter
     private lateinit var searchView: SearchView
 
     private var openedView = -1
 
     private lateinit var settings: SettingsViewModel
     private lateinit var dataViewModel: DataViewModel
-    private lateinit var dataList: List<Data>
+    private lateinit var dataList: MutableList<Data>
 
     private fun openBottomSheet(bottomDialogFragment: ActionBottomDialogFragment) =
         activity?.supportFragmentManager?.let { bottomDialogFragment.show(it) }
@@ -58,7 +59,6 @@ class PasswordListFragment : Fragment() {
         return binding.root
     }
 
-    // TODO: 07.02.2022 перенести меню в passwordListActivity
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.main, menu)
@@ -72,31 +72,30 @@ class PasswordListFragment : Fragment() {
 
                 @SuppressLint("NotifyDataSetChanged")
                 override fun onQueryTextChange(newText: String): Boolean {
-                    dataList = dataViewModel.searchData(newText)
+                    dataList = dataViewModel.searchData(newText) as MutableList<Data>
                     openedView =
                         if (dataList.size == 1) 0
                         else -1
-                    adapter?.notifyDataSetChanged()
+                    adapter.notifyDataSetChanged()
                     return true
                 }
             },
         )
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.menu_item_settings)
-            startActivity(SettingsActivity.getIntent(context))
-        return super.onOptionsItemSelected(item)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
 
         activity?.let {
             settings = SettingsViewModel.getInstance(it)
             dataViewModel = ViewModelProvider(it)[DataViewModel::class.java]
         }
+
+        dataList = dataViewModel.getDataList() as MutableList<Data>
+
+        adapter = PasswordAdapter()
+        binding.mainRecyclerView.adapter = adapter
 
         openedView = savedInstanceState.getInt(OPENED_VIEW_KEY, -1)
     }
@@ -106,12 +105,9 @@ class PasswordListFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        dataList = dataViewModel.getDataList()
-        if (adapter == null) {
-            adapter = PasswordAdapter()
-            binding.mainRecyclerView.adapter = adapter
-        } else
-            adapter?.notifyDataSetChanged()
+        Log.d(ActionBottom.TAG, "проверка")
+
+        adapter.notifyDataSetChanged()
     }
 
 
@@ -133,12 +129,11 @@ class PasswordListFragment : Fragment() {
 
 
 
-
     private inner class PasswordAdapter : RecyclerView.Adapter<PasswordHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PasswordHolder {
             val itemBinding = ListItemMainTextViewBinding
-                .inflate(LayoutInflater.from(context), parent, false)
+                .inflate(LayoutInflater.from(parent.context), parent, false)
 
             val holder = PasswordHolder(itemBinding)
 
@@ -181,8 +176,8 @@ class PasswordListFragment : Fragment() {
 
 
         private fun LinearLayout.getTextFields() = Pair(
-            first = findViewById<TextView>(R.id.text_view_name),
-            second = findViewById<TextView>(R.id.text_view_subtitle)
+            first = findViewById<TextView>(R.id.heading),
+            second = findViewById<TextView>(R.id.subtitle)
         )
 
 
@@ -253,9 +248,9 @@ class PasswordListFragment : Fragment() {
             bottomDialogFragment.addView(R.drawable.delete, R.string.delete_password) {
                 dataViewModel.deleteRecords(data)
                 // TODO: 07.03.2022 удалить нахуй
-                dataList = dataViewModel.getDataList()
+
                 bottomDialogFragment.dismiss()
-                adapter?.notifyItemRemoved(adapterPosition)
+                adapter.notifyItemRemoved(adapterPosition)
             }
             openBottomSheet(bottomDialogFragment)
         }
@@ -403,7 +398,8 @@ class PasswordListFragment : Fragment() {
                             buttonOpenUrl.setBackgroundResource(settings.buttonRes)
 
                             root.setOnClickListener {
-                                bottomDialogFragment.show(childFragmentManager)
+                                if (settings.baseSettings.isUsingBottomView)
+                                    bottomDialogFragment.show(childFragmentManager)
                             }
                         }
                     }
@@ -445,7 +441,7 @@ class PasswordListFragment : Fragment() {
                 bottomDialogFragment.addView(R.drawable.edit, R.string.edit) {
                     bottomDialogFragment.dismiss()
                     startActivity(PasswordActivity
-                        .getIntent(context, (data as Website).address, pos + 1))
+                        .getIntent(context, (data as Website).address, pos))
                 }
             }
 

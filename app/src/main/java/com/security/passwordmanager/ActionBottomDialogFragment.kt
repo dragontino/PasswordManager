@@ -23,7 +23,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.security.passwordmanager.databinding.BottomSheetBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 
-open class ActionBottomDialogFragment(protected val activity: AppCompatActivity) : BottomSheetDialogFragment() {
+open class ActionBottomDialogFragment(private val activity: AppCompatActivity) : BottomSheetDialogFragment() {
 
     protected lateinit var settings: SettingsViewModel
     private val headingBuffer = Array(2) { String() }
@@ -88,18 +88,21 @@ open class ActionBottomDialogFragment(protected val activity: AppCompatActivity)
         heading.show()
         binding.headerDivider.show()
 
-        val head = heading.findViewById<TextView>(R.id.text_view_name)
-        val subtitle = heading.findViewById<TextView>(R.id.text_view_subtitle)
+        val head = heading.findViewById<TextView>(R.id.heading)
+        val subtitle = heading.findViewById<TextView>(R.id.subtitle)
 
         head.text = headText
         head.setTextColor(settings.fontColor)
 
-        if (beautifulDesign) {
+        if (beautifulDesign && settings.baseSettings.isUsingBeautifulFont) {
             head.textSize = 24F
             head.typeface = Typeface.create(
                 Typeface.createFromAsset(activity.assets, "fonts/beautiful_font.otf"),
                 Typeface.BOLD
             )
+        }
+        else {
+            head.textSize = 20F
         }
 
         if (subtitleText == empty)

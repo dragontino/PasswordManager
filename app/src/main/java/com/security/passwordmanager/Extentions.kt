@@ -1,9 +1,9 @@
 package com.security.passwordmanager
 
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.annotation.IdRes
 
 fun TextView.isEmpty() =
     text.isEmpty()
@@ -16,10 +16,10 @@ fun View.show() {
     visibility = View.VISIBLE
 }
 
-interface MyTextWatcher: TextWatcher {
-    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+operator fun <T: View> View.get(@IdRes name: Int): T =
+    findViewById(name)
 
-    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-    override fun afterTextChanged(s: Editable?) {}
-}
+inline fun onBackPressedCallback(enabled: Boolean, crossinline handle: () -> Unit) =
+    object : OnBackPressedCallback(enabled) {
+        override fun handleOnBackPressed() = handle()
+    }
