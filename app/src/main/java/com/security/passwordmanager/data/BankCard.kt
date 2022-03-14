@@ -13,7 +13,7 @@ class BankCard(
         var cardHolder: String,
         var validity: String,
         var cvv: Int,
-        var pin : Int) : Data(id) {
+        var pin: Int) : Data(id) {
 
     @Ignore
     constructor() : this(0, "", "", "", "", 0, 0)
@@ -92,4 +92,9 @@ class BankCard(
 
         return bankName.compareTo(anotherString)
     }
+
+    // TODO: 13.03.2022 подумать, какие поля обязаны быть не пустыми
+    override fun isEmpty() =
+        cardNumber.isEmpty() || cardHolder.isEmpty() || validity.isEmpty() ||
+                getCvv().isEmpty() || getPin().isEmpty()
 }

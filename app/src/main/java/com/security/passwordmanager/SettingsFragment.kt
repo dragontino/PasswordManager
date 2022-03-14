@@ -1,18 +1,18 @@
 package com.security.passwordmanager
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
 import androidx.appcompat.widget.SwitchCompat
+import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
-import com.security.passwordmanager.TimePickerActivity.Companion.TimePickerActivityContract
 import com.security.passwordmanager.databinding.FragmentSettingsBinding
 import com.security.passwordmanager.databinding.SwitchViewBinding
 import com.security.passwordmanager.settings.SettingsViewModel
@@ -20,7 +20,9 @@ import com.security.passwordmanager.settings.Theme
 import com.security.passwordmanager.settings.ThemeBottomDialogFragment
 import java.util.*
 
-class SettingsActivity : AppCompatActivity(), Theme {
+
+class SettingsFragment: Fragment(), Theme {
+
     private lateinit var settings: SettingsViewModel
 
     private lateinit var binding: FragmentSettingsBinding
@@ -36,17 +38,26 @@ class SettingsActivity : AppCompatActivity(), Theme {
             )
         }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+
+        binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
 
-        binding = FragmentSettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        settings = SettingsViewModel.getInstance(activity as AppCompatActivity)
+        themeBottomFragment = ThemeBottomDialogFragment(this, activity as AppCompatActivity)
 
-        settings = SettingsViewModel.getInstance(this)
-        themeBottomFragment = ActionBottom.themeInstance(this, this)
-
-        val actionBottomFragment = ActionBottom.newInstance(this)
+        val actionBottomFragment = ActionBottom.newInstance(activity as AppCompatActivity)
         actionBottomFragment.setHeading(getString(R.string.feedback), beautifulDesign = true)
 
         val bottomClickListener = View.OnClickListener {
@@ -79,76 +90,50 @@ class SettingsActivity : AppCompatActivity(), Theme {
         actionBottomFragment.addViews(images, strings, bottomClickListener)
 
         binding.switchTheme.setOnClickListener {
-            themeBottomFragment.show(supportFragmentManager)
+            themeBottomFragment.show(parentFragmentManager)
         }
 
         binding.switchTheme.textSize = 16F
 
-        binding.beautifulFont.run {
-            switchCompat.isChecked = settings.baseSettings.isUsingBeautifulFont
+        binding.beautifulFont.setSwitchOptions(
+            settings.baseSettings.isUsingBeautifulFont,
+            R.string.beautiful_font,
+            R.string.beautiful_font_explain,
+            settings::updateBeautifulFont
+        )
 
-            textView.heading.setText(R.string.beautiful_font)
-            textView.heading.textSize = 16F
+        binding.datsHints.setSwitchOptions(
+            settings.baseSettings.isShowingDataHints,
+            R.string.data_hints,
+            R.string.data_hints_description,
+            settings::updateUsingDataHints
+        )
 
-            textView.subtitle.setText(R.string.beautiful_font_explain)
-            textView.subtitle.textSize = 13F
-
-            setOnCheckedChangeListener {
-                settings.updateBeautifulFont(it)
-            }
-        }
-
-        binding.datsHints.run {
-            switchCompat.isChecked = settings.baseSettings.isShowingDataHints
-
-            textView.heading.text = getString(R.string.data_hints)
-            textView.heading.textSize = 16F
-
-            textView.subtitle.setText(R.string.data_hints_description)
-            textView.subtitle.textSize = 13F
-
-            setOnCheckedChangeListener {
-                settings.updateUsingDataHints(it)
-            }
-        }
+        binding.showBottomView.setSwitchOptions(
+            settings.baseSettings.isUsingBottomView,
+            R.string.using_bottom_view,
+            R.string.bottom_view_explain,
+            settings::updateUsingBottomView
+        )
 
 
         binding.buttonLogout.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             settings.isPasswordRemembered = false
-            startActivity(EmailPasswordActivity.getIntent(this))
+            startActivity(EmailPasswordActivity.getIntent(activity as AppCompatActivity))
         }
 
         binding.haveQuestions.setOnClickListener {
-            actionBottomFragment.show(supportFragmentManager)
+            actionBottomFragment.show(parentFragmentManager)
         }
 
         updateTheme()
-
-        supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount == 0)
-                setTitle(R.string.settings_label)
-        }
-
-        val actionBar = supportActionBar
-        actionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     private fun SwitchCompat.switch() {
         isChecked = !isChecked
-        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as Vibrator
-        } else return
-
-        if (vibrator.hasVibrator())
-            vibrator.vibrate(
-                VibrationEffect.createOneShot(
-                    3000,
-                    VibrationEffect.CONTENTS_FILE_DESCRIPTOR
-                )
-            )
+        // TODO: 10.03.2022 сделать вибратор
     }
-
 
     private fun SwitchViewBinding.setOnCheckedChangeListener(action: (Boolean) -> Unit) {
         textView.root.setOnClickListener {
@@ -157,6 +142,25 @@ class SettingsActivity : AppCompatActivity(), Theme {
         }
         switchCompat.setOnCheckedChangeListener { _, isChecked -> action(isChecked) }
     }
+
+
+    private fun SwitchViewBinding.setSwitchOptions(
+        isChecked: Boolean,
+        @StringRes headingText: Int,
+        @StringRes subtitleText: Int,
+        listener: (Boolean) -> Unit
+    ) {
+        switchCompat.isChecked = isChecked
+
+        textView.heading.setText(headingText)
+        textView.heading.textSize = 16F
+
+        textView.subtitle.setText(subtitleText)
+        textView.subtitle.textSize = 13F
+
+        setOnCheckedChangeListener { listener(it) }
+    }
+
 
 
     //слушает нажатия на timeLayout в ThemeBottomFragment
@@ -168,7 +172,7 @@ class SettingsActivity : AppCompatActivity(), Theme {
     }
 
     override fun updateTheme() {
-        settings.updateThemeInScreen(window, supportActionBar)
+        settings.updateThemeInScreen(activity?.window, (activity as AppCompatActivity).supportActionBar)
         binding.switchTheme.text = currentThemeText
 
         settings.fontColor.let {
@@ -177,27 +181,22 @@ class SettingsActivity : AppCompatActivity(), Theme {
                 haveQuestions.setTextColor(it)
                 beautifulFont.textView.heading.setTextColor(it)
                 datsHints.textView.heading.setTextColor(it)
+                showBottomView.textView.heading.setTextColor(it)
             }
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return super.onSupportNavigateUp()
-    }
-
     private val startLauncher = registerForActivityResult(
-        TimePickerActivityContract(R.string.start_time)
-    ) { result: Calendar? ->
-        if (result != null) {
-            settings.setStartTime(result)
+        TimePickerActivity.Companion.TimePickerActivityContract(R.string.start_time)) {
+        if (it != null) {
+            settings.setStartTime(it)
             themeBottomFragment.updateColors()
             updateTheme()
         }
     }
 
     private var endLauncher = registerForActivityResult(
-        TimePickerActivityContract(R.string.end_time)
+        TimePickerActivity.Companion.TimePickerActivityContract(R.string.end_time)
     ) { result: Calendar? ->
         if (result != null) {
             settings.setEndTime(result)

@@ -70,4 +70,7 @@ class Website(
 
         return nameWebsite.compareTo(anotherString)
     }
+
+    override fun isEmpty() =
+        login.isEmpty() || password.isEmpty()
 }

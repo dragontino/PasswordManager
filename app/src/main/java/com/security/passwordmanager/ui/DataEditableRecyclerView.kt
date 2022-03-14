@@ -1,8 +1,8 @@
 package com.security.passwordmanager.ui
 
 import android.content.res.ColorStateList
-import android.text.Editable
 import android.text.InputType
+import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.iterator
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -58,10 +59,11 @@ class DataEditableRecyclerView(
 
     // FIXME: 07.03.2022 не работает scroll
     fun scrollToPosition(position : Int) = recyclerView.post {
+        Log.d(ActionBottom.TAG, "test")
         recyclerView.smoothScrollToPosition(position)
     }
 
-    fun scrollToEnd() = scrollToPosition(itemCount - 1)
+    private fun scrollToEnd() = scrollToPosition(itemCount - 1)
 
     operator fun get(index : Int): View = recyclerView.getChildAt(index)
 
@@ -86,9 +88,7 @@ class DataEditableRecyclerView(
     fun getData(position: Int) = accountList[position]
 
     //текущее количество элементов
-    val itemCount get() = accountList.size
-
-//    fun getCurrentData() = getData(currentPosition)
+    private val itemCount get() = accountList.size
 
 
 
@@ -258,17 +258,15 @@ class DataEditableRecyclerView(
          * param stringField: property, where new string will be right down
          */
         fun EditText.setTextWatcher(stringField: KMutableProperty0<String>, mustBeNotNull: Boolean = true) =
-            addTextChangedListener(object: MyTextWatcher {
-                override fun afterTextChanged(s: Editable?) {
-                    if (mustBeNotNull && s?.isEmpty() == true) {
-                        error = activity.getString(R.string.required)
-                        return
-                    }
-
-                    stringField.set(s?.toString() ?: stringField.get())
-                    accountList[pos] = data
+            doAfterTextChanged {
+                if (mustBeNotNull && it?.isEmpty() == true) {
+                    error = activity.getString(R.string.required)
+                    return@doAfterTextChanged
                 }
-            })
+
+                stringField.set(it?.toString() ?: stringField.get())
+                accountList[pos] = data
+            }
 
 
         fun updatePasswordView() {

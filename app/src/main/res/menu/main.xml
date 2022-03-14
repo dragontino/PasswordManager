@@ -3,13 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_item_settings"
-        android:orderInCategory="10"
-        android:icon="@drawable/settings"
-        android:title="@string/settings_label"
-        app:showAsAction="ifRoom"/>
-
-    <item
         android:id="@+id/menu_item_search"
         android:title="@string/search_label"
         android:icon="@drawable/ic_action_search"

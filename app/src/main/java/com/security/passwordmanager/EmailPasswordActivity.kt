@@ -4,9 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.text.Editable
+import android.text.InputType
 import android.text.TextUtils
-import android.text.TextWatcher
 import android.view.View
 import android.widget.CompoundButton
 import android.widget.EditText
@@ -15,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.util.PatternsCompat
+import androidx.core.widget.doOnTextChanged
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -42,6 +42,8 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var mAuth: FirebaseAuth
+
+    private var isPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -71,6 +73,10 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
 
         binding.login.addTextChangedListener(true)
         binding.password.addTextChangedListener(false)
+
+        binding.passwordVisibility.setOnClickListener {
+            updatePasswordView()
+        }
     }
 
 
@@ -82,17 +88,12 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun EditText.addTextChangedListener(email : Boolean) {
-        addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                if (email)
-                    validateForm(s.toString(), null)
-                else
-                    validateForm(null, s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable) = Unit
-        })
+        doOnTextChanged { text, _, _, _ ->
+            if (email)
+                validateForm(text.toString(), null)
+            else
+                validateForm(null, text.toString())
+        }
     }
 
 
@@ -107,11 +108,31 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
             binding.rememberPassword.setTextColor(it)
             binding.login.backgroundTintList = ColorStateList.valueOf(it)
             binding.password.backgroundTintList = ColorStateList.valueOf(it)
+
+            binding.passwordVisibility.imageTintList = ColorStateList.valueOf(it)
         }
 
         binding.signIn.setBackgroundResource(settings.buttonRes)
+        binding.passwordVisibility.setBackgroundColor(settings.backgroundColor)
         binding.rememberPassword.buttonTintList = ColorStateList.valueOf(settings.headerColor)
     }
+
+    private fun updatePasswordView() = binding.run {
+        isPasswordVisible = !isPasswordVisible
+
+        if (isPasswordVisible) {
+            password.inputType = InputType.TYPE_CLASS_TEXT
+            passwordVisibility.setImageResource(R.drawable.visibility_off)
+            passwordVisibility.contentDescription = getString(R.string.hide_password)
+        }
+        else {
+            password.inputType = 129
+            passwordVisibility.setImageResource(R.drawable.visibility_on)
+            passwordVisibility.contentDescription = getString(R.string.show_password)
+        }
+    }
+
+
 
 
     private fun registerUser() {

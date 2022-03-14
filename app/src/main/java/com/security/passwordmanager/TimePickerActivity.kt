@@ -47,7 +47,7 @@ class TimePickerActivity : AppCompatActivity() {
 
     }
 
-    private var timePicker : TimePicker? = null
+    private lateinit var timePicker : TimePicker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,9 +68,9 @@ class TimePickerActivity : AppCompatActivity() {
             null
         ) as TimePicker
 
-        timePicker?.setIs24HourView(true)
-        timePicker?.hour = hours
-        timePicker?.minute = minutes
+        timePicker.setIs24HourView(true)
+        timePicker.hour = hours
+        timePicker.minute = minutes
 
         (findViewById<View>(R.id.dialog_time_picker) as LinearLayout).addView(timePicker)
 
@@ -85,8 +85,8 @@ class TimePickerActivity : AppCompatActivity() {
         }
 
         buttonOk.setOnClickListener {
-            calendar[Calendar.HOUR_OF_DAY] = timePicker?.hour ?: 0
-            calendar[Calendar.MINUTE] = timePicker?.minute ?: 0
+            calendar[Calendar.HOUR_OF_DAY] = timePicker.hour
+            calendar[Calendar.MINUTE] = timePicker.minute
 
             val intent = Intent()
             intent.putExtra(EXTRA_TIME, calendar)

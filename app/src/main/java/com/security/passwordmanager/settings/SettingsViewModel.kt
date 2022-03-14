@@ -2,10 +2,10 @@ package com.security.passwordmanager.settings
 
 import android.app.Application
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.util.Log
 import android.view.Window
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
@@ -14,7 +14,7 @@ import androidx.appcompat.app.ActionBar
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
-import com.security.passwordmanager.ActionBottom
+import com.google.android.material.navigation.NavigationView
 import com.security.passwordmanager.Pair
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.MainDatabase
@@ -54,14 +54,17 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         defHours = 23
     )
 
-    var theme : ThemeDef
+    var theme: ThemeDef
         get() = ThemeDef.values().find {
-            it.themeName == settingsRepository.getTheme()
+            it.themeName == settingsRepository.getSettings().theme
         } ?: ThemeDef.LIGHT_THEME
         set(value) {
             settingsRepository.updateTheme(value.themeName)
             updateColors()
         }
+
+    val baseSettings: Settings get() =
+        settingsRepository.getSettings()
 
 
     @ColorInt var backgroundColor = Color.WHITE
@@ -72,7 +75,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
 
     @DrawableRes var backgroundRes = R.drawable.text_view_style
     @DrawableRes var buttonRes = R.drawable.button_style
-    @StyleRes var switchStyle = R.style.SwitchLight
+    @StyleRes var switchStyle = R.style.SwitchTheme
 
     var isPasswordRemembered
         get() = preferences.getBoolean(APP_PREFERENCES_IS_PASSWORD_REMEMBERED.title, false)
@@ -88,14 +91,29 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         updateColors()
     }
 
-    fun updateThemeInScreen(window: Window?, actionBar: ActionBar?) {
+    fun updateThemeInScreen(
+        window: Window?,
+        actionBar: ActionBar?,
+        navigationView: NavigationView? = null,
+    ) {
         if (window == null || actionBar == null) return
-
-        Log.d(ActionBottom.TAG, "проверка цвета = ${backgroundColor == Color.WHITE}")
 
         window.decorView.setBackgroundColor(backgroundColor)
         window.statusBarColor = headerColor
         actionBar.setBackgroundDrawable(ColorDrawable(headerColor))
+
+        if (navigationView != null) {
+            navigationView.setBackgroundColor(backgroundColor)
+            navigationView.itemTextColor = ColorStateList.valueOf(fontColor)
+
+            val states = arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(android.R.attr.state_enabled)
+            )
+
+            val colors = intArrayOf(mApplication.getColor(R.color.raspberry), fontColor)
+            navigationView.itemIconTintList = ColorStateList(states, colors)
+        }
     }
 
     fun isLightTheme() = when(theme) {
@@ -121,7 +139,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         layoutBackgroundColor = mApplication.getColor(R.color.light_gray)
         backgroundRes = R.drawable.text_view_style
         buttonRes = R.drawable.button_style
-        switchStyle = R.style.SwitchLight
+        switchStyle = R.style.SwitchTheme
     }
     else {
         backgroundColor = mApplication.getColor(R.color.background_dark)
@@ -134,9 +152,19 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
     }
 
 
+    fun updateBeautifulFont(usingFont: Boolean) =
+        settingsRepository.updateUsingBeautifulFont(usingFont)
+
+    fun updateUsingDataHints(usingHints: Boolean) =
+        settingsRepository.updateDataHints(usingHints)
+
+    fun updateUsingBottomView(usingBottomView: Boolean) =
+        settingsRepository.updateUsingBottomView(usingBottomView)
+
+
     fun getIndexTheme() = ThemeDef.values().indexOf(theme)
 
-    fun setStartTime(startTime : Calendar) {
+    fun setStartTime(startTime: Calendar) {
         this.startTime = startTime
         setDateToPreferences(
             keyMinutes = APP_PREFERENCES_START_MINUTES,

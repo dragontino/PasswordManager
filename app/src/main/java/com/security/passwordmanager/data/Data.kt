@@ -23,5 +23,5 @@ abstract class Data(@PrimaryKey(autoGenerate = true) var id: Int = 0) :
 
     override fun hashCode() = id
 
-
+    abstract fun isEmpty(): Boolean
 }
