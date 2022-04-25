@@ -87,6 +87,8 @@ class DataEditableRecyclerView(
 
     fun getData(position: Int) = accountList[position]
 
+    fun forData(action: (Data) -> Unit) = accountList.forEach(action)
+
     //текущее количество элементов
     private val itemCount get() = accountList.size
 
@@ -142,6 +144,8 @@ class DataEditableRecyclerView(
                     itemBinding.passwordVisibility.setOnClickListener {
                         updatePasswordView()
                     }
+
+                    updatePasswordView(isPasswordVisible)
                 }
                 is NewBankCardBinding -> {
                     // TODO: 07.03.2022 сделать bank card binding
@@ -167,9 +171,9 @@ class DataEditableRecyclerView(
             val zero = ""
 
             if (blocking && text.isBlank())
-                setText(full)
+                txt = full
             else if (!blocking && text.toString() == full)
-                setText(zero)
+                txt = zero
 
             if (blocking && text.toString() != full) {
                 (data as Website).nameAccount = text.toString()
@@ -196,20 +200,19 @@ class DataEditableRecyclerView(
                         return
 
                     itemBinding.run {
-                        login.setText(data.login)
-                        password.setText(data.password)
-                        comment.setText(data.comment)
+                        login.txt = data.login
+                        password.txt = data.password
+                        comment.txt = data.comment
 
                         login.setTextWatcher(data::login)
                         password.setTextWatcher(data::password)
                         comment.setTextWatcher(data::comment, false)
 
-                        nameAccount.setText(
+                        nameAccount.txt =
                             if (data.nameAccount.isEmpty())
                                 nameAccountStart
                             else
                                 data.nameAccount
-                        )
 
                         nameAccount.setOnKeyListener { _, keyCode, event ->
                             if (event.action == KeyEvent.ACTION_DOWN &&
@@ -235,8 +238,9 @@ class DataEditableRecyclerView(
                             item.setBackgroundResource(settings.backgroundRes)
                         }
 
-                        editNameOfAccount.backgroundTintList =
+                        editNameOfAccount.imageTintList =
                             ColorStateList.valueOf(settings.fontColor)
+                        editNameOfAccount.setBackgroundColor(settings.layoutBackgroundColor)
 
                         passwordVisibility.setBackgroundColor(settings.backgroundColor)
                         passwordVisibility.imageTintList = ColorStateList.valueOf(settings.fontColor)
@@ -276,11 +280,13 @@ class DataEditableRecyclerView(
 
         fun updatePasswordView(visibility: Boolean) = (itemBinding as NewAccountBinding).run {
             if (visibility) {
-                password.inputType = InputType.TYPE_CLASS_TEXT
+                password.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
                 passwordVisibility.setImageResource(R.drawable.visibility_off)
                 passwordVisibility.contentDescription = activity.getString(R.string.hide_password)
             } else {
-                password.inputType = 129
+                password.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                 passwordVisibility.setImageResource(R.drawable.visibility_on)
                 passwordVisibility.contentDescription = activity.getString(R.string.show_password)
             }

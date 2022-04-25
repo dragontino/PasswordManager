@@ -2,21 +2,18 @@ package com.security.passwordmanager.data
 
 import android.content.Context
 import androidx.room.Entity
-import androidx.room.Ignore
 import com.security.passwordmanager.R
 
 @Entity(tableName = "BankTable")
 class BankCard(
-        id : Int,
-        var bankName: String,
-        var cardNumber: String,
-        var cardHolder: String,
-        var validity: String,
-        var cvv: Int,
-        var pin: Int) : Data(id) {
-
-    @Ignore
-    constructor() : this(0, "", "", "", "", 0, 0)
+        id : Int = 0,
+        email: String = "",
+        var bankName: String = "",
+        var cardNumber: String = "",
+        var cardHolder: String = "",
+        var validity: String = "",
+        var cvv: Int = 0,
+        var pin: Int = 0) : Data(id, email) {
 
 
     private fun getCvv(): String {
@@ -35,13 +32,10 @@ class BankCard(
         this.pin = pin.toInt()
     }
 
-    @Ignore
-    override val key = bankName
+    override val key get() = bankName
+    override val type get() = DataType.BANK_CARD
 
-    @Ignore
-    override val type = DataType.BANK_CARD
-
-    override fun encrypt(encrypt: (String) -> String): Data {
+    override fun encrypt(encrypt: String.() -> String): Data {
         cardNumber = encrypt(cardNumber)
         cardHolder = encrypt(cardHolder)
         validity = encrypt(validity)

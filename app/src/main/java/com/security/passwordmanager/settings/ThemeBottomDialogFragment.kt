@@ -84,8 +84,8 @@ class ThemeBottomDialogFragment(private val theme: Theme, activity: AppCompatAct
     private fun updateTimes(root: LinearLayout) {
         val calendarPair = settings.getTimes()
 
-        val startTime = getStringFromCalendar(calendarPair.first)
-        val endTime = getStringFromCalendar(calendarPair.second)
+        val startTime = getStringFromCalendar(calendarPair[0])
+        val endTime = getStringFromCalendar(calendarPair[1])
 
         val start = root.findViewById<TextView>(R.id.theme_layout_start_time)
         val end = root.findViewById<TextView>(R.id.theme_layout_end_time)
@@ -107,14 +107,14 @@ class ThemeBottomDialogFragment(private val theme: Theme, activity: AppCompatAct
         }
     }
 
-    private fun getStringFromCalendar(calendar: Calendar) : String {
+    private fun getStringFromCalendar(calendar: Calendar): String {
         val format = SimpleDateFormat("HH:mm", Locale.getDefault())
         return format.format(calendar.time)
     }
 
 
     override fun onDestroyView() {
-        super.onDestroyView()
         removeView(timeLayout)
+        super.onDestroyView()
     }
 }

@@ -10,11 +10,12 @@
 
     <EditText
         android:id="@+id/name_account"
+        style="@style/AccountHeadingTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/AccountHeadingTheme"
         android:inputType="none"
-        tools:ignore="Autofill,LabelFor"/>
+        android:minHeight="48dp"
+        tools:ignore="Autofill,LabelFor" />
 
     <TextView
         android:id="@+id/login_head"
@@ -49,6 +50,8 @@
     <Button
         android:id="@+id/button_open_url"
         style="@style/MainTextViewTheme"
-        android:text="@string/button_open_url" />
+        android:text="@string/button_open_url"
+        android:background="@drawable/button_style"
+        android:textColor="@color/white" />
 
 </LinearLayout>

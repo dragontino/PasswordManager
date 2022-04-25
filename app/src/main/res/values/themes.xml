@@ -8,6 +8,8 @@
         <item name="android:textColorPrimary">@color/white</item>
         <item name="bottomSheetDialogTheme">@style/Theme.MaterialComponents.BottomSheetDialog</item>
         <!-- Customize your theme here. -->
+<!--        <item name="android:windowTranslucentStatus">true</item>-->
+<!--        <item name="android:windowTranslucentNavigation">true</item>-->
     </style>
 
     <style name="Theme.PasswordManager.NoActionBar">

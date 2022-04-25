@@ -53,7 +53,7 @@ open class ActionBottomDialogFragment(private val activity: AppCompatActivity) :
         super.onViewCreated(view, savedInstanceState)
 
         isCreated = true
-        if (headingBuffer[0] != "")
+        if (headingBuffer[0].isNotEmpty())
             setHeading(headingBuffer[0], headingBuffer[1], beautifulDesign)
 
         if (viewBuffer.isNotEmpty()) {
@@ -65,8 +65,8 @@ open class ActionBottomDialogFragment(private val activity: AppCompatActivity) :
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
         isCreated = false
+        super.onDestroyView()
     }
 
 
@@ -154,6 +154,7 @@ open class ActionBottomDialogFragment(private val activity: AppCompatActivity) :
 
     protected fun removeView(view: View) =
         binding.root.removeView(view)
+
 
 
     @SuppressLint("InflateParams")

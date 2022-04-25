@@ -4,61 +4,65 @@ import android.app.Application
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import com.security.passwordmanager.Cryptographer
 import com.security.passwordmanager.R
+import com.security.passwordmanager.getString
+import com.security.passwordmanager.settings.EnumPreferences.APP_PREFERENCES
+import com.security.passwordmanager.settings.EnumPreferences.APP_PREFERENCES_LOGIN
+import com.security.passwordmanager.showToast
 
 class DataViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
-        private const val COPY_LABEL = "DataViewModel_copy"
+        private const val COPY_LABEL = "data copy"
     }
 
-    private val mApplication : Application = application
-    private val dataRepository : DataRepository
+    private val mApplication = application
+    private val dataRepository: DataRepository
     private val cryptographer = Cryptographer(application)
+
+    private val email: String get() {
+        val preferences = mApplication
+            .getSharedPreferences(APP_PREFERENCES.title, Context.MODE_PRIVATE)
+
+        return preferences.getString(APP_PREFERENCES_LOGIN.title) ?: ""
+    }
 
     init {
         val dataDao = MainDatabase.getDatabase(application).dataDao()
         dataRepository = DataRepository(dataDao)
     }
 
-    fun addData(data : Data) =
+    fun addData(data: Data) {
+        data.email = email
         dataRepository.addData(data.encrypt(cryptographer::encrypt))
+    }
 
     fun updateData(data: Data) =
-        dataRepository.updateData(data.encrypt(cryptographer::decrypt))
+        dataRepository.updateData(data.encrypt(cryptographer::encrypt))
 
     fun getDataList() =
-        dataRepository.getDataList()
+        dataRepository.getDataList(email).decrypt()
 
     fun getAccountList(key: String, type: DataType) =
-        dataRepository.getAccountList(key, type)
+        dataRepository.getAccountList(email, key, type).decrypt()
 
-    fun getAccountList(data: Data) = getAccountList(data.key, when(data) {
-        is Website -> DataType.WEBSITE
-        is BankCard -> DataType.BANK_CARD
-        else -> DataType.WEBSITE
-    })
+    fun getAccountList(data: Data) = getAccountList(data.key, data.type)
 
 
-//    fun observe(owner: LifecycleOwner) {
-//
-//    }
+    fun searchData(query: String, type: DataType? = null): List<Data> =
+        dataRepository.searchData(email, query, type)
 
+    fun deleteData(data: Data) = dataRepository.deleteData(data)
 
-    fun searchData(query: String): List<Data> = dataRepository.searchData(query)
+    fun deleteRecords(data: Data) = dataRepository.deleteRecords(data)
 
-    fun deleteData(data : Data) = dataRepository.deleteData(data)
-
-    fun deleteRecords(data : Data) = dataRepository.deleteRecords(data)
-
-    fun copyText(text : String) {
+    fun copyText(text: String) {
         val clipboard = mApplication.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(COPY_LABEL, text)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(mApplication, R.string.clipText, Toast.LENGTH_SHORT).show()
+        showToast(mApplication, R.string.clipText)
     }
 
     fun copyData(data: Data) {
@@ -79,10 +83,11 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
 
 
 
-    private fun decryptList(list: MutableList<Data>) {
-        for (i in list.indices) {
-            val data = list[i]
-            list[i] = data.decrypt(cryptographer::decrypt)
+    private fun MutableList<Data>.decrypt(): List<Data> {
+        for (i in indices) {
+            val data = this[i]
+            this[i] = data.decrypt(cryptographer::decrypt)
         }
+        return this
     }
 }

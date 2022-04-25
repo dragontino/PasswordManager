@@ -1,13 +1,13 @@
 package com.security.passwordmanager.ui.bank
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.security.passwordmanager.R
+import com.security.passwordmanager.createIntent
 import com.security.passwordmanager.data.BankCard
 import com.security.passwordmanager.data.DataType
 import com.security.passwordmanager.data.DataViewModel
@@ -23,12 +23,11 @@ class BankCardActivity : AppCompatActivity() {
         private const val EXTRA_NAME = "extra_bank_name"
         private const val EXTRA_POSITION = "extra_position"
 
-        fun getIntent(context: Context, bankName : String, startPosition: Int = 1) : Intent {
-            val intent = Intent(context, BankCardActivity::class.java)
-            intent.putExtra(bankName, EXTRA_NAME)
-            intent.putExtra(EXTRA_POSITION, startPosition)
-            return intent
-        }
+        fun getIntent(context: Context?, bankName: String, startPosition: Int = 0) =
+            createIntent<BankCardActivity>(context) {
+                putExtra(bankName, EXTRA_NAME)
+                putExtra(EXTRA_POSITION, startPosition)
+            }
     }
 
     private lateinit var binding: ActivityBankCardBinding
@@ -48,7 +47,7 @@ class BankCardActivity : AppCompatActivity() {
         dataViewModel = ViewModelProvider(this)[DataViewModel::class.java]
 
         val bankName = intent.getStringExtra(EXTRA_NAME, "")
-        val startPosition = intent.getIntExtra(EXTRA_POSITION, 1)
+        val startPosition = intent.getIntExtra(EXTRA_POSITION, 0)
 
         recyclerView = DataEditableRecyclerView(
             this,
