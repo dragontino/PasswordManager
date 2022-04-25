@@ -22,9 +22,9 @@
         <activity
             android:name=".TimePickerActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.DayNight.Dialog" />
+            android:theme="@style/Theme.AppCompat.Dialog"/>
         <activity
-            android:name=".EmailPasswordActivity"
+            android:name=".ui.entry.MainActivity"
             android:exported="true"
             android:label="@string/main_label">
             <intent-filter>

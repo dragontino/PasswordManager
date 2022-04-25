@@ -1,15 +1,19 @@
 package com.security.passwordmanager.ui.main
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.*
-import android.widget.*
+import android.webkit.URLUtil
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -25,9 +29,6 @@ import com.security.passwordmanager.ui.bank.BankCardActivity
 
 class PasswordListFragment : Fragment() {
 
-    private fun Bundle?.getInt(key: String, defaultValue: Int) =
-        this?.getInt(key) ?: defaultValue
-
     companion object {
         private const val OPENED_VIEW_KEY = "opened_view"
 //        private const val VISIBILITIES_KEY = "visibilities"
@@ -35,17 +36,29 @@ class PasswordListFragment : Fragment() {
 
     private lateinit var binding: FragmentPasswordListBinding
 
-    private lateinit var adapter: PasswordAdapter
+    private var adapter: PasswordAdapter? = null
+    private var recyclerCallback: RecyclerCallback? = null
     private lateinit var searchView: SearchView
 
     private var openedView = -1
 
     private lateinit var settings: SettingsViewModel
     private lateinit var dataViewModel: DataViewModel
-    private lateinit var dataList: MutableList<Data>
+    private lateinit var dataList: List<Data>
 
     private fun openBottomSheet(bottomDialogFragment: ActionBottomDialogFragment) =
         activity?.supportFragmentManager?.let { bottomDialogFragment.show(it) }
+
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        recyclerCallback = activity as RecyclerCallback
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        recyclerCallback = null
+    }
 
 
     override fun onCreateView(
@@ -72,15 +85,14 @@ class PasswordListFragment : Fragment() {
 
                 @SuppressLint("NotifyDataSetChanged")
                 override fun onQueryTextChange(newText: String): Boolean {
-                    dataList = dataViewModel.searchData(newText) as MutableList<Data>
+                    dataList = dataViewModel.searchData(newText)
                     openedView =
                         if (dataList.size == 1) 0
                         else -1
-                    adapter.notifyDataSetChanged()
+                    adapter?.notifyDataSetChanged()
                     return true
                 }
-            },
-        )
+            })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -88,26 +100,46 @@ class PasswordListFragment : Fragment() {
         setHasOptionsMenu(true)
 
         activity?.let {
-            settings = SettingsViewModel.getInstance(it)
+            settings = SettingsViewModel.getInstance(this)
             dataViewModel = ViewModelProvider(it)[DataViewModel::class.java]
         }
 
-        dataList = dataViewModel.getDataList() as MutableList<Data>
-
-        adapter = PasswordAdapter()
-        binding.mainRecyclerView.adapter = adapter
-
         openedView = savedInstanceState.getInt(OPENED_VIEW_KEY, -1)
+
+        binding.mainRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                recyclerCallback?.onScroll(
+                    when {
+                        dy > 1 -> RecyclerDirection.DOWN
+                        dy < 1 -> RecyclerDirection.UP
+                        else -> RecyclerDirection.STOPPED
+                    },
+                    RecyclerState.getState(recyclerView.scrollState)
+                )
+
+                super.onScrolled(recyclerView, dx, dy)
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                recyclerCallback?.onStateChanged(RecyclerState.getState(newState))
+
+                super.onScrollStateChanged(recyclerView, newState)
+            }
+        })
     }
 
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onResume() {
         super.onResume()
+        dataList = dataViewModel.getDataList()
 
-        Log.d(ActionBottom.TAG, "проверка")
-
-        adapter.notifyDataSetChanged()
+        if (adapter == null) {
+            adapter = PasswordAdapter()
+            binding.mainRecyclerView.adapter = adapter
+        }
+        else
+            adapter?.notifyDataSetChanged()
     }
 
 
@@ -132,7 +164,7 @@ class PasswordListFragment : Fragment() {
     private inner class PasswordAdapter : RecyclerView.Adapter<PasswordHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PasswordHolder {
-            val itemBinding = ListItemMainTextViewBinding
+            val itemBinding = MainTextViewBinding
                 .inflate(LayoutInflater.from(parent.context), parent, false)
 
             val holder = PasswordHolder(itemBinding)
@@ -162,7 +194,7 @@ class PasswordListFragment : Fragment() {
 
 
 
-    private inner class PasswordHolder(private val itemBinding: ListItemMainTextViewBinding):
+    private inner class PasswordHolder(private val itemBinding: MainTextViewBinding):
         RecyclerView.ViewHolder(itemBinding.root), View.OnClickListener {
 
         private lateinit var accountList: ArrayList<Data>
@@ -175,13 +207,9 @@ class PasswordListFragment : Fragment() {
         }
 
 
-        private fun LinearLayout.getTextFields() = Pair(
-            first = findViewById<TextView>(R.id.heading),
-            second = findViewById<TextView>(R.id.subtitle)
-        )
+        private fun LayoutMainHeaderBinding.getTextFields() = Pair(heading, subtitle)
 
-
-        private fun LinearLayout.setText(headingText: String, subtitleText: String) {
+        private fun LayoutMainHeaderBinding.setText(headingText: String, subtitleText: String) {
             val fields = getTextFields()
             fields[0].text = headingText
             fields[1].text = subtitleText
@@ -189,11 +217,9 @@ class PasswordListFragment : Fragment() {
             fields[0].setTextColor(settings.fontColor)
         }
 
-        private fun LinearLayout.getText() : Pair<String, String> {
-            val fields = getTextFields()
-            return getPair { fields[it].text.toString() }
+        private fun LayoutMainHeaderBinding.getText() = Pair {
+            getTextFields()[it].text.toString()
         }
-
 
 
         fun bindPassword(data: Data, isShown: Boolean) {
@@ -204,28 +230,26 @@ class PasswordListFragment : Fragment() {
             itemBinding.recyclerViewMoreInfo.adapter = moreInfoAdapter
 
             updateArrow(isShown)
-            setVisibility(isShown)
-
-            val textView = itemBinding.root.findViewById<LinearLayout>(R.id.text_view)
+            setVisible(isShown)
 
             when (data) {
-                is Website -> textView.setText(data.nameWebsite, data.address)
-                is BankCard -> textView.setText(data.bankName, data.cardNumber)
+                is Website -> itemBinding.textView.setText(data.nameWebsite, data.address)
+                is BankCard -> itemBinding.textView.setText(data.bankName, data.cardNumber)
             }
 
             itemBinding.imageView.imageTintList = ColorStateList.valueOf(settings.headerColor)
-            itemBinding.buttonMore.backgroundTintList = ColorStateList.valueOf(settings.fontColor)
+            itemBinding.buttonMore.imageTintList = ColorStateList.valueOf(settings.fontColor)
+            itemBinding.buttonMore.setBackgroundColor(settings.backgroundColor)
         }
 
-        private fun setVisibility(visible: Boolean) {
+        private fun setVisible(visible: Boolean) {
             val visibility = if (visible) View.VISIBLE else View.GONE
             itemBinding.recyclerViewMoreInfo.visibility = visibility
         }
 
         override fun onClick(v: View?) {
-            //v = btnMore
-            // FIXME: 05.03.2022 не работает include в viewBinding
-            val text = itemBinding.root.findViewById<LinearLayout>(R.id.text_view).getText()
+            /** v = btnMore */
+            val text = itemBinding.textView.getText()
 
             val bottomDialogFragment = ActionBottom.newInstance(activity as AppCompatActivity)
             bottomDialogFragment.setHeading(text[0], text[1])
@@ -233,9 +257,9 @@ class PasswordListFragment : Fragment() {
             bottomDialogFragment.addView(R.drawable.edit, R.string.edit) {
                 when(data) {
                     is Website -> startActivity(
-                        PasswordActivity.getIntent(requireContext(), data.key))
+                        PasswordActivity.getIntent(context, data.key))
                     is BankCard -> startActivity(
-                        BankCardActivity.getIntent(requireContext(), data.key))
+                        BankCardActivity.getIntent(context, data.key))
                 }
                 bottomDialogFragment.dismiss()
             }
@@ -247,10 +271,9 @@ class PasswordListFragment : Fragment() {
 
             bottomDialogFragment.addView(R.drawable.delete, R.string.delete_password) {
                 dataViewModel.deleteRecords(data)
-                // TODO: 07.03.2022 удалить нахуй
 
                 bottomDialogFragment.dismiss()
-                adapter.notifyItemRemoved(adapterPosition)
+                adapter?.notifyItemRemoved(adapterPosition)
             }
             openBottomSheet(bottomDialogFragment)
         }
@@ -361,7 +384,7 @@ class PasswordListFragment : Fragment() {
                             if (data.nameAccount.isEmpty())
                                 nameAccount.hide()
                             else
-                                nameAccount.setText(data.nameAccount)
+                                nameAccount.txt = data.nameAccount
 
                             if (data.comment.isEmpty()) {
                                 comment.textView.hide()
@@ -449,14 +472,17 @@ class PasswordListFragment : Fragment() {
                 val website = data as Website
 
                 val address = when {
-                    website.address.contains("www.") -> "https://${website.address}"
-                    website.address.contains("https://www.") ||
-                            website.address.contains("http://www.") -> website.address
+                    "www." in website.address -> "https://${website.address}"
+                    "https://www." in website.address ||
+                            "http://www." in website.address -> website.address
                     else -> "https://www.${website.address}"
                 }
 
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(address))
-                startActivity(intent)
+                if (URLUtil.isValidUrl(address)) {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(address))
+                    startActivity(intent)
+                } else
+                    showToast(activity, "Неправильный адрес!")
             }
         }
     }

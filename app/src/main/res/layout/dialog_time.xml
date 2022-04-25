@@ -13,5 +13,4 @@
     <include
         android:id="@+id/constraint_layout_buttons"
         layout="@layout/dialog_buttons"/>
-
 </LinearLayout>

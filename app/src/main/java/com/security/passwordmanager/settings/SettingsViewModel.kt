@@ -18,6 +18,7 @@ import com.google.android.material.navigation.NavigationView
 import com.security.passwordmanager.Pair
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.MainDatabase
+import com.security.passwordmanager.getString
 import com.security.passwordmanager.settings.EnumPreferences.*
 import java.util.*
 
@@ -26,7 +27,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         @Volatile
         private var INSTANCE: SettingsViewModel? = null
 
-        fun getInstance(owner: ViewModelStoreOwner) : SettingsViewModel {
+        fun getInstance(owner: ViewModelStoreOwner): SettingsViewModel {
             val temp = INSTANCE
             if (temp != null)
                 return temp
@@ -41,7 +42,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
     }
 
     private val settingsRepository: SettingsRepository
-    private val preferences = mApplication.getSharedPreferences(APP_PREFERENCES.name, Context.MODE_PRIVATE)
+    private val preferences = mApplication.getSharedPreferences(APP_PREFERENCES.title, Context.MODE_PRIVATE)
     private var startTime = getDateFromPreferences(
         keyHours = APP_PREFERENCES_START_HOURS,
         keyMinutes = APP_PREFERENCES_START_MINUTES,
@@ -54,17 +55,22 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         defHours = 23
     )
 
+
+    private val email: String get() =
+        preferences.getString(APP_PREFERENCES_LOGIN.title) ?: ""
+
+
     var theme: ThemeDef
         get() = ThemeDef.values().find {
-            it.themeName == settingsRepository.getSettings().theme
+            it.themeName == baseSettings.theme
         } ?: ThemeDef.LIGHT_THEME
         set(value) {
-            settingsRepository.updateTheme(value.themeName)
+            settingsRepository.updateTheme(email, value)
             updateColors()
         }
 
     val baseSettings: Settings get() =
-        settingsRepository.getSettings()
+        settingsRepository.getSettings(email)
 
 
     @ColorInt var backgroundColor = Color.WHITE
@@ -99,7 +105,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         if (window == null || actionBar == null) return
 
         window.decorView.setBackgroundColor(backgroundColor)
-        window.statusBarColor = headerColor
+        window.statusBarColor = headerColor //mApplication.getColor(android.R.color.transparent)
         actionBar.setBackgroundDrawable(ColorDrawable(headerColor))
 
         if (navigationView != null) {
@@ -153,13 +159,13 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
 
 
     fun updateBeautifulFont(usingFont: Boolean) =
-        settingsRepository.updateUsingBeautifulFont(usingFont)
+        settingsRepository.updateUsingBeautifulFont(email, usingFont)
 
     fun updateUsingDataHints(usingHints: Boolean) =
-        settingsRepository.updateDataHints(usingHints)
+        settingsRepository.updateDataHints(email, usingHints)
 
     fun updateUsingBottomView(usingBottomView: Boolean) =
-        settingsRepository.updateUsingBottomView(usingBottomView)
+        settingsRepository.updateUsingBottomView(email, usingBottomView)
 
 
     fun getIndexTheme() = ThemeDef.values().indexOf(theme)
@@ -200,11 +206,12 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
     }
 
     private fun setDateToPreferences(
-        keyHours: EnumPreferences, keyMinutes: EnumPreferences, date : Calendar) {
-
-        val editor = preferences.edit()
-        editor.putInt(keyHours.title, date[Calendar.HOUR_OF_DAY])
-        editor.putInt(keyMinutes.title, date[Calendar.MINUTE])
-        editor.apply()
-    }
+        keyHours: EnumPreferences,
+        keyMinutes: EnumPreferences,
+        date: Calendar,
+    ) =
+        preferences.edit().apply {
+            putInt(keyHours.title, date[Calendar.HOUR_OF_DAY])
+            putInt(keyMinutes.title, date[Calendar.MINUTE])
+        }.apply()
 }

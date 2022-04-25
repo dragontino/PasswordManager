@@ -2,17 +2,17 @@ package com.security.passwordmanager.settings
 
 class SettingsRepository(private val settingsDao: SettingsDao) {
 
-    fun updateTheme(theme: String) = settingsDao.updateTheme(theme)
+    fun updateTheme(email: String, theme: ThemeDef) = settingsDao.updateTheme(email, theme.themeName)
 
-    fun updateUsingBeautifulFont(usingBeautifulFont: Boolean) =
-        settingsDao.updateUsingBeautifulFont(usingBeautifulFont)
+    fun updateUsingBeautifulFont(email: String, usingBeautifulFont: Boolean) =
+        settingsDao.updateUsingBeautifulFont(email, usingBeautifulFont)
 
-    fun updateDataHints(usingDataHints: Boolean) =
-        settingsDao.updateDataHints(usingDataHints)
+    fun updateDataHints(email: String, usingDataHints: Boolean) =
+        settingsDao.updateDataHints(email, usingDataHints)
 
-    fun updateUsingBottomView(usingBottomView: Boolean) =
-        settingsDao.updateUsingBottomView(usingBottomView)
+    fun updateUsingBottomView(email: String, usingBottomView: Boolean) =
+        settingsDao.updateUsingBottomView(email, usingBottomView)
 
-    fun getSettings() = settingsDao.getSettings() ?: Settings()
+    fun getSettings(email: String) = settingsDao.getSettings(email) ?: Settings()
 
 }

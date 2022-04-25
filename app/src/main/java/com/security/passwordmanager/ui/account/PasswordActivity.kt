@@ -1,21 +1,23 @@
 package com.security.passwordmanager.ui.account
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
 import com.security.passwordmanager.R
+import com.security.passwordmanager.createIntent
 import com.security.passwordmanager.data.DataType
 import com.security.passwordmanager.data.DataViewModel
 import com.security.passwordmanager.data.Website
 import com.security.passwordmanager.databinding.ActivityPasswordBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.settings.getStringExtra
+import com.security.passwordmanager.txt
 import com.security.passwordmanager.ui.DataEditableRecyclerView
 import com.security.passwordmanager.ui.SaveInfoDialog
 
@@ -25,12 +27,11 @@ class PasswordActivity : AppCompatActivity() {
         private const val EXTRA_ADDRESS = "extra_address"
         private const val EXTRA_START_POSITION = "extra_position"
 
-        fun getIntent(context: Context?, address: String, startPosition: Int = 0) : Intent {
-            val intent = Intent(context, PasswordActivity::class.java)
-            intent.putExtra(EXTRA_ADDRESS, address)
-            intent.putExtra(EXTRA_START_POSITION, startPosition)
-            return intent
-        }
+        fun getIntent(context: Context?, address: String, startPosition: Int = 0) =
+            createIntent<PasswordActivity>(context) {
+                putExtra(EXTRA_ADDRESS, address)
+                putExtra(EXTRA_START_POSITION, startPosition)
+            }
     }
 
     private lateinit var binding: ActivityPasswordBinding
@@ -40,9 +41,9 @@ class PasswordActivity : AppCompatActivity() {
     private lateinit var recyclerView: DataEditableRecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        binding = ActivityPasswordBinding.inflate(layoutInflater)
-
         super.onCreate(savedInstanceState)
+
+        binding = ActivityPasswordBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         settings = SettingsViewModel.getInstance(this)
@@ -69,21 +70,21 @@ class PasswordActivity : AppCompatActivity() {
         if (settings.baseSettings.isShowingDataHints)
             binding.websiteName.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
                 if (hasFocus && binding.websiteName.text.isEmpty() && binding.url.text.isNotEmpty()) {
+
                     val builder = StringBuilder(binding.url.text)
 
-                    if (builder.toString().contains("www."))
-                        builder.delete(0, 5)
+                    if ("www." in builder.toString())
+                        builder.deleteRange(0, 4)
 
-                    if (builder.toString().contains(".com"))
-                        builder.delete(builder.length - 4, builder.length)
+                    if (".com" in builder.toString() || ".org" in builder.toString())
+                        builder.deleteRange(builder.length - 4, builder.length)
 
-                    if (builder.toString().contains(".ru"))
+                    if (".ru" in builder.toString())
                         builder.delete(builder.length - 3, builder.length)
 
-                    val first = Character.toUpperCase(builder[0])
-                    builder.setCharAt(0, first)
+                    builder[0] = builder[0].uppercaseChar()
 
-                    binding.websiteName.setText(builder.toString())
+                    binding.websiteName.txt = builder.toString()
                 }
             }
 
@@ -92,6 +93,14 @@ class PasswordActivity : AppCompatActivity() {
         }
 
         binding.websiteName.nextFocusDownId = R.id.login
+
+        binding.url.doAfterTextChanged { text ->
+            recyclerView.forData { (it as Website).address = text.toString() }
+        }
+
+        binding.websiteName.doAfterTextChanged { text ->
+            recyclerView.forData { (it as Website).nameWebsite = text.toString() }
+        }
     }
 
     override fun onResume() {
@@ -102,8 +111,8 @@ class PasswordActivity : AppCompatActivity() {
     private fun updateUI() {
         val website = recyclerView.getData(0) as Website
 
-        binding.url.setText(website.address)
-        binding.websiteName.setText(website.nameWebsite)
+        binding.url.txt = website.address
+        binding.websiteName.txt = website.nameWebsite
 
         settings.updateThemeInScreen(window, supportActionBar)
 

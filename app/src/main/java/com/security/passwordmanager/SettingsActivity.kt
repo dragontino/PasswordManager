@@ -18,6 +18,7 @@ import com.security.passwordmanager.databinding.SwitchViewBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.settings.Theme
 import com.security.passwordmanager.settings.ThemeBottomDialogFragment
+import com.security.passwordmanager.ui.entry.MainActivity
 import java.util.*
 
 class SettingsActivity : AppCompatActivity(), Theme {
@@ -116,7 +117,7 @@ class SettingsActivity : AppCompatActivity(), Theme {
         binding.buttonLogout.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             settings.isPasswordRemembered = false
-            startActivity(EmailPasswordActivity.getIntent(this))
+            startActivity(MainActivity.getIntent(this))
         }
 
         binding.haveQuestions.setOnClickListener {

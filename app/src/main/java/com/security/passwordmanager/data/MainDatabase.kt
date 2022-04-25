@@ -8,7 +8,7 @@ import androidx.room.migration.Migration
 import com.security.passwordmanager.settings.Settings
 import com.security.passwordmanager.settings.SettingsDao
 
-@Database(entities = [Website::class, BankCard::class, Settings::class], version = 2, exportSchema = false)
+@Database(entities = [Website::class, BankCard::class, Settings::class], version = 3, exportSchema = false)
 abstract class MainDatabase : RoomDatabase() {
 
     abstract fun dataDao() : DataDao
@@ -17,12 +17,18 @@ abstract class MainDatabase : RoomDatabase() {
 
     companion object {
         @Volatile
-        private var INSTANCE : MainDatabase? = null
+        private var INSTANCE: MainDatabase? = null
 
         private val MIGRATION_1_2 = Migration(1, 2) {
             for (property in arrayOf("isUsingBeautifulFont", "isShowingDataHints", "isUsingBottomView"))
                 it.execSQL(
                     "ALTER TABLE SettingsTable ADD COLUMN $property INTEGER DEFAULT 0 NOT NULL")
+        }
+
+        private val MIGRATION_2_3 = Migration(2, 3) {
+            it.execSQL("ALTER TABLE SettingsTable ADD COLUMN email TEXT NOT NULL DEFAULT ''")
+            it.execSQL("ALTER TABLE WebsiteTable ADD COLUMN email TEXT NOT NULL DEFAULT ''")
+            it.execSQL("ALTER TABLE BankTable ADD COLUMN email TEXT NOT NULL DEFAULT ''")
         }
 
         fun getDatabase(context : Context) : MainDatabase {
@@ -38,7 +44,7 @@ abstract class MainDatabase : RoomDatabase() {
                         "PasswordBase"
                 )
                     .allowMainThreadQueries()
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
 
                 INSTANCE = instance

@@ -4,7 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/petro/.gradle/caches/transforms-3/5f01077ca5a294ea94d917794a6c69c1/transformed/appcompat-1.4.1/res/drawable-v21/abc_edit_text_material.xml" value="0.13385416666666666" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable-anydpi/ic_action_delete.xml" value="0.24814814814814815" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable-anydpi/ic_action_info.xml" value="0.26510416666666664" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable-anydpi/ic_action_more.xml" value="0.26510416666666664" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable-anydpi/ic_action_search.xml" value="0.26510416666666664" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable-anydpi/ic_menu_home.xml" value="0.261025641025641" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/account_image.xml" value="0.26510416666666664" />
@@ -30,6 +32,7 @@
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/nav_color_selector_dark.xml" value="0.261025641025641" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/radio_button_checked.xml" value="0.261025641025641" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/sync.xml" value="0.26510416666666664" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/text_view_dark_style.xml" value="0.25925925925925924" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/text_view_gray_style.xml" value="0.26510416666666664" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/text_view_style.xml" value="0.26510416666666664" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/drawable/visibility_off.xml" value="0.26510416666666664" />
@@ -51,6 +54,7 @@
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/divider_view.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/fragment_about.xml" value="0.23489583333333333" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/fragment_password_list.xml" value="0.12107396149949341" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/fragment_settings.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/layout_main_header.xml" value="0.12107396149949341" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/list_item_main_text_view.xml" value="0.12107396149949341" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/list_item_more_bank_card.xml" value="0.24895833333333334" />
@@ -60,6 +64,7 @@
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/list_item_new_bank_card.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/list_item_theme.xml" value="0.12107396149949341" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/main_bottom_sheet.xml" value="0.12107396149949341" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/main_text_view.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/more_bank_card.xml" value="0.12708333333333333" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/more_website.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/nav_header_main.xml" value="0.12107396149949341" />
@@ -67,7 +72,7 @@
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/new_bank_card.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/switch_theme_layout.xml" value="0.1" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/switch_view.xml" value="0.24895833333333334" />
-        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/text_view_field.xml" value="0.16" />
+        <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/text_view_field.xml" value="0.264" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/time_picker_dark.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/time_picker_light.xml" value="0.24895833333333334" />
         <entry key="..\:/Users/petro/AndroidStudioProjects/PasswordManager/app/src/main/res/layout/time_picker_view.xml" value="0.24895833333333334" />

@@ -5,54 +5,86 @@ import com.security.passwordmanager.Pair
 
 @Dao
 abstract class DataDao {
+
+    /**
+     * Добавление в базу
+     */
     @Insert(entity = Website::class, onConflict = OnConflictStrategy.REPLACE)
     abstract fun addWebsite(website: Website)
 
     @Insert(entity = BankCard::class, onConflict = OnConflictStrategy.REPLACE)
     abstract fun addBankCard(bankCard: BankCard)
 
+
+    /**
+     * Обновление элементов
+     */
     @Update(entity = Website::class, onConflict = OnConflictStrategy.REPLACE)
     abstract fun updateWebsite(website: Website)
 
     @Update(entity = BankCard::class, onConflict = OnConflictStrategy.REPLACE)
     abstract fun updateBankCard(bankCard: BankCard)
 
-    @Query("SELECT * FROM WebsiteTable ORDER BY nameWebsite ASC")
-    abstract fun getWebsiteList(): MutableList<Website>
 
-    @Query("SELECT * FROM BankTable ORDER BY bankName ASC")
-    abstract fun getBankCardList(): MutableList<BankCard>
+    /**
+     * Получение всех элементов
+     */
+    @Query("SELECT * FROM WebsiteTable WHERE email = :email ORDER BY nameWebsite ASC")
+    abstract fun getWebsiteList(email: String): MutableList<Website>
 
-    @Query("SELECT * FROM WebsiteTable WHERE address = :address")
-    abstract fun getAccountList(address: String): MutableList<Website>
+    @Query("SELECT * FROM BankTable WHERE email = :email ORDER BY bankName ASC")
+    abstract fun getBankCardList(email: String): MutableList<BankCard>
 
-    @Query("SELECT * FROM BankTable WHERE bankName = :bankName")
-    abstract fun getBankAccountList(bankName: String): MutableList<BankCard>
 
+    /**
+     * Получение элементов с одинаковым ключом
+     */
+    @Query("SELECT * FROM WebsiteTable WHERE email = :email AND address = :address")
+    abstract fun getAccountList(email: String, address: String): MutableList<Website>
+
+    @Query("SELECT * FROM BankTable WHERE email = :email AND bankName = :bankName")
+    abstract fun getBankAccountList(email: String, bankName: String): MutableList<BankCard>
+
+
+    /**
+     * Поиск
+     */
     @Query("SELECT * FROM WebsiteTable " +
-            "WHERE nameWebsite LIKE '%' || :query || '%' OR " +
+            "WHERE email = :email AND (" +
+            "nameWebsite LIKE '%' || :query || '%' OR " +
             "address LIKE '%' || :query || '%' OR " +
-            "nameAccount LIKE '%' || :query || '%' " +
+            "nameAccount LIKE '%' || :query || '%') " +
             "ORDER BY nameWebsite ASC")
-    abstract fun searchWebsite(query: String): MutableList<Website>
+    abstract fun searchWebsite(email: String, query: String): MutableList<Website>
 
     @Query("SELECT * FROM BankTable " +
-            "WHERE bankName LIKE '%' || :query || '%' " +
+            "WHERE email = :email AND (" +
+            "bankName LIKE '%' || :query || '%') " +
             "ORDER BY bankName")
-    abstract fun searchBankCard(query: String): MutableList<BankCard>
+    abstract fun searchBankCard(email: String, query: String): MutableList<BankCard>
 
+
+    /**
+     * Удаление одного элемента
+     */
     @Delete(entity = Website::class)
     abstract fun deleteWebsite(website: Website)
 
     @Delete(entity = BankCard::class)
     abstract fun deleteBankCard(bankCard: BankCard)
 
-    @Query("DELETE FROM WebsiteTable WHERE address = :url")
-    abstract fun deleteWebsite(url: String)
 
-    @Query("DELETE FROM BankTable WHERE bankName = :bankName")
-    abstract fun deleteBankCard(bankName: String)
+    /**
+     * удаление нескольких элементов по ключу
+     */
+    @Query("DELETE FROM WebsiteTable WHERE email = :email AND address = :url")
+    abstract fun deleteWebsite(email: String, url: String)
+
+    @Query("DELETE FROM BankTable WHERE email = :email AND bankName = :bankName")
+    abstract fun deleteBankCard(email: String, bankName: String)
+
 
     @Transaction
-    open fun search(query: String) = Pair(searchWebsite(query), searchBankCard(query))
+    open fun search(email: String, query: String) =
+        Pair(searchWebsite(email, query), searchBankCard(email, query))
 }

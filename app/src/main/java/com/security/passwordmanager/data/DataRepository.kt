@@ -5,7 +5,7 @@ import kotlin.math.min
 
 class DataRepository(private val dataDao: DataDao) {
 
-    fun addData(data : Data) = if (data is Website)
+    fun addData(data: Data) = if (data is Website)
         dataDao.addWebsite(data)
     else
         dataDao.addBankCard(data as BankCard)
@@ -17,35 +17,40 @@ class DataRepository(private val dataDao: DataDao) {
         dataDao.updateBankCard(data as BankCard)
 
 
-    fun getDataList() : List<Data> {
-        val websiteList = dataDao.getWebsiteList()
-        val bankCardList = dataDao.getBankCardList()
+    fun getDataList(email: String): MutableList<Data> {
+        val websiteList = dataDao.getWebsiteList(email)
+        val bankCardList = dataDao.getBankCardList(email)
 
         return sortedConcat(websiteList, bankCardList)
     }
 
-    fun getAccountList(key : String, type : DataType): List<Data> {
-        val accountList = dataDao.getAccountList(key)
+    fun getAccountList(email: String, key: String, type: DataType): MutableList<Data> {
+        val accountList = dataDao.getAccountList(email, key)
 
         return when (type) {
             BANK_CARD -> {
-                val bankAccountList = dataDao.getBankAccountList(key)
+                val bankAccountList = dataDao.getBankAccountList(email, key)
 
                 sortedConcat(accountList, bankAccountList) { d1, d2 ->
                     d1.id > d2.id
                 }
             }
-            WEBSITE -> accountList
+            WEBSITE -> accountList.toMutableList()
         }
     }
 
-    fun searchData(query : String?) : List<Data> {
-        if (query == null || query.isEmpty())
-            return getDataList()
+    fun searchData(email: String, query: String?, type: DataType? = null) : List<Data> {
+        if (query == null || query.isBlank())
+            return getDataList(email)
 
-        val search = dataDao.search(query)
-
-        return sortedConcat(websiteList = search.first, bankCardList = search.second)
+        return when (type) {
+            WEBSITE -> dataDao.searchWebsite(email, query)
+            BANK_CARD -> dataDao.searchBankCard(email, query)
+            null -> {
+                val search = dataDao.search(email, query)
+                sortedConcat(websiteList = search.first, bankCardList = search.second)
+            }
+        }
     }
 
     //удаляет только 1 запись в бд
@@ -55,9 +60,9 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
     //удаляет несколько записей в бд
-    fun deleteRecords(data : Data) = when (data) {
-        is Website -> dataDao.deleteWebsite(data.key)
-        else -> dataDao.deleteBankCard(data.key)
+    fun deleteRecords(data: Data) = when (data) {
+        is Website -> dataDao.deleteWebsite(data.email, data.key)
+        else -> dataDao.deleteBankCard(data.email, data.key)
     }
 
 
@@ -66,7 +71,7 @@ class DataRepository(private val dataDao: DataDao) {
         bankCardList: MutableList<BankCard>,
         //TODO переделать
         funCompare: (Data, Data) -> Boolean = { d1, d2 -> d1 > d2 }
-    ): List<Data> {
+    ): MutableList<Data> {
 
         if (bankCardList.isEmpty())
             return websiteList.check()
@@ -107,7 +112,7 @@ class DataRepository(private val dataDao: DataDao) {
         add(value)
     }
 
-    private fun <T : Data>MutableList<T>.check() : List<Data> {
+    private fun <T : Data>MutableList<T>.check() : MutableList<Data> {
         var index = 0
 
         while (index < size) {
@@ -116,7 +121,6 @@ class DataRepository(private val dataDao: DataDao) {
             }
             index++
         }
-
-        return this
+        return this.toMutableList()
     }
 }
