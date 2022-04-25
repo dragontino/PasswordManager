@@ -1,15 +1,13 @@
-package com.security.passwordmanager
+package com.security.passwordmanager.ui.entry
 
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.InputType
-import android.text.TextUtils
 import android.view.View
 import android.widget.CompoundButton
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -19,29 +17,30 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.security.passwordmanager.*
 import com.security.passwordmanager.databinding.ActivityMainBinding
+import com.security.passwordmanager.getString
+import com.security.passwordmanager.settings.EnumPreferences.APP_PREFERENCES
+import com.security.passwordmanager.settings.EnumPreferences.APP_PREFERENCES_LOGIN
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.ui.main.PasswordListActivity
 
-class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
-
-    private fun TextView.isEmpty() =
-        TextUtils.isEmpty(text)
+class MainActivity: AppCompatActivity(), View.OnClickListener {
 
     companion object {
 //        private const val TAG = "EmailPassword"
+        private const val LOGIN_KEY = "Firebase Auth Login"
+        private const val PASSWORD_KEY = "Firebase Auth Password"
 
-        fun getIntent(context: Context) : Intent {
-            val intent = Intent(context, EmailPasswordActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-            return intent
+        fun getIntent(context: Context) = createIntent<MainActivity>(context) {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
         }
     }
 
     private lateinit var settings: SettingsViewModel
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var mAuth: FirebaseAuth
+    private lateinit var auth: FirebaseAuth
 
     private var isPasswordVisible = false
 
@@ -52,13 +51,17 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        mAuth = FirebaseAuth.getInstance()
+        auth = FirebaseAuth.getInstance()
         settings = SettingsViewModel.getInstance(this)
+
+        binding.login.txt = savedInstanceState.getString(LOGIN_KEY)
+        binding.password.txt = savedInstanceState.getString(PASSWORD_KEY)
 
         binding.rememberPassword.isChecked = settings.isPasswordRemembered
 
         if (binding.rememberPassword.isChecked)
             startActivity(PasswordListActivity.getIntent(this))
+        // TODO: 25.03.2022 удалить
 
         binding.rememberPassword.setOnCheckedChangeListener {_: CompoundButton?, isChecked: Boolean ->
             if (isChecked &&
@@ -87,7 +90,14 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    private fun EditText.addTextChangedListener(email : Boolean) {
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(LOGIN_KEY, binding.login.txt)
+        outState.putString(PASSWORD_KEY, binding.password.txt)
+    }
+
+
+    private fun EditText.addTextChangedListener(email: Boolean) {
         doOnTextChanged { text, _, _, _ ->
             if (email)
                 validateForm(text.toString(), null)
@@ -144,12 +154,12 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
             return
         }
 
-        mAuth.createUserWithEmailAndPassword(email, password)
+        auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task: Task<AuthResult?> ->
                 if (task.isSuccessful) {
-                    mAuth = FirebaseAuth.getInstance()
+                    auth = FirebaseAuth.getInstance()
 
-                    mAuth.currentUser?.uid?.let {
+                    auth.currentUser?.uid?.let {
                         FirebaseDatabase.getInstance().getReference("Users")
                             .child(it)
                             .setValue(email)
@@ -161,13 +171,13 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
                                         Toast.LENGTH_LONG
                                     ).show()
 
-                                    startActivity(PasswordListActivity.getIntent(this))
-
-                                } else Toast.makeText(
-                                    this,
-                                    R.string.register_failed,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                    goNext(email)
+                                } else
+                                    Toast.makeText(
+                                        this,
+                                        R.string.register_failed,
+                                        Toast.LENGTH_LONG
+                                    ).show()
                                 binding.loading.hide()
                             }
                     }
@@ -192,10 +202,10 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
             return
         }
 
-        mAuth.signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task: Task<AuthResult?> ->
                 if (task.isSuccessful)
-                    startActivity(PasswordListActivity.getIntent(this))
+                    goNext(email)
                 else Toast.makeText(
                     this,
                     R.string.login_failed,
@@ -248,5 +258,16 @@ class EmailPasswordActivity : AppCompatActivity(), View.OnClickListener {
             R.id.sign_up -> registerUser()
             R.id.sign_in -> loginUser()
         }
+    }
+
+
+    private fun goNext(email: String) {
+        val preferences = getSharedPreferences(APP_PREFERENCES.title, Context.MODE_PRIVATE)
+        preferences
+            .edit()
+            .putString(APP_PREFERENCES_LOGIN.title, email)
+            .apply()
+
+        startActivity(PasswordListActivity.getIntent(this))
     }
 }

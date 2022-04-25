@@ -25,15 +25,19 @@
             android:nextFocusDown="@id/login"
             tools:ignore="Autofill,LabelFor" />
 
-        <Button
+        <ImageButton
             android:id="@+id/edit_name_of_account"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
             android:layout_marginHorizontal="8dp"
             android:layout_marginVertical="10dp"
-            android:layout_weight="3"
-            android:background="@drawable/ic_action_more"
-            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            android:layout_weight="2"
+            android:background="@color/light_gray"
+            android:contentDescription="@string/rename_account"
+            android:minWidth="48dp"
+            android:src="@drawable/ic_action_more"
+            tools:ignore="TouchTargetSizeCheck" />
 
     </LinearLayout>
 
@@ -63,6 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="0dp"
+            android:minHeight="48dp"
             android:autofillHints="@string/password"
             android:background="@drawable/text_view_gray_style"
             android:hint="@string/password"
@@ -72,13 +77,14 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="TouchTargetSizeCheck" />
+            app:layout_constraintTop_toTopOf="parent"/>
 
         <ImageButton
             android:id="@+id/password_visibility"
             style="@style/UtilityButtons"
+            android:minHeight="44dp"
             android:contentDescription="@string/show_password"
+            android:background="@color/light_gray"
             android:src="@drawable/visibility_on"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/password"

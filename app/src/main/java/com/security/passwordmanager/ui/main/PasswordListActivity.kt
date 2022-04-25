@@ -18,15 +18,12 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
-import com.security.passwordmanager.ActionBottom
-import com.security.passwordmanager.R
-import com.security.passwordmanager.onBackPressedCallback
+import com.security.passwordmanager.*
 import com.security.passwordmanager.settings.SettingsViewModel
-import com.security.passwordmanager.show
 import com.security.passwordmanager.ui.account.PasswordActivity
 import com.security.passwordmanager.ui.bank.BankCardActivity
 
-class PasswordListActivity : AppCompatActivity() {
+class PasswordListActivity : AppCompatActivity(), RecyclerCallback {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var settingsViewModel: SettingsViewModel
@@ -41,11 +38,10 @@ class PasswordListActivity : AppCompatActivity() {
     private lateinit var fab: FloatingActionButton
 
     companion object {
-        fun getIntent(context: Context) : Intent {
-            val intent = Intent(context, PasswordListActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-            return intent
-        }
+        fun getIntent(context: Context) =
+            createIntent<PasswordListActivity>(context) {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +49,9 @@ class PasswordListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_password_list)
 
         settingsViewModel = SettingsViewModel.getInstance(this)
+
+//        val email = intent.getStringExtra(EMAIL_EXTRA)
+        // TODO: 25.03.2022 сделать загрузку в бд
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -115,7 +114,19 @@ class PasswordListActivity : AppCompatActivity() {
 
             override fun onDrawerClosed(drawerView: View) {}
 
-            override fun onDrawerStateChanged(newState: Int) {}
+            override fun onDrawerStateChanged(newState: Int) {
+                if (newState == DrawerLayout.STATE_DRAGGING) {
+                    settingsViewModel.updateThemeInScreen(window, supportActionBar, navigationView)
+
+                    val header = navigationView.findViewById<LinearLayout>(R.id.nav_header_main)
+                    if (settingsViewModel.isLightTheme())
+                        header.setBackgroundResource(R.drawable.side_nav_bar)
+                    else
+                        header.setBackgroundColor(settingsViewModel.headerColor)
+
+                    navController.currentDestination?.id?.let { navigationView.setCheckedItem(it) }
+                }
+            }
         }
 
         val onBackPressedCallback = onBackPressedCallback(true) {
@@ -155,5 +166,25 @@ class PasswordListActivity : AppCompatActivity() {
 
     private fun FloatingActionButton.setBackground(@ColorInt color: Int) {
         backgroundTintList = ColorStateList.valueOf(color)
+    }
+
+    override fun onScroll(recyclerDirection: RecyclerDirection, currentState: RecyclerState) {
+//        if (currentState != RecyclerState.STOPPED) {
+//            if (recyclerDirection == RecyclerDirection.DOWN) {
+////                supportActionBar?.hide()
+//                window.statusBarColor = getColor(android.R.color.transparent)
+//            } else if (recyclerDirection == RecyclerDirection.UP) {
+////                supportActionBar?.show()
+//                window.statusBarColor = settingsViewModel.headerColor
+//            }
+//        }
+    }
+
+    // TODO: 25.04.2022 попробовать сделать прозрачный status bar и скрыть action bar
+    override fun onStateChanged(newState: RecyclerState) {
+        if (newState == RecyclerState.STOPPED)
+            fab.show()
+        else
+            fab.hide()
     }
 }

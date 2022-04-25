@@ -18,6 +18,7 @@ import com.security.passwordmanager.databinding.SwitchViewBinding
 import com.security.passwordmanager.settings.SettingsViewModel
 import com.security.passwordmanager.settings.Theme
 import com.security.passwordmanager.settings.ThemeBottomDialogFragment
+import com.security.passwordmanager.ui.entry.MainActivity
 import java.util.*
 
 
@@ -120,7 +121,7 @@ class SettingsFragment: Fragment(), Theme {
         binding.buttonLogout.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             settings.isPasswordRemembered = false
-            startActivity(EmailPasswordActivity.getIntent(activity as AppCompatActivity))
+            startActivity(MainActivity.getIntent(activity as AppCompatActivity))
         }
 
         binding.haveQuestions.setOnClickListener {
@@ -196,10 +197,9 @@ class SettingsFragment: Fragment(), Theme {
     }
 
     private var endLauncher = registerForActivityResult(
-        TimePickerActivity.Companion.TimePickerActivityContract(R.string.end_time)
-    ) { result: Calendar? ->
-        if (result != null) {
-            settings.setEndTime(result)
+        TimePickerActivity.Companion.TimePickerActivityContract(R.string.end_time)) {
+        if (it != null) {
+            settings.setEndTime(it)
             themeBottomFragment.updateColors()
             updateTheme()
         }

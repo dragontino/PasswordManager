@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 import java.io.Serializable
 
 @Entity
-abstract class Data(@PrimaryKey(autoGenerate = true) var id: Int = 0) :
+abstract class Data(@PrimaryKey(autoGenerate = true) var id: Int = 0, var email: String = "") :
     Serializable, Comparable<Data> {
 
     override fun equals(other : Any?) = when (other) {
@@ -14,11 +14,11 @@ abstract class Data(@PrimaryKey(autoGenerate = true) var id: Int = 0) :
         else -> super.equals(other)
     }
 
-    abstract val key : String
+    abstract val key: String
     abstract val type: DataType
     abstract fun encrypt(encrypt: (String) -> String) : Data
     abstract fun decrypt(decrypt: (String) -> String) : Data
-    abstract fun toString(context : Context, needHeading : Boolean = true) : String
+    abstract fun toString(context: Context, needHeading: Boolean = true) : String
     abstract override fun compareTo(other : Data) : Int
 
     override fun hashCode() = id
