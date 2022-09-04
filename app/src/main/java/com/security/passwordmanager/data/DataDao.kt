@@ -59,7 +59,8 @@ abstract class DataDao {
 
     @Query("SELECT * FROM BankTable " +
             "WHERE email = :email AND (" +
-            "bankName LIKE '%' || :query || '%') " +
+            "bankName LIKE '%' || :query || '%' OR " +
+            "bankCardName LIKE '%' || :query || '%') " +
             "ORDER BY bankName")
     abstract fun searchBankCard(email: String, query: String): MutableList<BankCard>
 

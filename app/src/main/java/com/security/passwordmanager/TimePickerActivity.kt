@@ -8,7 +8,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import com.security.passwordmanager.databinding.DialogTimeBinding
-import com.security.passwordmanager.settings.SettingsViewModel
+import com.security.passwordmanager.viewmodel.SettingsViewModel
 import java.util.*
 
 class TimePickerActivity : AppCompatActivity() {
@@ -61,7 +61,7 @@ class TimePickerActivity : AppCompatActivity() {
         val minutes = calendar[Calendar.MINUTE]
 
         timePicker = layoutInflater.inflate(
-            if (settings.isLightTheme()) R.layout.time_picker_light
+            if (settings.isLightTheme) R.layout.time_picker_light
             else R.layout.time_picker_dark,
             null,
             false

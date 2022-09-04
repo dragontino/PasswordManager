@@ -15,4 +15,6 @@ class SettingsRepository(private val settingsDao: SettingsDao) {
 
     fun getSettings(email: String) = settingsDao.getSettings(email) ?: Settings()
 
+    suspend fun getSuspendSettings(email: String) =
+        settingsDao.getSuspendSettings(email) ?: Settings()
 }

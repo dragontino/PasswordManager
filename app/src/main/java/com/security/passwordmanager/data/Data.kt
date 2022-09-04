@@ -18,7 +18,7 @@ abstract class Data(@PrimaryKey(autoGenerate = true) var id: Int = 0, var email:
     abstract val type: DataType
     abstract fun encrypt(encrypt: (String) -> String) : Data
     abstract fun decrypt(decrypt: (String) -> String) : Data
-    abstract fun toString(context: Context, needHeading: Boolean = true) : String
+    abstract fun toString(context: Context, needFirstLine: Boolean = true) : String
     abstract override fun compareTo(other : Data) : Int
 
     override fun hashCode() = id

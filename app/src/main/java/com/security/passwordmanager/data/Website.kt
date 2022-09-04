@@ -32,38 +32,31 @@ class Website(
         return this
     }
 
-    override fun toString(context: Context, needHeading: Boolean): String {
-        val sb = StringBuilder()
+    override fun toString(context: Context, needFirstLine: Boolean) =
+        buildString {
 
-        if (needHeading) {
-            sb.append(context.getString(R.string.password_label)).append(": ")
-                    .append(nameWebsite).append("\n")
-                    .append(context.getString(R.string.url_address)).append(": ")
-                    .append(address).append("\n")
+            if (needFirstLine)
+                append(
+                    context.getString(R.string.website_label), ": ", nameWebsite, "\n",
+                    context.getString(R.string.url_address), ": ", address, "\n"
+                )
+
+            append(
+                context.getString(R.string.account), ": ", nameAccount, "\n",
+                context.getString(R.string.login), ": ", login, "\n",
+                context.getString(R.string.password), ": ", password, "\n"
+            )
+
+            if (comment.isNotEmpty())
+                append(context.getString(R.string.comment), ": ", comment, "\n")
         }
-
-        sb.append(context.getString(R.string.account)).append(": ")
-                .append(nameAccount).append("\n")
-                .append(context.getString(R.string.login)).append(": ")
-                .append(login).append("\n")
-                .append(context.getString(R.string.password)).append(": ")
-                .append(password).append("\n")
-
-
-
-        if (comment.isNotEmpty())
-            sb.append(context.getString(R.string.comment)).append(": ")
-                .append(comment).append("\n")
-
-        return sb.toString()
-    }
 
     override fun compareTo(other: Data) : Int {
 
         val anotherString = when (other) {
             is Website -> other.nameWebsite
             is BankCard -> other.bankName
-            else -> nameWebsite
+            else -> ""
         }
 
         return nameWebsite.compareTo(anotherString)

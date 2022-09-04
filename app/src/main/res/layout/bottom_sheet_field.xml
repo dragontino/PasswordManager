@@ -10,5 +10,5 @@
     android:textAllCaps="false"
     android:textSize="18sp"
     android:drawableStart="@drawable/account_image"
-    android:drawableTint="@color/white"
+    android:drawableTint="@color/black"
     android:drawablePadding="16dp"/>

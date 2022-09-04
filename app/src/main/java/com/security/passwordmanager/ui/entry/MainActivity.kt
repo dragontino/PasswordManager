@@ -2,7 +2,6 @@ package com.security.passwordmanager.ui.entry
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
@@ -11,6 +10,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.core.util.PatternsCompat
 import androidx.core.widget.doOnTextChanged
 import com.google.android.gms.tasks.Task
@@ -20,11 +20,10 @@ import com.google.firebase.database.FirebaseDatabase
 import com.security.passwordmanager.*
 import com.security.passwordmanager.databinding.ActivityMainBinding
 import com.security.passwordmanager.getString
-import com.security.passwordmanager.settings.EnumPreferences.APP_PREFERENCES
-import com.security.passwordmanager.settings.EnumPreferences.APP_PREFERENCES_LOGIN
-import com.security.passwordmanager.settings.SettingsViewModel
-import com.security.passwordmanager.ui.main.PasswordListActivity
+import com.security.passwordmanager.view.NavigationActivity
+import com.security.passwordmanager.viewmodel.SettingsViewModel
 
+@ExperimentalMaterialApi
 class MainActivity: AppCompatActivity(), View.OnClickListener {
 
     companion object {
@@ -48,6 +47,9 @@ class MainActivity: AppCompatActivity(), View.OnClickListener {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         binding = ActivityMainBinding.inflate(layoutInflater)
 
+
+        val loginView: EditText
+
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
@@ -60,7 +62,7 @@ class MainActivity: AppCompatActivity(), View.OnClickListener {
         binding.rememberPassword.isChecked = settings.isPasswordRemembered
 
         if (binding.rememberPassword.isChecked)
-            startActivity(PasswordListActivity.getIntent(this))
+            startActivity(NavigationActivity.getIntent(this))
         // TODO: 25.03.2022 удалить
 
         binding.rememberPassword.setOnCheckedChangeListener {_: CompoundButton?, isChecked: Boolean ->
@@ -116,15 +118,15 @@ class MainActivity: AppCompatActivity(), View.OnClickListener {
             binding.login.setTextColor(it)
             binding.password.setTextColor(it)
             binding.rememberPassword.setTextColor(it)
-            binding.login.backgroundTintList = ColorStateList.valueOf(it)
-            binding.password.backgroundTintList = ColorStateList.valueOf(it)
+            binding.login.backgroundTintList = ColorStateList(it)
+            binding.password.backgroundTintList = ColorStateList(it)
 
-            binding.passwordVisibility.imageTintList = ColorStateList.valueOf(it)
+            binding.passwordVisibility.imageTintList = ColorStateList(it)
         }
 
         binding.signIn.setBackgroundResource(settings.buttonRes)
         binding.passwordVisibility.setBackgroundColor(settings.backgroundColor)
-        binding.rememberPassword.buttonTintList = ColorStateList.valueOf(settings.headerColor)
+        binding.rememberPassword.buttonTintList = ColorStateList(settings.headerColor)
     }
 
     private fun updatePasswordView() = binding.run {
@@ -262,12 +264,7 @@ class MainActivity: AppCompatActivity(), View.OnClickListener {
 
 
     private fun goNext(email: String) {
-        val preferences = getSharedPreferences(APP_PREFERENCES.title, Context.MODE_PRIVATE)
-        preferences
-            .edit()
-            .putString(APP_PREFERENCES_LOGIN.title, email)
-            .apply()
-
-        startActivity(PasswordListActivity.getIntent(this))
+        AppPreferences(application).email = email
+        startActivity(NavigationActivity.getIntent(this))
     }
 }

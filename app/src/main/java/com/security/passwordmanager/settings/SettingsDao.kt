@@ -24,4 +24,7 @@ interface SettingsDao {
 
     @Query("SELECT * FROM SettingsTable WHERE email = :email")
     fun getSettings(email: String): Settings?
+
+    @Query("SELECT * FROM SettingsTable WHERE email = :email")
+    suspend fun getSuspendSettings(email: String): Settings? //Flow<Settings?>
 }
