@@ -1,20 +1,29 @@
 <resources>
     <string name="app_name">Password Manager</string>
-    <string name="main_label">Менеджер паролей</string>
+    <string name="app_label">Менеджер паролей</string>
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="app_version">Версия 5.2.2 от 25 апреля 2022</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="add_record">Создать новую запись</string>
+    <string name="create_record">Создать новую запись</string>
     <string name="clipText">Скопировано в буфер обмена</string>
 
 
     <!--Лейблы-->
-    <string name="menu_main_label">Все записи</string>
+    <string name="default_label">Все записи</string>
+    <string name="website_label">Сайт</string>
+    <string name="bank_label">Банковская карта</string>
     <string name="settings_label">Настройки</string>
-    <string name="password_label">Сайт</string>
     <string name="about_label">О приложении</string>
     <string name="search_label">Поиск</string>
+
+
+    <!--Пункты меню-->
+    <string name="all_entries">Все записи</string>
+    <string name="websites">Сайты</string>
+    <string name="bank_cards">Банковские карты</string>
+    <string name="settings">Настройки</string>
+
 
 
     <!--Вход-->
@@ -53,7 +62,7 @@
     <string name="url_address">Адрес сайта</string>
     <string name="name_website">Название</string>
     <string name="account_start">Аккаунт №%d</string>
-    <string name="account_hint">Название аккаунта</string>
+    <string name="account_name_placeholder">Название аккаунта</string>
     <string name="account">Аккаунт</string>
     <string name="login">Логин</string>
     <string name="password">Пароль</string>
@@ -71,8 +80,8 @@
     <string name="button_open_url">Открыть в браузере</string>
 
     <string name="edit">Редактировать</string>
-    <string name="rename_account">Переименовать</string>
-    <string name="cancel_renaming_account">Сохранить новое название</string>
+    <string name="rename_data">Переименовать</string>
+    <string name="cancel_renaming_data">Сохранить новое название</string>
     <string name="copy_info">Копировать</string>
     <string name="delete_password">Удалить</string>
     <string name="delete_account">Удалить аккаунт</string>
@@ -83,13 +92,13 @@
 
 
     <!--BankCardActivity-->
-    <string name="bank_label">Банковская карта</string>
+    <string name="bank_card_hint">Банковская карта №%d</string>
     <string name="bank_name">Название банка</string>
     <string name="bank_head">Основные данные</string>
     <string name="card_number">Номер карты</string>
     <string name="card_holder">Владелец карты</string>
     <string name="validity_period">Срок действия</string>
-    <string name="card_cvv">CVC/CVV</string>
+    <string name="card_cvv">CVC2/CVV2</string>
     <string name="pin_code">PIN</string>
     <string name="add_more_cards">Добавить карту</string>
 
@@ -109,5 +118,16 @@
     <string name="data_hints_description">Заполнении поля «Название сайта» при редактировании раздела «Сайт» будет происходить автоматически, если заполнено поле «адрес»</string>
     <string name="data_hints">Включить подсказки</string>
     <string name="using_bottom_view">Включить выдвигающийся виджет на главном экране</string>
-    <string name="bottom_view_explain">На главном экране при нажатии на элемент с данными будет выдвигаться виджет, при нажатии на который можно будет перейти непосредственно к этому элементу</string>
+    <string name="using_bottom_view_explain">На главном экране при нажатии на элемент с данными будет выдвигаться виджет, при нажатии на который можно будет перейти непосредственно к этому элементу</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome!"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="website_image">Иконка сайта</string>
+    <string name="open">Открыть</string>
+    <string name="optionally">Дополнительно</string>
+    <string name="wrong_month">Неправильный номер месяца!</string>
+    <string name="payment_system">Платёжная система</string>
+    <string name="default_hint">default hint</string>
 </resources>

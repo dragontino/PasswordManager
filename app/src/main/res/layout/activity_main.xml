@@ -27,7 +27,7 @@
         android:layout_marginHorizontal="6dp"
         android:layout_marginTop="24dp"
         android:gravity="center"
-        android:text="@string/main_label"
+        android:text="@string/app_label"
         android:textColor="@color/black"
         android:textSize="35sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -96,7 +96,7 @@
 
         <ImageButton
             android:id="@+id/password_visibility"
-            style="@style/UtilityButtons"
+            style="@style/UtilityButtons.WithMargins"
             android:contentDescription="@string/show_password"
             android:src="@drawable/visibility_on"
             app:layout_constraintBottom_toBottomOf="parent"

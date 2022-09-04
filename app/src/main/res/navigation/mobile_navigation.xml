@@ -7,8 +7,8 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.security.passwordmanager.ui.main.PasswordListFragment"
-        android:label="@string/menu_main_label"
+        android:name="com.security.passwordmanager.view.PasswordListFragment"
+        android:label="@string/default_label"
         tools:layout="@layout/fragment_password_list">
         <action
             android:id="@+id/action_nav_home_to_nav_settings"
@@ -21,7 +21,7 @@
 
     <fragment
         android:id="@+id/nav_settings"
-        android:name="com.security.passwordmanager.SettingsFragment"
+        android:name="com.security.passwordmanager.view.SettingsFragment"
         android:label="@string/settings_label"
         tools:layout="@layout/fragment_settings">
         <action

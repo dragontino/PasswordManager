@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/text_view"
+        style="@style/MainTextViewTheme"
+        android:textSize="17sp"
+        android:layout_weight="1"
+        android:layout_width="0dp"/>
+
+    <ImageButton
+        android:id="@+id/button_visibility"
+        style="@style/UtilityButtons.WithMargins"
+        android:layout_margin="8dp"
+        android:contentDescription="@string/show_password"
+        android:src="@drawable/visibility_on"
+        android:background="@color/data_background_color"
+        android:visibility="gone"/>
+
+    <ImageButton
+        android:id="@+id/field_item_button_copy"
+        style="@style/UtilityButtons.WithMargins"
+        android:layout_margin="8dp"
+        android:background="@color/data_background_color"
+        android:contentDescription="@string/copy_info"
+        android:src="@drawable/ic_outline_content_copy_24" />
+
+</LinearLayout>

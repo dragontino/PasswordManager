@@ -10,13 +10,14 @@
         layout="@layout/layout_main_header"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_weight="4"
         android:layout_marginStart="@dimen/activity_horizontal_margin"/>
 
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/switch_compat"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:checked="true"
         android:scaleX="1.2"

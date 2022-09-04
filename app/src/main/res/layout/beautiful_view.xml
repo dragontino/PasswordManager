@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/edit_text"
+            style="@style/AccountTextViewThemeWithoutMargin"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/default_hint"
+            android:inputType="text"
+            android:autofillHints="name"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="TextContrastCheck"/>
+
+        <View
+            android:id="@+id/hint_background_view"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/white"
+            android:visibility="gone"
+            app:layout_constraintHorizontal_bias="0.08"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:id="@+id/hint_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/raspberry"
+            android:textSize="11sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.08"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="TextContrastCheck" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</merge>

@@ -54,7 +54,7 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
     //удаляет только 1 запись в бд
-    fun deleteData(data : Data) = when (data) {
+    fun deleteData(data: Data) = when (data) {
         is Website -> dataDao.deleteWebsite(data)
         else -> dataDao.deleteBankCard(data as BankCard)
     }

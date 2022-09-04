@@ -9,38 +9,35 @@ class BankCard(
         id : Int = 0,
         email: String = "",
         var bankName: String = "",
+        var bankCardName: String = "",
         var cardNumber: String = "",
         var cardHolder: String = "",
         var validity: String = "",
         var cvv: Int = 0,
-        var pin: Int = 0) : Data(id, email) {
+        var pin: Int = 0,
+        var comment: String = "") : Data(id, email) {
 
-
-    private fun getCvv(): String {
-        return cvv.toString()
-    }
-
-    private fun setCvv(cvv: String) {
-        this.cvv = cvv.toInt()
-    }
-
-    private fun getPin(): String {
-        return pin.toString()
-    }
-
-    private fun setPin(pin: String) {
-        this.pin = pin.toInt()
-    }
+    // TODO: 18.07.2022 сделать cvv и pin строками
 
     override val key get() = bankName
     override val type get() = DataType.BANK_CARD
+
+    var cvvString get() = cvv.toString()
+        set(value) {
+            cvv = value.toInt()
+        }
+
+    var pinString get() = pin.toString()
+        set(value) {
+            pin = value.toInt()
+        }
 
     override fun encrypt(encrypt: String.() -> String): Data {
         cardNumber = encrypt(cardNumber)
         cardHolder = encrypt(cardHolder)
         validity = encrypt(validity)
-        setCvv(encrypt(getCvv()))
-        setPin(encrypt(getPin()))
+        cvvString = encrypt(cvvString)
+        pinString = encrypt(pinString)
         return this
     }
 
@@ -48,31 +45,24 @@ class BankCard(
         cardNumber = decrypt(cardNumber)
         cardHolder = decrypt(cardHolder)
         validity = decrypt(validity)
-        setCvv(decrypt(getCvv()))
-        setPin(decrypt(getPin()))
+        cvvString = decrypt(cvvString)
+        pinString = decrypt(pinString)
         return this
     }
 
-    override fun toString(context: Context, needHeading: Boolean): String {
-        val sb = StringBuilder()
+    override fun toString(context: Context, needFirstLine: Boolean) =
+        buildString {
+            if (needFirstLine)
+                append(context.getString(R.string.bank_name), ": ", bankName, "\n")
 
-        if (needHeading)
-            sb.append(context.getString(R.string.bank_name)).append(": ")
-                .append(bankName).append("\n")
-
-        sb.append(context.getString(R.string.card_number)).append(": ")
-                .append(cardNumber).append("\n")
-                .append(context.getString(R.string.card_holder)).append(": ")
-                .append(cardHolder).append("\n")
-                .append(context.getString(R.string.validity_period)).append(": ")
-                .append(validity).append("\n")
-                .append(context.getString(R.string.card_cvv)).append(": ")
-                .append(cvv).append("\n")
-                .append(context.getString(R.string.pin_code)).append(": ")
-                .append(pin).append("\n")
-
-        return sb.toString()
-    }
+            append(
+                context.getString(R.string.card_number), ": ", cardNumber, "\n",
+                context.getString(R.string.card_holder), ": ", cardHolder, "\n",
+                context.getString(R.string.validity_period), ": ", validity, "\n",
+                context.getString(R.string.card_cvv), ": ", cvv, "\n",
+                context.getString(R.string.pin_code), ": ", pin, "\n"
+            )
+        }
 
     //сравнение 2 объектов BankCard по bankName
     //или объекта BankCard с Website
@@ -81,14 +71,13 @@ class BankCard(
         val anotherString = when (other) {
             is BankCard -> other.bankName
             is Website -> other.nameWebsite
-            else -> bankName
+            else -> ""
         }
 
         return bankName.compareTo(anotherString)
     }
 
-    // TODO: 13.03.2022 подумать, какие поля обязаны быть не пустыми
     override fun isEmpty() =
-        cardNumber.isEmpty() || cardHolder.isEmpty() || validity.isEmpty() ||
-                getCvv().isEmpty() || getPin().isEmpty()
+        bankName.isEmpty() || cardNumber.isEmpty() || cardHolder.isEmpty()
+                || validity.isEmpty() || cvvString.isEmpty() || pinString.isEmpty()
 }

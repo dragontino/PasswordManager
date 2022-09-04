@@ -1,25 +1,24 @@
 package com.security.passwordmanager.ui
 
-import android.content.res.ColorStateList
-import android.text.InputType
 import android.util.Log
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.iterator
 import androidx.core.widget.doAfterTextChanged
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.security.passwordmanager.*
 import com.security.passwordmanager.data.*
-import com.security.passwordmanager.databinding.NewAccountBinding
 import com.security.passwordmanager.databinding.NewBankCardBinding
-import com.security.passwordmanager.settings.SettingsViewModel
+import com.security.passwordmanager.databinding.NewWebsiteBinding
+import com.security.passwordmanager.view.BottomDialogFragment
+import com.security.passwordmanager.view.customviews.BeautifulTextView
+import com.security.passwordmanager.viewmodel.DataViewModel
+import com.security.passwordmanager.viewmodel.SettingsViewModel
 import kotlin.reflect.KMutableProperty0
 
 class DataEditableRecyclerView(
@@ -32,7 +31,7 @@ class DataEditableRecyclerView(
     private val adapter: EditableAdapter
 
     private val settings = SettingsViewModel.getInstance(activity)
-    private val dataViewModel = ViewModelProvider(activity)[DataViewModel::class.java]
+    private val dataViewModel = DataViewModel.getInstance(activity)
 
     private val accountList = dataViewModel.getAccountList(key, type) as ArrayList<Data>
 
@@ -59,8 +58,10 @@ class DataEditableRecyclerView(
 
     // FIXME: 07.03.2022 не работает scroll
     fun scrollToPosition(position : Int) = recyclerView.post {
-        Log.d(ActionBottom.TAG, "test")
+        Log.d(BottomDialogFragment.TAG, "test")
         recyclerView.smoothScrollToPosition(position)
+
+
     }
 
     private fun scrollToEnd() = scrollToPosition(itemCount - 1)
@@ -102,15 +103,18 @@ class DataEditableRecyclerView(
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EditableHolder {
             val layoutInflater = LayoutInflater.from(activity)
 
-            val binding = when(viewType) {
-                DataType.BANK_CARD.number -> NewBankCardBinding
-                    .inflate(layoutInflater, parent, false)
-
-                else -> NewAccountBinding
-                    .inflate(layoutInflater, parent, false)
+            return when(viewType) {
+                DataType.BANK_CARD.number -> {
+                    val binding = NewBankCardBinding
+                        .inflate(layoutInflater, parent, false)
+                    EditableHolder(binding)
+                }
+                else -> {
+                    val binding = NewWebsiteBinding
+                        .inflate(layoutInflater, parent, false)
+                    EditableHolder(binding)
+                }
             }
-
-            return EditableHolder(binding)
         }
 
         override fun onBindViewHolder(holder: EditableHolder, position: Int) {
@@ -123,41 +127,264 @@ class DataEditableRecyclerView(
 
 
 
-    private inner class EditableHolder(private val itemBinding: ViewBinding)
-        : RecyclerView.ViewHolder(itemBinding.root) {
+    private abstract inner class DataEditableHolder<in T: Data>(viewBinding: ViewBinding) :
+        RecyclerView.ViewHolder(viewBinding.root) {
 
-        private val bottomDialogFragment = ActionBottom.newInstance(activity)
+        protected val bottomDialogFragment = BottomDialogFragment(settings)
 
-        private lateinit var data: Data
-        private var pos = 0
+        abstract fun bindData(data: T)
 
-        private var isPasswordVisible = false
-        private var renamingText = R.string.rename_account
+        protected abstract fun getDefaultHeadingName(position: Int): String
+
+        protected fun EditText.changeHeading() {
+            //true - заблокирует, false - разблокирует
+            val blocking = isCursorVisible
+
+            isCursorVisible = !blocking
+            isEnabled = !blocking
+
+            // TODO: 06.08.2022 проверить работоспособность
+            val full = getDefaultHeadingName(adapterPosition)
+            val zero = ""
+
+            if (blocking && text.isBlank())
+                txt = full
+            else if (!blocking && text.toString() == full)
+                txt = zero
+
+            backgroundTintList = if (blocking) {
+                setTextColor(settings.darkerGrayColor)
+                ColorStateList(settings.darkerGrayColor)
+            } else {
+                setTextColor(settings.fontColor)
+                ColorStateList(settings.headerColor)
+            }
+        }
+
+
+        /**
+         * param stringField: property, where new string will be right down
+         */
+        protected fun EditText.setTextWatcher(
+            stringField: KMutableProperty0<String>,
+            mustBeNotNull: Boolean = true
+        ) =
+            doAfterTextChanged {
+                if (mustBeNotNull && it?.isEmpty() == true) {
+                    error = activity.getString(R.string.required)
+                    return@doAfterTextChanged
+                }
+
+                stringField.set(it?.toString() ?: stringField.get())
+            }
+
+
+        protected fun BeautifulTextView.setTextWatcher(
+            stringField: KMutableProperty0<String>,
+            mustBeNotNull: Boolean = true,
+        ) =
+            doAfterTextChanged {
+            if (mustBeNotNull && it.isEmpty()) {
+                error = activity.getString(R.string.required)
+                return@doAfterTextChanged
+            }
+            stringField.set(it)
+        }
+    }
+
+
+
+    private inner class WebsiteEditableHolder(private val websiteBinding: NewWebsiteBinding) :
+        DataEditableHolder<Website>(websiteBinding) {
+
+        private var renamingTextRes = R.string.rename_data
+
 
         init {
-            when (itemBinding) {
-                is NewAccountBinding -> {
-                    itemBinding.editNameOfAccount.setOnClickListener {
-                        bottomDialogFragment.show(activity.supportFragmentManager)
-                    }
+            websiteBinding.editNameOfAccount.setOnClickListener {
+                bottomDialogFragment.show(activity.supportFragmentManager)
+            }
 
-                    itemBinding.passwordVisibility.setOnClickListener {
-                        updatePasswordView()
-                    }
-
-                    updatePasswordView(isPasswordVisible)
+            websiteBinding.password.setOnVisibilityChangeListener { imageButton, isVisible ->
+                if (isVisible) {
+                    imageButton.setImageResource(R.drawable.visibility_off)
+                    imageButton.contentDescription = activity.getString(R.string.hide_password)
+                } else {
+                    imageButton.setImageResource(R.drawable.visibility_on)
+                    imageButton.contentDescription = activity.getString(R.string.show_password)
                 }
-                is NewBankCardBinding -> {
-                    // TODO: 07.03.2022 сделать bank card binding
+            }
+
+            // TODO: 13.06.2022 сделать сохранение видимости пароля
+//            binding.password.isPasswordVisible = false
+        }
+
+        override fun bindData(data: Website) {
+            websiteBinding.run {
+                login.txt = data.login
+                password.text = data.password
+                comment.txt = data.comment
+
+                login.setTextWatcher(data::login)
+                password.textView.setTextWatcher(data::password)
+                comment.setTextWatcher(data::comment, false)
+
+                nameAccount.txt =
+                    if (data.nameAccount.isEmpty())
+                        getDefaultHeadingName(adapterPosition)
+                    else
+                        data.nameAccount
+
+                nameAccount.setOnEnterListener {
+                    nameAccount.changeNameStatus(R.string.rename_data)
+                }
+
+                val heading = data.nameAccount
+
+                bottomDialogFragment.apply {
+                    setHeading(heading, beautifulDesign = true)
+                    addView(R.drawable.edit, heading) {
+                        val newText =
+                            if (bottomDialogFragment[0].text == getString(R.string.rename_data))
+                                R.string.cancel_renaming_data
+                            else
+                                R.string.rename_data
+
+                        nameAccount.changeNameStatus(newText)
+                    }
+                    addView(R.drawable.copy, activity!!, R.string.copy_info) {
+                        dataViewModel.copyData(data)
+                    }
+
+                    addView(R.drawable.delete, activity!!, R.string.delete_account) {
+                        dataViewModel.deleteData(data)
+                        removeData(adapterPosition)
+
+                        if (isEmpty())
+                            this@DataEditableRecyclerView.activity.finish()
+                    }
+                }
+
+//                bottomDialogFragment = createBottomSheet(heading, nameAccount)
+
+                //colors
+                root.backgroundTintList =
+                    ColorStateList(settings.layoutBackgroundColor)
+
+                for (item in arrayOf(login, password.textView, comment)) {
+//                item.setTextColor()
+                    item.setBackgroundResource(settings.backgroundRes)
+                    //item.backgroundStyle = ...
+                }
+
+                editNameOfAccount.imageTintList =
+                    ColorStateList(settings.fontColor)
+                editNameOfAccount.setBackgroundColor(settings.layoutBackgroundColor)
+
+                password.textView.backgroundStyle = settings.beautifulBackgroundStyle
+                password.imageColor = settings.fontColor
+
+                editNameOfAccount.setOnClickListener {
+                    bottomDialogFragment.show(activity.supportFragmentManager)
                 }
             }
         }
 
-        val nameAccountStart get() =
-            activity.getString(R.string.account_start, pos + 1)
 
-        fun TextView.setTextColor() =
-            setTextColor(settings.fontColor)
+        /**
+         * переименовывает / отменяет переименование названия аккаунта / банковской карты и т. д.
+         */
+        fun EditText.changeNameStatus(@StringRes newRenamingText: Int) {
+            changeHeading()
+            renamingTextRes = newRenamingText
+            bottomDialogFragment.editView(0, renamingTextRes)
+        }
+
+
+        override fun getDefaultHeadingName(position: Int) =
+            activity.getString(R.string.account_start, position + 1)
+    }
+
+
+
+    private inner class EditableHolder(private val itemBinding: ViewBinding)
+        : RecyclerView.ViewHolder(itemBinding.root) {
+
+        private lateinit var bottomDialogFragment: BottomDialogFragment
+
+        private lateinit var data: Data
+        private var pos = 0
+
+        private var renamingText = R.string.rename_data
+
+        init {
+            when (itemBinding) {
+                is NewWebsiteBinding -> initNewWebsite(itemBinding)
+                is NewBankCardBinding -> initNewBankCard(itemBinding)
+            }
+        }
+
+
+        private fun initNewBankCard(binding: NewBankCardBinding) = binding.run {
+
+            editNameBankCard.setOnClickListener {
+                bottomDialogFragment.show(activity.supportFragmentManager)
+            }
+
+            cardNumber.doAfterTextChanged { text ->
+                when (text?.length) {
+                    4, 9, 14 -> cardNumber.append(" ")
+//                    5, 10, 15 -> cardNumber.deleteLast()
+                }
+            }
+
+            validityPeriod.doAfterTextChanged { text ->
+                when (text?.length) {
+                    2 -> {
+                        validityPeriod.append("/")
+
+                        val month =
+                            text[0].toString().toInt() * 10 + text[1].toString().toInt()
+                        if (month !in 1..12)
+                            validityPeriod.error = activity.getString(R.string.wrong_month)
+                    }
+                    3 -> validityPeriod.deleteLast()
+                }
+            }
+        }
+
+
+
+        private fun initNewWebsite(binding: NewWebsiteBinding) {
+
+            binding.editNameOfAccount.setOnClickListener {
+                bottomDialogFragment.show(activity.supportFragmentManager)
+            }
+
+            binding.password.setOnVisibilityChangeListener { imageButton, isVisible ->
+                if (isVisible) {
+                    imageButton.setImageResource(R.drawable.visibility_off)
+                    imageButton.contentDescription = activity.getString(R.string.hide_password)
+                } else {
+                    imageButton.setImageResource(R.drawable.visibility_on)
+                    imageButton.contentDescription = activity.getString(R.string.show_password)
+                }
+            }
+
+            // TODO: 13.06.2022 сделать сохранение видимости пароля
+//            binding.password.isPasswordVisible = false
+        }
+
+        fun getDefaultHeadingName() = when (data.type) {
+            DataType.WEBSITE -> activity.getString(R.string.account_start, pos + 1)
+            DataType.BANK_CARD -> activity.getString(R.string.bank_card_hint, pos + 1)
+            // TODO: 13.06.2022 поменять номер позиции для банковской карты
+        }
+
+
+//        fun BeautifulTextView.setTextColor() {
+//            textColor = settings.fontColor
+//        }
 
 
         fun EditText.changeHeading() {
@@ -167,7 +394,7 @@ class DataEditableRecyclerView(
             isCursorVisible = !blocking
             isEnabled = !blocking
 
-            val full = nameAccountStart
+            val full = getDefaultHeadingName()
             val zero = ""
 
             if (blocking && text.isBlank())
@@ -175,17 +402,18 @@ class DataEditableRecyclerView(
             else if (!blocking && text.toString() == full)
                 txt = zero
 
-            if (blocking && text.toString() != full) {
-                (data as Website).nameAccount = text.toString()
-                accountList[pos] = data
+            if (blocking && txt != full) when (data) {
+                is Website -> (data as Website).nameAccount = txt
+                is BankCard -> (data as BankCard).bankCardName = txt
             }
+            accountList[pos] = data
 
             backgroundTintList = if (blocking) {
                 setTextColor(settings.darkerGrayColor)
-                ColorStateList.valueOf(settings.darkerGrayColor)
+                ColorStateList(settings.darkerGrayColor)
             } else {
                 setTextColor(settings.fontColor)
-                ColorStateList.valueOf(settings.headerColor)
+                ColorStateList(settings.headerColor)
             }
         }
 
@@ -195,68 +423,151 @@ class DataEditableRecyclerView(
             this.pos = position
 
             when (itemBinding) {
-                is NewAccountBinding -> {
+                is NewWebsiteBinding -> {
                     if (data !is Website)
                         return
 
-                    itemBinding.run {
-                        login.txt = data.login
-                        password.txt = data.password
-                        comment.txt = data.comment
-
-                        login.setTextWatcher(data::login)
-                        password.setTextWatcher(data::password)
-                        comment.setTextWatcher(data::comment, false)
-
-                        nameAccount.txt =
-                            if (data.nameAccount.isEmpty())
-                                nameAccountStart
-                            else
-                                data.nameAccount
-
-                        nameAccount.setOnKeyListener { _, keyCode, event ->
-                            if (event.action == KeyEvent.ACTION_DOWN &&
-                                keyCode == KeyEvent.KEYCODE_ENTER
-                            ) {
-                                data.nameAccount = nameAccount.text.toString()
-                                nameAccount.changeHeading()
-                                renamingText = R.string.rename_account
-                                bottomDialogFragment.editView(0, renamingText)
-                                return@setOnKeyListener true
-                            }
-                            false
-                        }
-
-                        createBottomSheet()
-
-                        //colors
-                        root.backgroundTintList =
-                            ColorStateList.valueOf(settings.layoutBackgroundColor)
-
-                        for (item in arrayOf(login, password, comment)) {
-                            item.setTextColor()
-                            item.setBackgroundResource(settings.backgroundRes)
-                        }
-
-                        editNameOfAccount.imageTintList =
-                            ColorStateList.valueOf(settings.fontColor)
-                        editNameOfAccount.setBackgroundColor(settings.layoutBackgroundColor)
-
-                        passwordVisibility.setBackgroundColor(settings.backgroundColor)
-                        passwordVisibility.imageTintList = ColorStateList.valueOf(settings.fontColor)
-
-                        editNameOfAccount.setOnClickListener {
-                            bottomDialogFragment.show(activity.supportFragmentManager)
-                        }
-                    }
+                    bindNewWebsite(itemBinding, data)
                 }
 
                 is NewBankCardBinding -> {
                     if (data !is BankCard)
                         return
+
+                    bindNewBankCard(itemBinding, data)
                 }
             }
         }
+
+
+        fun createBottomSheet(heading: String, namingView: EditText): BottomDialogFragment {
+            return BottomDialogFragment(settings).apply {
+                setHeading(heading, beautifulDesign = true)
+                addView(R.drawable.edit, activity!!, renamingText) {
+                    val newText =
+                        if (bottomDialogFragment[0].text == getString(R.string.rename_data))
+                            R.string.cancel_renaming_data
+                        else
+                            R.string.rename_data
+
+                    namingView.changeNameStatus(newText)
+                }
+                addView(R.drawable.copy, activity!!, R.string.copy_info) {
+                        dataViewModel.copyData(this@EditableHolder.data)
+                }
+                addView(R.drawable.delete, activity!!, R.string.delete_account) {
+                    dataViewModel.deleteData(this@EditableHolder.data)
+                    removeData(pos)
+
+                    if (isEmpty())
+                        this@DataEditableRecyclerView.activity.finish()
+                }
+            }
+        }
+
+
+        private fun bindNewWebsite(binding: NewWebsiteBinding, website: Website) = binding.run {
+            login.txt = website.login
+            password.text = website.password
+            comment.txt = website.comment
+
+            login.setTextWatcher(website::login)
+            password.textView.setTextWatcher(website::password)
+            comment.setTextWatcher(website::comment, false)
+
+            nameAccount.txt =
+                if (website.nameAccount.isEmpty())
+                    getDefaultHeadingName()
+                else
+                    website.nameAccount
+
+            nameAccount.setOnEnterListener {
+                nameAccount.changeNameStatus(R.string.rename_data)
+            }
+
+            val heading = website.nameAccount
+            bottomDialogFragment = createBottomSheet(heading, nameAccount)
+
+            //colors
+            root.backgroundTintList =
+                ColorStateList(settings.layoutBackgroundColor)
+
+            for (item in arrayOf(login, password.textView, comment)) {
+//                item.setTextColor()
+                item.setBackgroundResource(settings.backgroundRes)
+                //item.backgroundStyle = ...
+            }
+
+            editNameOfAccount.imageTintList =
+                ColorStateList(settings.fontColor)
+            editNameOfAccount.setBackgroundColor(settings.layoutBackgroundColor)
+
+            password.textView.backgroundStyle = settings.beautifulBackgroundStyle
+            password.imageColor = settings.fontColor
+
+            editNameOfAccount.setOnClickListener {
+                bottomDialogFragment.show(activity.supportFragmentManager)
+            }
+        }
+
+
+        private fun bindNewBankCard(binding: NewBankCardBinding, bankCard: BankCard) = binding.run {
+            cardNumber.txt = bankCard.cardNumber
+            cardHolder.txt = bankCard.cardHolder
+            validityPeriod.txt = bankCard.validity
+            cardCvv.text = bankCard.cvvString
+            pinCode.text = bankCard.pinString
+            comment.txt = bankCard.comment
+
+            cardNumber.setTextWatcher(bankCard::cardNumber)
+            cardHolder.setTextWatcher(bankCard::cardHolder)
+            validityPeriod.setTextWatcher(bankCard::validity)
+            cardCvv.textView.setTextWatcher(bankCard::cvvString)
+            pinCode.textView.setTextWatcher(bankCard::pinString)
+            comment.setTextWatcher(bankCard::comment, false)
+
+            nameBankCard.txt =
+                if (bankCard.bankCardName.isEmpty())
+                    getDefaultHeadingName()
+                else
+                    bankCard.bankCardName
+
+            nameBankCard.setOnEnterListener {
+                nameBankCard.changeNameStatus(R.string.cancel_renaming_data)
+            }
+
+            bottomDialogFragment = createBottomSheet(bankCard.bankCardName, nameBankCard)
+
+            //colors
+            root.backgroundTintList = ColorStateList(settings.layoutBackgroundColor)
+
+            for (v in arrayOf(cardNumber, cardHolder, validityPeriod,
+                cardCvv.textView, pinCode.textView, comment)) {
+//                v.setTextColor()
+                v.setBackgroundResource(settings.backgroundRes)
+                //v.backgroundStyle = ...
+            }
+
+            editNameBankCard.imageTintList =
+                ColorStateList(settings.fontColor)
+            editNameBankCard.setBackgroundColor(settings.layoutBackgroundColor)
+
+            for (view in arrayOf(cardCvv, pinCode)) {
+                view.backgroundStyle = settings.beautifulBackgroundStyle
+                view.imageColor = settings.fontColor
+            }
+
+            bankMainInfo.setTextColor(settings.fontColor)
+            bankOptionallyInfo.setTextColor(settings.fontColor)
+
+            //listeners
+            editNameBankCard.setOnClickListener {
+                bottomDialogFragment.show(activity.supportFragmentManager)
+            }
+        }
+
+
+
 
         /**
          * param stringField: property, where new string will be right down
@@ -272,59 +583,38 @@ class DataEditableRecyclerView(
                 accountList[pos] = data
             }
 
+        fun BeautifulTextView.setTextWatcher(
+            stringField: KMutableProperty0<String>,
+            mustBeNotNull: Boolean = true,
+        ) = doAfterTextChanged {
+            if (mustBeNotNull && it.isEmpty()) {
+                error = activity.getString(R.string.required)
+                return@doAfterTextChanged
+            }
 
-        fun updatePasswordView() {
-            isPasswordVisible = !isPasswordVisible
-            updatePasswordView(isPasswordVisible)
+            stringField.set(it)
+            accountList[pos] = data
         }
 
-        fun updatePasswordView(visibility: Boolean) = (itemBinding as NewAccountBinding).run {
-            if (visibility) {
-                password.inputType =
-                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                passwordVisibility.setImageResource(R.drawable.visibility_off)
-                passwordVisibility.contentDescription = activity.getString(R.string.hide_password)
-            } else {
-                password.inputType =
-                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                passwordVisibility.setImageResource(R.drawable.visibility_on)
-                passwordVisibility.contentDescription = activity.getString(R.string.show_password)
-            }
-        }
+//        fun PasswordFieldBinding.changeVisibility(newVisibility: Boolean = !textView.isPasswordVisible()) {
+//            if (newVisibility) {
+//                textView.showPassword()
+//                visibility.setImageResource(R.drawable.visibility_off)
+//                visibility.contentDescription = activity.getString(R.string.hide_password)
+//            } else {
+//                textView.hidePassword()
+//                visibility.setImageResource(R.drawable.visibility_on)
+//                visibility.contentDescription = activity.getString(R.string.show_password)
+//            }
+//        }
 
-
-        // TODO: 07.03.2022 сделать для bank card
-        fun createBottomSheet() {
-            val heading = (data as Website).nameAccount
-            itemBinding as NewAccountBinding
-
-            bottomDialogFragment.setHeading(heading, null, true)
-
-            bottomDialogFragment.addView(R.drawable.edit, renamingText) {
-                itemBinding.nameAccount.changeHeading()
-
-                renamingText = if (itemBinding.nameAccount.isCursorVisible)
-                    R.string.cancel_renaming_account
-                else
-                    R.string.rename_account
-
-                bottomDialogFragment.editView(0, renamingText)
-                bottomDialogFragment.dismiss()
-            }
-
-            bottomDialogFragment.addView(R.drawable.copy, R.string.copy_info) {
-                dataViewModel.copyData(data)
-                bottomDialogFragment.dismiss()
-            }
-
-            bottomDialogFragment.addView(R.drawable.delete, R.string.delete_account) {
-                dataViewModel.deleteData(data)
-                removeData(pos)
-                bottomDialogFragment.dismiss()
-
-                if (isEmpty())
-                    activity.finish()
-            }
+        /**
+         * переименовывает / отменяет переименование названия аккаунта / банковской карты и т. д.
+         */
+        fun EditText.changeNameStatus(@StringRes newRenamingText: Int) {
+            changeHeading()
+            renamingText = newRenamingText
+            bottomDialogFragment.editView(0, renamingText)
         }
     }
 }

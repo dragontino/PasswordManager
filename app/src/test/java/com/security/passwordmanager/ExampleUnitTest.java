@@ -1,8 +1,8 @@
 package com.security.passwordmanager;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.Assert.*;
+import org.testng.annotations.Test;
 
 /**
  * Example local unit test, which will execute on the development machine (host).

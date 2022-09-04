@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.bank.BankCardActivity_old">
+    tools:context=".activities.BankCardActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,21 +14,12 @@
 
         <EditText
             android:id="@+id/bank_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             style="@style/AccountTextViewTheme"
-            android:hint="@string/bank_name"
-            android:inputType="text"
-            android:autofillHints="name"/>
-
-        <TextView
-            android:id="@+id/bank_head"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/bank_head"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_margin="@dimen/activity_vertical_margin"/>
+            android:autofillHints="name"
+            android:hint="@string/bank_name"
+            android:inputType="text" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/bank_card_recycler_view"
@@ -68,7 +59,5 @@
                 android:text="@string/add_more_cards"/>
 
         </LinearLayout>
-
     </LinearLayout>
-
 </androidx.core.widget.NestedScrollView>

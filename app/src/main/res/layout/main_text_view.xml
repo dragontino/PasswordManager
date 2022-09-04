@@ -37,18 +37,28 @@
 
             </androidx.constraintlayout.motion.widget.MotionLayout>
 
+            <ImageView
+                android:id="@+id/website_image"
+                android:src="@drawable/website_image"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingStart="0dp"
+                android:paddingEnd="4dp"
+                android:contentDescription="@string/website_image"/>
+
             <include
                 android:id="@+id/text_view"
                 layout="@layout/layout_main_header"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginStart="4dp"/>
+                android:layout_marginStart="5dp"/>
 
         </LinearLayout>
 
 
         <ImageButton
-            android:id="@+id/button_more"
+            android:id="@+id/show_bottom_fragment"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
@@ -70,7 +80,7 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_more_info"
+        android:id="@+id/recycler_view_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
