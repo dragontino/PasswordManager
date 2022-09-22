@@ -17,8 +17,7 @@
         android:layout_margin="8dp"
         android:contentDescription="@string/show_password"
         android:src="@drawable/visibility_on"
-        android:background="@color/data_background_color"
-        android:visibility="gone"/>
+        android:background="@color/data_background_color"/>
 
     <ImageButton
         android:id="@+id/field_item_button_copy"

@@ -1,349 +1,126 @@
 package com.security.passwordmanager.view.compose
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import androidx.annotation.StringRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.filled.RadioButtonChecked
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.FragmentManager
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.security.passwordmanager.BottomSheetShape
 import com.security.passwordmanager.R
-import com.security.passwordmanager.viewmodel.SettingsViewModel
-
-open class BottomSheetFragment(protected val settingsViewModel: SettingsViewModel)
-    : BottomSheetDialogFragment() {
-
-    private val headingBuffer = Array(2) { String() }
-    private var beautifulDesign = false
-    private val viewBuffer = ArrayList<BottomSheetItem>()
-
-    private var anotherView: @Composable (() -> Unit)? = null
-
-    companion object {
-        const val TAG = "BottomSheetFragment"
-    }
-
-    override fun getTheme() = R.style.AppBottomSheetDialogTheme
-
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = ComposeView(inflater.context).apply {
-        setContent {
-            BottomSheet(
-                titleText = headingBuffer.first(),
-                subtitleText = headingBuffer.last(),
-                drawBeautifulDesign = beautifulDesign && settingsViewModel.baseSettings.isUsingBeautifulFont,
-                bottomSheetItems = viewBuffer,
-                anotherView = anotherView
-            )
-        }
-    }
-
-
-
-    fun setHeading(
-        titleText: String,
-        subtitleText: String = "",
-        beautifulDesign: Boolean = false
-    ) {
-        headingBuffer[0] = titleText
-        headingBuffer[1] = subtitleText
-        this.beautifulDesign = beautifulDesign
-    }
-
-
-    fun addView(
-        image: ImageVector,
-        @StringRes textRes: Int,
-        imageTintColor: Color = Color.Black,
-        imageBound: ImageBounds = ImageBounds.LEFT,
-        showImage: Boolean = true,
-        onClick: () -> Unit
-    ) = addView(image, getString(textRes), imageTintColor, imageBound, showImage, onClick)
-
-
-    fun addView(
-        image: ImageVector,
-        text: String,
-        imageTintColor: Color = Color.Black,
-        imageBound: ImageBounds = ImageBounds.LEFT,
-        showImage: Boolean = true,
-        onClick: () -> Unit
-    ) {
-        val view = BottomSheetItem(
-            image = image,
-            text = text,
-            imageTintColor = imageTintColor,
-            imageBound = imageBound,
-            showImage = showImage,
-            onClick = onClick
-        )
-
-        if (view !in viewBuffer)
-            viewBuffer += view
-    }
-
-
-    protected fun addView(content: @Composable () -> Unit) {
-        anotherView = content
-    }
-
-
-    fun show(fm: FragmentManager) = show(fm, TAG)
-
-
-
-    @Composable
-    private fun BottomSheet(
-        titleText: String = "",
-        subtitleText: String = "",
-        drawBeautifulDesign: Boolean = false,
-        bottomSheetItems: List<BottomSheetItem>? = null,
-        anotherView: @Composable (() -> Unit)? = null
-    ) {
-        val bottomSheetCorner = dimensionResource(R.dimen.bottom_sheet_corner)
-
-        Column(
-            verticalArrangement = Arrangement.Bottom,
-            modifier = Modifier
-                .border(
-                    width = 1.dp,
-                    color = colorResource(R.color.text_color),
-                    shape = RoundedCornerShape(
-                        topStart = bottomSheetCorner,
-                        topEnd = bottomSheetCorner
-                    )
-                )
-                .background(
-                    color = colorResource(R.color.app_background_color),
-                    shape = RoundedCornerShape(
-                        topStart = bottomSheetCorner,
-                        topEnd = bottomSheetCorner
-                    )
-                )
-                .fillMaxWidth()
-        ) {
-            BottomSheetHeading(titleText, subtitleText, drawBeautifulDesign)
-            Divider(
-                color = colorResource(android.R.color.darker_gray),
-                startIndent = 1.dp
-            )
-
-            bottomSheetItems?.forEach { bottomView -> BottomView(bottomView) }
-
-            anotherView?.invoke()
-        }
-    }
-
-
-    @Composable
-    private fun BottomSheetHeading(
-        titleText: String,
-        subtitleText: String,
-        drawBeautifulDesign: Boolean
-    ) {
-        if (titleText.isBlank()) return
-
-        Column(
-            modifier = Modifier
-                .padding(dimensionResource(R.dimen.activity_horizontal_margin))
-                .fillMaxWidth()
-        ) {
-            val titleTextSize = if (drawBeautifulDesign) 24.sp else 20.sp
-            val fontFamily = if (drawBeautifulDesign)
-                MaterialTheme.typography.subtitle1.fontFamily
-            else null
-
-            Text(
-                text = titleText,
-                fontSize = titleTextSize,
-                fontFamily = fontFamily,
-                color = colorResource(R.color.text_color),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            if (subtitleText.isBlank()) return
-
-            Text(
-                text = subtitleText,
-                color = colorResource(android.R.color.darker_gray),
-                fontSize = 17.sp,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-
-
-    @Composable
-    private fun BottomView(bottomSheetItem: BottomSheetItem) {
-        TextField(
-            value = bottomSheetItem.text,
-            onValueChange = {},
-            readOnly = true,
-            leadingIcon = {
-                if (bottomSheetItem.showImage && bottomSheetItem.imageBound == ImageBounds.LEFT)
-                    BottomElementImage(bottomSheetItem.image, bottomSheetItem.text)
-            },
-            trailingIcon = {
-                if (bottomSheetItem.showImage && bottomSheetItem.imageBound == ImageBounds.RIGHT)
-                    BottomElementImage(bottomSheetItem.image, bottomSheetItem.text)
-            },
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = colorResource(R.color.text_color),
-                backgroundColor = colorResource(R.color.app_background_color),
-                focusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-            ),
-            modifier = Modifier
-                .padding(horizontal = 7.dp, vertical = 0.dp)
-                .clickable(onClick = bottomSheetItem.onClick)
-                .padding(vertical = 12.dp, horizontal = 8.dp)
-                .fillMaxWidth()
-        )
-    }
-
-
-    @Composable
-    private fun BottomElementImage(image: ImageVector, text: String) {
-        Image(
-            imageVector = image,
-            contentDescription = text,
-            colorFilter = ColorFilter.tint(colorResource(R.color.raspberry)),
-            modifier = Modifier
-                .clip(CircleShape)
-                .padding(end = 10.dp)
-        )
-    }
-}
-
-
-@Composable
-fun ColumnScope.BottomSheetContent(
-    title: String = "",
-    subtitle: String = "",
-    drawBeautifulDesign: Boolean = false,
-    vararg bottomItems: BottomSheetItem
-) {
-    BottomSheetHeading(
-        title = title,
-        subtitle = subtitle,
-        drawBeautifulDesign = drawBeautifulDesign
-    )
-
-    bottomItems.forEach { item ->
-        BottomSheetItem(item)
-    }
-}
-
-
+import com.security.passwordmanager.TitleWithSubtitle
+import com.security.passwordmanager.model.ScreenType
+import com.security.passwordmanager.model.Themes
 
 data class BottomSheetItem(
     val image: ImageVector,
     var text: String,
+    val id: Int = -1,
     val imageTintColor: Color = Color.Black,
-    var imageBound: ImageBounds = ImageBounds.LEFT,
-    var showImage: Boolean = true,
-    val onClick: () -> Unit
+    var imageBound: ImageBounds = ImageBounds.START,
+    var showImage: Boolean = true
 )
 
 enum class ImageBounds {
-    LEFT,
-    RIGHT
+    START,
+    END
 }
 
 
-@Preview
+
 @Composable
-fun TestBottomSheet() {
-    BottomSheet(
-        titleText = "Wrecked",
-        subtitleText = "Imagine Dragons",
-        drawBeautifulDesign = true,
-        bottomSheetItems = listOf(
-            BottomSheetItem(
-                image = Icons.Outlined.AccountCircle,
-                text = "Hello world!",
-                onClick = {}
-            ),
-            BottomSheetItem(
-                image = Icons.Outlined.CreditCard,
-                text = "Bank Test!",
-                onClick = {}
-            )
-        )
+fun BottomSheetContent(
+    titleWithSubtitle: TitleWithSubtitle = TitleWithSubtitle(),
+    drawBeautifulDesign: Boolean = false,
+    vararg bottomItems: BottomSheetItem,
+    onClickToBottomItem: (bottomItem: BottomSheetItem) -> Unit
+) {
+    BottomSheetContent(
+        titleWithSubtitle,
+        drawBeautifulDesign,
+        bottomItems = bottomItems,
+        onClickToBottomItem,
+        additionalContent = null
     )
 }
 
 
-@Composable
-private fun BottomSheet(
-    titleText: String = "",
-    subtitleText: String = "",
-    drawBeautifulDesign: Boolean = false,
-    bottomSheetItems: List<BottomSheetItem>? = null,
-    anotherView: @Composable (() -> Unit)? = null
-) {
-    val bottomSheetCorner = dimensionResource(R.dimen.bottom_sheet_corner)
 
+@Composable
+private fun BottomSheetContent(
+    titleWithSubtitle: TitleWithSubtitle = TitleWithSubtitle(),
+    drawBeautifulDesign: Boolean = false,
+    vararg bottomItems: BottomSheetItem,
+    onClickToBottomItem: (bottomItem: BottomSheetItem) -> Unit,
+    additionalContent: @Composable (() -> Unit)? = null
+) {
     Column(
-        verticalArrangement = Arrangement.Bottom,
         modifier = Modifier
+            .background(MaterialTheme.colors.background)
             .border(
                 width = 1.dp,
-                color = colorResource(R.color.text_color),
-                shape = RoundedCornerShape(
-                    topStart = bottomSheetCorner,
-                    topEnd = bottomSheetCorner
-                )
+                color = colorResource(android.R.color.darker_gray),
+                shape = BottomSheetShape
             )
-            .background(
-                color = colorResource(R.color.app_background_color),
-                shape = RoundedCornerShape(
-                    topStart = bottomSheetCorner,
-                    topEnd = bottomSheetCorner
-                )
-            )
-            .fillMaxWidth()
     ) {
-        BottomSheetHeading(titleText, subtitleText, drawBeautifulDesign)
-        Divider(
-            color = colorResource(android.R.color.darker_gray),
-            startIndent = 1.dp
+        BottomSheetHeading(
+            title = titleWithSubtitle.title,
+            subtitle = titleWithSubtitle.subtitle,
+            drawBeautifulDesign = drawBeautifulDesign
         )
 
-        bottomSheetItems?.forEach { bottomView -> BottomSheetItem(bottomView) }
+        bottomItems.forEach { item ->
+            BottomSheetItem(item, onClickToBottomItem)
+        }
 
-        anotherView?.invoke()
+        additionalContent?.invoke()
     }
+}
+
+
+
+@Composable
+fun ThemeBottomSheetContent(
+    currentTheme: Themes,
+    updateTheme: (newTheme: Themes) -> Unit,
+    additionalContent: @Composable (() -> Unit)? = null
+) {
+    val bottomItems = Themes.values().mapIndexed { index, themes ->
+        BottomSheetItem(
+            image = Icons.Default.RadioButtonChecked,
+            text = stringResource(themes.titleRes),
+            id = index,
+            imageTintColor = colorResource(R.color.raspberry),
+            imageBound = ImageBounds.END,
+            showImage = themes == currentTheme
+        )
+    }.toTypedArray()
+
+    BottomSheetContent(
+        bottomItems = bottomItems,
+        onClickToBottomItem = { updateTheme(Themes.values()[it.id]) },
+        additionalContent = additionalContent
+    )
 }
 
 
@@ -357,7 +134,7 @@ private fun ColumnScope.BottomSheetHeading(
 
     Column(
         modifier = Modifier
-            .padding(dimensionResource(R.dimen.activity_horizontal_margin))
+            .padding(top = dimensionResource(R.dimen.activity_horizontal_margin))
             .align(Alignment.Start)
             .fillMaxWidth()
     ) {
@@ -370,8 +147,10 @@ private fun ColumnScope.BottomSheetHeading(
             text = title,
             fontSize = titleTextSize,
             fontFamily = fontFamily,
-            color = colorResource(R.color.text_color),
-            modifier = Modifier.fillMaxWidth()
+            color = MaterialTheme.colors.onBackground,
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .fillMaxWidth()
         )
 
         if (subtitle.isNotBlank())
@@ -379,59 +158,130 @@ private fun ColumnScope.BottomSheetHeading(
                 text = subtitle,
                 color = colorResource(android.R.color.darker_gray),
                 fontSize = 17.sp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .padding(start = 16.dp, bottom = 4.dp)
+                    .fillMaxWidth()
             )
 
         Divider(
             color = colorResource(android.R.color.darker_gray),
-            startIndent = 1.dp
+            modifier = Modifier.padding(top = 16.dp)
         )
     }
 }
 
 
 @Composable
-private fun ColumnScope.BottomSheetItem(bottomSheetItem: BottomSheetItem) {
-    TextField(
-        value = bottomSheetItem.text,
-        onValueChange = {},
-        readOnly = true,
-        leadingIcon = {
-            if (bottomSheetItem.imageBound == ImageBounds.LEFT)
-                BottomElementImage(bottomSheetItem.image, bottomSheetItem.text)
-        },
-        trailingIcon = {
-            if (bottomSheetItem.imageBound == ImageBounds.RIGHT)
-                BottomElementImage(bottomSheetItem.image, bottomSheetItem.text)
-        },
-        textStyle = TextStyle(fontSize = 18.sp),
-        colors = TextFieldDefaults.textFieldColors(
-            textColor = colorResource(R.color.text_color),
-            backgroundColor = colorResource(R.color.app_background_color),
-            focusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-        ),
-        modifier = Modifier
-            .align(Alignment.Start)
-            .padding(horizontal = 7.dp, vertical = 7.dp)
-            .clickable {
-                bottomSheetItem.onClick()
-            }
-            .fillMaxWidth()
-    )
+private fun ColumnScope.BottomSheetItem(
+    bottomSheetItem: BottomSheetItem,
+    onClick: (bottomItem: BottomSheetItem) -> Unit
+) {
+    Row(modifier = Modifier
+        .clickable { onClick(bottomSheetItem) }
+        .align(Alignment.Start)
+        .padding(vertical = 16.dp)
+        .fillMaxWidth()
+    ) {
+
+        if (bottomSheetItem.showImage && bottomSheetItem.imageBound == ImageBounds.START) {
+            BottomSheetItemIcon(bottomSheetItem, Modifier.padding(horizontal = 16.dp))
+        }
+        else
+            Spacer(modifier = Modifier.width(16.dp))
+
+        Text(
+            text = bottomSheetItem.text,
+            color = MaterialTheme.colors.onBackground,
+            fontSize = 18.sp,
+            modifier = Modifier.weight(2f)
+        )
+
+        if (bottomSheetItem.showImage && bottomSheetItem.imageBound == ImageBounds.END) {
+            BottomSheetItemIcon(bottomSheetItem, modifier = Modifier.padding(end = 16.dp))
+        }
+    }
 }
 
 
 @Composable
-private fun BottomElementImage(image: ImageVector, text: String) {
-    Image(
-        imageVector = image,
-        contentDescription = text,
-        colorFilter = ColorFilter.tint(colorResource(R.color.raspberry)),
-        modifier = Modifier
+private fun BottomSheetItemIcon(bottomSheetItem: BottomSheetItem, modifier: Modifier = Modifier) {
+    Icon(
+        imageVector = bottomSheetItem.image,
+        contentDescription = bottomSheetItem.text,
+        tint = bottomSheetItem.imageTintColor,
+        modifier = modifier
             .scale(1.17f)
-            .clip(CircleShape)
-            .padding(end = 5.dp)
+            .clip(CircleShape.copy(CornerSize(40)))
     )
+}
+
+
+
+
+object BottomSheetItems {
+    const val editItemId = 1
+    const val copyItemId = 2
+    const val deleteItemId = 3
+
+    @Composable
+    fun screenType(screenType: ScreenType) = BottomSheetItem(
+        text = stringResource(screenType.singleTitleRes),
+        image = screenType.icon,
+        imageTintColor = colorResource(R.color.raspberry),
+        id = screenType.id
+    )
+
+    @Composable
+    fun edit(text: String) = BottomSheetItem(
+        text = text,
+        image = Icons.Outlined.Edit,
+        imageTintColor = colorResource(R.color.raspberry),
+        id = editItemId
+    )
+
+    @Composable
+    fun copy(text: String) = BottomSheetItem(
+        text = text,
+        image = Icons.Outlined.ContentCopy,
+        imageTintColor = colorResource(R.color.raspberry),
+        id = copyItemId
+    )
+
+    @Composable
+    fun delete(text: String) = BottomSheetItem(
+        text = text,
+        image = Icons.Outlined.Delete,
+        imageTintColor = colorResource(R.color.raspberry),
+        id = deleteItemId
+    )
+}
+
+
+
+@Preview
+@Composable
+fun BottomSheetContentPreview() {
+    val imageTintColor = colorResource(R.color.raspberry)
+
+    BottomSheetContent(
+        TitleWithSubtitle(
+            title = "Wrecked",
+            subtitle = "Imagine Dragons"
+        ),
+        drawBeautifulDesign = true,
+        bottomItems = arrayOf(
+            BottomSheetItem(
+                image = Icons.Outlined.AccountCircle,
+                text = "Hello world!",
+                imageTintColor = imageTintColor,
+            ),
+            BottomSheetItem(
+                image = Icons.Outlined.CreditCard,
+                text = "Bank Test!",
+                imageBound = ImageBounds.END,
+                imageTintColor = imageTintColor,
+//                onClick = {}
+            )
+        )
+    ) { }
 }

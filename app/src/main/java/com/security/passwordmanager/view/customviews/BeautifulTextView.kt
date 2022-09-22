@@ -51,7 +51,7 @@ class BeautifulTextView(context: Context, attrs: AttributeSet?) : ConstraintLayo
     }
 
     private fun setAttributes(attributes: TypedArray) {
-        val text = attributes.getString(R.styleable.BeautifulTextView_android_text) ?: ""
+//        val text = attributes.getString(R.styleable.BeautifulTextView_android_text) ?: ""
         val hint = attributes.getString(R.styleable.BeautifulTextView_hint) ?: ""
         val textColor = attributes.getColor(R.styleable.BeautifulTextView_textColor, Color.BLACK)
         val hintColor = attributes.getColor(
@@ -69,11 +69,11 @@ class BeautifulTextView(context: Context, attrs: AttributeSet?) : ConstraintLayo
             Gravity.CENTER_VERTICAL or Gravity.START
         )
 
-        val isSelectable = attributes
-            .getBoolean(R.styleable.BeautifulTextView_android_textIsSelectable, false)
-
-        val inputType = attributes
-            .getInt(R.styleable.BeautifulTextView_android_inputType, 0)
+//        val isSelectable = attributes
+//            .getBoolean(R.styleable.BeautifulTextView_android_textIsSelectable, false)
+//
+//        val inputType = attributes
+//            .getInt(R.styleable.BeautifulTextView_android_inputType, 0)
 
 
         binding.run {
@@ -107,8 +107,8 @@ class BeautifulTextView(context: Context, attrs: AttributeSet?) : ConstraintLayo
 
             editText.gravity = textGravity
 
-            textIsSelectable = isSelectable
-            editText.setTextIsSelectable(isSelectable)
+//            textIsSelectable = isSelectable
+//            editText.setTextIsSelectable(isSelectable)
 
             editText.inputType = inputType
         }

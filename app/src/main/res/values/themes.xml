@@ -128,10 +128,4 @@
         <item name="colorSwitchThumbNormal">@color/light_gray</item>
         <item name="android:colorForeground">@color/white</item>
     </style>
-
-    <style name="DialogTheme" parent="Theme.AppCompat.DayNight.Dialog">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <item name="dialogCornerRadius">6dp</item>
-    </style>
 </resources>

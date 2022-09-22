@@ -7,7 +7,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.security.passwordmanager.R
 import com.security.passwordmanager.hide
-import com.security.passwordmanager.settings.ThemeDef
+import com.security.passwordmanager.model.Themes
 import com.security.passwordmanager.show
 import com.security.passwordmanager.view.compose.Time
 import com.security.passwordmanager.view.compose.toCalendar
@@ -32,8 +32,8 @@ class ThemeBottomDialogFragment(settingsViewModel: SettingsViewModel)
 
     init {
         fun listener(view: View) {
-            settingsViewModel.theme = ThemeDef.values()[view.id]
-            if (settingsViewModel.theme == ThemeDef.AUTO_THEME) {
+            settingsViewModel.theme = Themes.values()[view.id]
+            if (settingsViewModel.theme == Themes.AUTO_THEME) {
                 timeLayout.show()
             } else
                 dismiss()
@@ -61,7 +61,7 @@ class ThemeBottomDialogFragment(settingsViewModel: SettingsViewModel)
         updateColors()
     }
 
-    private fun LinearLayout.update() = if (settingsViewModel.theme != ThemeDef.AUTO_THEME) {
+    private fun LinearLayout.update() = if (settingsViewModel.theme != Themes.AUTO_THEME) {
         hide()
     }
     else {
@@ -75,7 +75,7 @@ class ThemeBottomDialogFragment(settingsViewModel: SettingsViewModel)
     override fun updateColors() {
         super.updateColors()
 
-        for(index in ThemeDef.values().indices) {
+        for(index in Themes.values().indices) {
             if (index == settingsViewModel.indexTheme)
                 getView(index).setDrawables()
             else

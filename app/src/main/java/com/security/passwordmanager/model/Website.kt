@@ -1,4 +1,4 @@
-package com.security.passwordmanager.data
+package com.security.passwordmanager.model
 
 import android.content.Context
 import androidx.room.Entity
@@ -18,7 +18,7 @@ class Website(
 
 
     override val key get() = address
-    override val type get() = DataType.WEBSITE
+    override val type get() = DataType.Website
 
     override fun encrypt(encrypt: (String) -> String): Data {
         login = encrypt(login)

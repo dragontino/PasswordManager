@@ -43,7 +43,7 @@ class PasswordView(context: Context, attrs: AttributeSet?): ConstraintLayout(con
 
     private fun setAttributes(attributes: TypedArray) {
         text = attributes.getString(R.styleable.PasswordView_text) ?: ""
-        hint = attributes.getString(R.styleable.PasswordView_android_hint) ?: ""
+//        hint = attributes.getString(R.styleable.PasswordView_android_hint) ?: ""
 
         val inputTypeInt = attributes
             .getInt(R.styleable.PasswordView_inputType, 100)
@@ -54,10 +54,10 @@ class PasswordView(context: Context, attrs: AttributeSet?): ConstraintLayout(con
         isPasswordVisible = attributes
             .getBoolean(R.styleable.PasswordView_passwordVisible, false)
 
-        val maxLength = attributes.getInt(
-            R.styleable.PasswordView_android_maxLength,
-            binding.textView.maxLength
-        )
+//        val maxLength = attributes.getInt(
+//            R.styleable.PasswordView_android_maxLength,
+//            binding.textView.maxLength
+//        )
 
         val backgroundStyleInt = attributes.getInt(R.styleable.BeautifulTextView_backgroundStyle, 0)
         imageColor = attributes.getColor(R.styleable.PasswordView_imageColor, Color.BLACK)
@@ -67,7 +67,7 @@ class PasswordView(context: Context, attrs: AttributeSet?): ConstraintLayout(con
         else
             BeautifulTextView.BackgroundStyle.DARK
 
-        binding.textView.maxLength = maxLength
+//        binding.textView.maxLength = maxLength
     }
 
 

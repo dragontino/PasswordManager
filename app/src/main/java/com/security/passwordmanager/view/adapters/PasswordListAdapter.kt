@@ -7,13 +7,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.security.passwordmanager.*
-import com.security.passwordmanager.activities.BankCardActivity
-import com.security.passwordmanager.activities.WebsiteActivity
-import com.security.passwordmanager.data.BankCard
-import com.security.passwordmanager.data.Data
-import com.security.passwordmanager.data.Website
 import com.security.passwordmanager.databinding.LayoutMainHeaderBinding
 import com.security.passwordmanager.databinding.MainTextViewBinding
+import com.security.passwordmanager.model.Data
 import com.security.passwordmanager.view.BottomDialogFragment
 import com.security.passwordmanager.viewmodel.DataViewModel
 import com.security.passwordmanager.viewmodel.SettingsViewModel
@@ -85,14 +81,14 @@ class PasswordListAdapter(private val activity: AppCompatActivity) :
             val bottomDialogFragment = BottomDialogFragment(settings).apply {
                 setHeading(text[0], text[1])
                     addView(R.drawable.edit, this@PasswordListAdapter.activity, R.string.edit) {
-                        when (data) {
-                            is Website -> this@PasswordListAdapter.activity.startActivity(
-                                WebsiteActivity.getIntent(activity, data.key)
-                            )
-                            is BankCard -> this@PasswordListAdapter.activity.startActivity(
-                                BankCardActivity.getIntent(activity, data.key)
-                            )
-                        }
+//                        when (data) {
+//                            is Website -> this@PasswordListAdapter.activity.startActivity(
+//                                WebsiteActivity.getIntent(activity, data.key)
+//                            )
+//                            is BankCard -> this@PasswordListAdapter.activity.startActivity(
+//                                BankCardActivity.getIntent(activity, data.key)
+//                            )
+//                        }
                     }
                     addView(R.drawable.copy, this@PasswordListAdapter.activity, R.string.copy_info) {
                         dataViewModel.copyAccountList(accountList)
@@ -110,7 +106,7 @@ class PasswordListAdapter(private val activity: AppCompatActivity) :
 
         fun bind(data: Data, isShownDescription: Boolean) {
             this.data = data
-            accountList = dataViewModel.getAccountList(data) as MutableList<Data>
+            accountList = arrayListOf() //dataViewModel.getAccountList(data) as MutableList<Data>
 
             passwordDescriptionAdapter = PasswordDescriptionAdapter(activity, accountList)
 
@@ -120,19 +116,19 @@ class PasswordListAdapter(private val activity: AppCompatActivity) :
                 updateArrow(isShownDescription)
                 setVisible(isShownDescription)
 
-                when (data) {
-                    is Website -> {
-                        textView.setText(data.nameWebsite, data.address)
-//                        Picasso.get()
-//                            .load("https://yandex.ru")
-//                            .error(R.drawable.website_image)
-//                            .into(websiteImage)
-                    }
-                    is BankCard -> {
-                        textView.setText(data.bankName, data.cardNumber)
-                        websiteImage.imageTintList = ColorStateList(settings.headerColor)
-                    }
-                }
+//                when (data) {
+//                    is Website -> {
+//                        textView.setText(data.nameWebsite, data.address)
+////                        Picasso.get()
+////                            .load("https://yandex.ru")
+////                            .error(R.drawable.website_image)
+////                            .into(websiteImage)
+//                    }
+//                    is BankCard -> {
+//                        textView.setText(data.bankName, data.cardNumber)
+//                        websiteImage.imageTintList = ColorStateList(settings.headerColor)
+//                    }
+//                }
                 imageView.imageTintList = ColorStateList(settings.headerColor)
                 showBottomFragment.imageTintList = ColorStateList(settings.fontColor)
                 showBottomFragment.setBackgroundColor(settings.backgroundColor)

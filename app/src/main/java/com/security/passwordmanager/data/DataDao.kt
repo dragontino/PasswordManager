@@ -2,6 +2,8 @@ package com.security.passwordmanager.data
 
 import androidx.room.*
 import com.security.passwordmanager.Pair
+import com.security.passwordmanager.model.BankCard
+import com.security.passwordmanager.model.Website
 
 @Dao
 abstract class DataDao {
@@ -30,20 +32,10 @@ abstract class DataDao {
      * Получение всех элементов
      */
     @Query("SELECT * FROM WebsiteTable WHERE email = :email ORDER BY nameWebsite ASC")
-    abstract fun getWebsiteList(email: String): MutableList<Website>
+    abstract suspend fun getWebsiteList(email: String): MutableList<Website>
 
     @Query("SELECT * FROM BankTable WHERE email = :email ORDER BY bankName ASC")
-    abstract fun getBankCardList(email: String): MutableList<BankCard>
-
-
-    /**
-     * Получение элементов с одинаковым ключом
-     */
-    @Query("SELECT * FROM WebsiteTable WHERE email = :email AND address = :address")
-    abstract fun getAccountList(email: String, address: String): MutableList<Website>
-
-    @Query("SELECT * FROM BankTable WHERE email = :email AND bankName = :bankName")
-    abstract fun getBankAccountList(email: String, bankName: String): MutableList<BankCard>
+    abstract suspend fun getBankCardList(email: String): MutableList<BankCard>
 
 
     /**
@@ -55,14 +47,14 @@ abstract class DataDao {
             "address LIKE '%' || :query || '%' OR " +
             "nameAccount LIKE '%' || :query || '%') " +
             "ORDER BY nameWebsite ASC")
-    abstract fun searchWebsite(email: String, query: String): MutableList<Website>
+    abstract suspend fun searchWebsite(email: String, query: String): MutableList<Website>
 
     @Query("SELECT * FROM BankTable " +
             "WHERE email = :email AND (" +
             "bankName LIKE '%' || :query || '%' OR " +
             "bankCardName LIKE '%' || :query || '%') " +
             "ORDER BY bankName")
-    abstract fun searchBankCard(email: String, query: String): MutableList<BankCard>
+    abstract suspend fun searchBankCard(email: String, query: String): MutableList<BankCard>
 
 
     /**
@@ -86,6 +78,6 @@ abstract class DataDao {
 
 
     @Transaction
-    open fun search(email: String, query: String) =
+    open suspend fun search(email: String, query: String) =
         Pair(searchWebsite(email, query), searchBankCard(email, query))
 }

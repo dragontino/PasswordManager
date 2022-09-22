@@ -1,35 +1,42 @@
-package com.security.passwordmanager.activities
+package com.security.passwordmanager.view
 
 import android.content.Context
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Divider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.core.view.MenuProvider
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
 import com.security.passwordmanager.R
 import com.security.passwordmanager.createIntent
-import com.security.passwordmanager.data.BankCard
-import com.security.passwordmanager.data.DataType
-import com.security.passwordmanager.data.Website
 import com.security.passwordmanager.databinding.ActivityBankCardBinding
-import com.security.passwordmanager.settings.getStringExtra
+import com.security.passwordmanager.getDataUIExtra
+import com.security.passwordmanager.model.BankCard
+import com.security.passwordmanager.model.DataUI
+import com.security.passwordmanager.model.Website
 import com.security.passwordmanager.txt
-import com.security.passwordmanager.ui.DataEditableRecyclerView
+import com.security.passwordmanager.view.compose.DataList
+import com.security.passwordmanager.view.compose.OutlinedDataTextField
 import com.security.passwordmanager.viewmodel.DataViewModel
 import com.security.passwordmanager.viewmodel.SettingsViewModel
 
 class BankCardActivity : AppCompatActivity() {
 
     companion object {
-        private const val EXTRA_NAME = "extra_bank_name"
+        private const val EXTRA_DATA_UI = "extra_data_ui"
         private const val EXTRA_POSITION = "extra_position"
 
-        fun getIntent(context: Context?, bankName: String, startPosition: Int = 0) =
+        fun getIntent(context: Context?, dataUI: DataUI?, startPosition: Int = 0) =
             createIntent<BankCardActivity>(context) {
-                putExtra(EXTRA_NAME, bankName)
+                putExtra(EXTRA_DATA_UI, dataUI)
                 putExtra(EXTRA_POSITION, startPosition)
             }
     }
@@ -46,6 +53,31 @@ class BankCardActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        settings = SettingsViewModel.getInstance(this)
+        dataViewModel = ViewModelProvider(this)[DataViewModel::class.java]
+
+        val dataUI = intent.getDataUIExtra(EXTRA_DATA_UI, DataUI.BankCard)
+        val startPosition = intent.getIntExtra(EXTRA_POSITION, 0)
+
+        if (dataUI.title !is BankCard)
+            return
+
+        setContent {
+            OutlinedDataTextField(
+                text = dataUI.title::bankName,
+                hintRes = R.string.bank_name
+            )
+
+            Divider(
+                color = colorResource(android.R.color.darker_gray),
+                modifier = Modifier
+                    .padding(vertical = dimensionResource(R.dimen.activity_vertical_margin))
+            )
+
+            DataList(dataUI.accountList, onClickToMore = {})
+            // TODO: доделать BankCard
+        }
 
 
         addMenuProvider(object : MenuProvider {
@@ -71,17 +103,14 @@ class BankCardActivity : AppCompatActivity() {
         settings = SettingsViewModel.getInstance(this)
         dataViewModel = ViewModelProvider(this)[DataViewModel::class.java]
 
-        val bankName = intent.getStringExtra(EXTRA_NAME, "")
-        val startPosition = intent.getIntExtra(EXTRA_POSITION, 0)
+//        recyclerView = DataEditableRecyclerView(
+//            this,
+//            binding.bankCardRecyclerView,
+//            dataUI,
+//            DataType.BankCard
+//        )
 
-        recyclerView = DataEditableRecyclerView(
-            this,
-            binding.bankCardRecyclerView,
-            bankName,
-            DataType.BANK_CARD
-        )
-
-        recyclerView.scrollToPosition(startPosition)
+//        recyclerView.scrollToPosition(startPosition)
 
         binding.addAccount.setOnClickListener { recyclerView.addData(Website()) }
         binding.addCard.setOnClickListener { recyclerView.addData(BankCard()) }

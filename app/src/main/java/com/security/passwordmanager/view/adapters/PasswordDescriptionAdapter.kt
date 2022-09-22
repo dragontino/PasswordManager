@@ -12,13 +12,12 @@ import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.security.passwordmanager.*
-import com.security.passwordmanager.activities.WebsiteActivity
-import com.security.passwordmanager.data.Data
-import com.security.passwordmanager.data.DataType
-import com.security.passwordmanager.data.Website
 import com.security.passwordmanager.databinding.MoreBankCardBinding
 import com.security.passwordmanager.databinding.MoreWebsiteBinding
 import com.security.passwordmanager.databinding.WebsiteFieldBinding
+import com.security.passwordmanager.model.Data
+import com.security.passwordmanager.model.DataType
+import com.security.passwordmanager.model.Website
 import com.security.passwordmanager.view.BottomDialogFragment
 import com.security.passwordmanager.viewmodel.DataViewModel
 import com.security.passwordmanager.viewmodel.SettingsViewModel
@@ -30,13 +29,13 @@ class PasswordDescriptionAdapter(private val activity: AppCompatActivity, privat
     private val dataViewModel = DataViewModel.getInstance(activity)
 
     override fun getItemViewType(position: Int) =
-        accountList[position].type.number
+        accountList[position].type.ordinal
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PasswordDescriptionHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
 
         val descriptionBinding = when(viewType) {
-            DataType.BANK_CARD.number -> MoreBankCardBinding
+            DataType.BankCard.ordinal -> MoreBankCardBinding
                 .inflate(layoutInflater, parent, false)
 
             else -> MoreWebsiteBinding
@@ -91,7 +90,7 @@ class PasswordDescriptionAdapter(private val activity: AppCompatActivity, privat
                     updatePasswordView(isPasswordVisible)
                 }
                 is MoreBankCardBinding -> {
-                    //todo доделать bankCard binding
+
                 }
             }
         }
@@ -167,10 +166,10 @@ class PasswordDescriptionAdapter(private val activity: AppCompatActivity, privat
                     BottomDialogFragment(settings).apply {
                         setHeading(heading, beautifulDesign = true)
                         addView(R.drawable.edit, this@PasswordDescriptionAdapter.activity, R.string.edit) {
-                            this@PasswordDescriptionAdapter.activity.startActivity(
-                                WebsiteActivity
-                                    .getIntent(activity, (data as Website).address, pos)
-                            )
+//                            this@PasswordDescriptionAdapter.activity.startActivity(
+//                                WebsiteActivity
+//                                    .getIntent(activity, data.key, pos)
+//                            )
                         }
                     }
                 }
@@ -212,7 +211,7 @@ class PasswordDescriptionAdapter(private val activity: AppCompatActivity, privat
                 val intent = Intent(Intent.ACTION_VIEW, address.toUri())
                 activity.startActivity(intent)
             } else
-                showToast(activity, "Неправильный адрес!")
+                showToast(activity, "Адрес $address некорректный!")
         }
 
 

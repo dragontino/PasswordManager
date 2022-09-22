@@ -1,4 +1,4 @@
-package com.security.passwordmanager.data
+package com.security.passwordmanager.model
 
 import android.content.Context
 import androidx.room.Entity
@@ -20,7 +20,7 @@ class BankCard(
     // TODO: 18.07.2022 сделать cvv и pin строками
 
     override val key get() = bankName
-    override val type get() = DataType.BANK_CARD
+    override val type get() = DataType.BankCard
 
     var cvvString get() = cvv.toString()
         set(value) {

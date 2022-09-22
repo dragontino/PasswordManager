@@ -1,4 +1,4 @@
-package com.security.passwordmanager.data
+package com.security.passwordmanager.model
 
 import android.content.Context
 import androidx.room.Entity
@@ -6,8 +6,10 @@ import androidx.room.PrimaryKey
 import java.io.Serializable
 
 @Entity
-abstract class Data(@PrimaryKey(autoGenerate = true) var id: Int = 0, var email: String = "") :
-    Serializable, Comparable<Data> {
+sealed class Data(
+    @PrimaryKey(autoGenerate = true) var id: Int = 0,
+    var email: String = ""
+) : Serializable, Comparable<Data> {
 
     override fun equals(other : Any?) = when (other) {
         is Data -> key == other.key

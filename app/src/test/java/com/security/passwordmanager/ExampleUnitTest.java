@@ -1,7 +1,6 @@
 package com.security.passwordmanager;
 
-import static org.junit.Assert.assertEquals;
-
+import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 
 /**
