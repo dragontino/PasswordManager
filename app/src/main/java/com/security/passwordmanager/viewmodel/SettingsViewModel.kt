@@ -19,9 +19,9 @@ import com.security.passwordmanager.AppPreferences
 import com.security.passwordmanager.ColorStateList
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.MainDatabase
-import com.security.passwordmanager.settings.Settings
+import com.security.passwordmanager.model.Settings
+import com.security.passwordmanager.model.Themes
 import com.security.passwordmanager.settings.SettingsRepository
-import com.security.passwordmanager.settings.ThemeDef
 import com.security.passwordmanager.view.compose.Times
 import com.security.passwordmanager.view.compose.toCalendar
 import com.security.passwordmanager.view.compose.toTime
@@ -75,10 +75,10 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
 //    )
 
 
-    var theme: ThemeDef
-        get() = ThemeDef.values().find {
+    var theme: Themes
+        get() = Themes.values().find {
             it.themeName == baseSettings.theme
-        } ?: ThemeDef.LIGHT_THEME
+        } ?: Themes.LIGHT_THEME
         set(value) {
             settingsRepository.updateTheme(preferences.email, value)
             updateColors()
@@ -86,10 +86,10 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
             mApplication.setTheme(currentAppTheme)
             AppCompatDelegate.setDefaultNightMode(
                 when (value) {
-                    ThemeDef.LIGHT_THEME -> AppCompatDelegate.MODE_NIGHT_NO
-                    ThemeDef.DARK_THEME -> AppCompatDelegate.MODE_NIGHT_YES
-                    ThemeDef.SYSTEM_THEME -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                    ThemeDef.AUTO_THEME -> AppCompatDelegate.MODE_NIGHT_AUTO_TIME
+                    Themes.LIGHT_THEME -> AppCompatDelegate.MODE_NIGHT_NO
+                    Themes.DARK_THEME -> AppCompatDelegate.MODE_NIGHT_YES
+                    Themes.SYSTEM_THEME -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                    Themes.AUTO_THEME -> AppCompatDelegate.MODE_NIGHT_AUTO_TIME
                 }
             )
         }
@@ -161,17 +161,16 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
     }
 
     val isLightTheme: Boolean = when(theme) {
-        ThemeDef.LIGHT_THEME -> true
-        ThemeDef.DARK_THEME -> false
-        ThemeDef.SYSTEM_THEME -> {
+        Themes.LIGHT_THEME -> true
+        Themes.DARK_THEME -> false
+        Themes.SYSTEM_THEME -> {
             val currentNightMode =
                 mApplication.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
             currentNightMode == Configuration.UI_MODE_NIGHT_NO
         }
-        ThemeDef.AUTO_THEME -> {
+        Themes.AUTO_THEME -> {
             val date = Date(System.currentTimeMillis())
-
             date.after(startTime.time) && date.before(endTime.time) || date == startTime.time
         }
     }
@@ -208,7 +207,7 @@ class SettingsViewModel(private val mApplication: Application) : AndroidViewMode
         settingsRepository.updateUsingBottomView(preferences.email, usingBottomView)
 
 
-    val indexTheme get() = ThemeDef.values().indexOf(theme)
+    val indexTheme get() = Themes.values().indexOf(theme)
 
 //    fun setStartTime(startTime: Calendar) {
 //        this.startTime = startTime

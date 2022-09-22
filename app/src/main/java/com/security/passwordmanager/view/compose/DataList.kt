@@ -1,7 +1,8 @@
-package com.security.passwordmanager.ui.website_compose
+package com.security.passwordmanager.view.compose
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
@@ -30,16 +33,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.security.passwordmanager.DataCardShape
 import com.security.passwordmanager.R
-import com.security.passwordmanager.data.BankCard
-import com.security.passwordmanager.data.Data
-import com.security.passwordmanager.data.Website
+import com.security.passwordmanager.model.BankCard
+import com.security.passwordmanager.model.Data
+import com.security.passwordmanager.model.Website
 import com.security.passwordmanager.showToast
+import kotlin.reflect.KMutableProperty0
 
 @Composable
 fun DataList(
     accountList: List<Data>,
+    modifier: Modifier = Modifier,
     startPosition: Int = 0,
+    itemsBefore: @Composable ColumnScope.() -> Unit = {},
+    itemsAfter: @Composable ColumnScope.() -> Unit = {},
     onClickToMore: (position: Int) -> Unit
 ) {
     val listState = rememberLazyListState(startPosition)
@@ -48,38 +56,28 @@ fun DataList(
 //    val coroutineScope = rememberCoroutineScope()
     if (accountList.isEmpty()) return
 
-    LazyColumn(state = listState) {
+    LazyColumn(state = listState, modifier = modifier) {
         item {
-            when (val firstData = accountList[0]) {
-                is Website -> Column {
-                    OutlinedDataTextField(
-                        text = firstData.address,
-                        hintRes = R.string.url_address
-                    )
-                    OutlinedDataTextField(
-                        text = firstData.nameWebsite,
-                        hintRes = R.string.name_website
-                    )
-                }
-                is BankCard -> OutlinedDataTextField(
-                    text = firstData.bankName,
-                    hintRes = R.string.bank_name
+            Column {
+                itemsBefore()
+                Divider(
+                    color = colorResource(android.R.color.darker_gray),
+                    modifier = Modifier
+                        .padding(vertical = dimensionResource(R.dimen.activity_vertical_margin))
                 )
             }
-        }
-
-        item {
-            Divider(
-                color = colorResource(android.R.color.darker_gray),
-                modifier = Modifier
-                    .padding(vertical = dimensionResource(R.dimen.activity_vertical_margin))
-            )
         }
 
         itemsIndexed(accountList) { index, data ->
             when (data) {
                 is Website -> Website(index, data, onClickToMore)
                 is BankCard -> BankCard(index, data)
+            }
+        }
+
+        item {
+            Column {
+                itemsAfter()
             }
         }
     }
@@ -96,18 +94,19 @@ fun DataList(
 
 
 @Composable
-fun Website(position: Int, website: Website, onClickToMore: (position: Int) -> Unit) {
+private fun Website(position: Int, website: Website, onClickToMore: (position: Int) -> Unit) {
     Card(
-        shape = RoundedCornerShape(dimensionResource(R.dimen.data_element_corner)),
+        shape = DataCardShape,
         backgroundColor = MaterialTheme.colors.surface,
-        elevation = 30.dp,
-        modifier = Modifier.padding(dimensionResource(R.dimen.activity_vertical_margin))
+        modifier = Modifier
+            .padding(dimensionResource(R.dimen.activity_vertical_margin))
+            .border(1.dp, MaterialTheme.colors.primary, DataCardShape)
     ) {
         Column(Modifier.fillMaxHeight()) {
             Header(position, website.nameAccount, onClickToMore)
-            OutlinedDataTextField(website.login, stringResource(R.string.login))
-            OutlinedDataTextField(website.password, stringResource(R.string.password))
-            OutlinedDataTextField(website.comment, stringResource(R.string.comment))
+            OutlinedDataTextField(website::login, stringResource(R.string.login))
+            OutlinedDataTextField(website::password, stringResource(R.string.password))
+            OutlinedDataTextField(website::comment, stringResource(R.string.comment))
         }
     }
 }
@@ -130,8 +129,7 @@ private fun Header(position: Int, nameAccount: String, onClickToMore: (position:
         // TODO: 22.08.2022 подумать над сохранением в бд
         val accountName = remember {
             mutableStateOf(
-                if (nameAccount.isEmpty()) defaultAccountName
-                else nameAccount
+                nameAccount.ifEmpty { defaultAccountName }
             )
         }
 
@@ -164,9 +162,9 @@ private fun Header(position: Int, nameAccount: String, onClickToMore: (position:
                 .weight(4f)
                 .fillMaxWidth(),
             colors = TextFieldDefaults.textFieldColors(
-                textColor = MaterialTheme.colors.onSurface,
+                textColor = MaterialTheme.colors.onBackground,
                 placeholderColor = colorResource(android.R.color.darker_gray),
-                backgroundColor = colorResource(android.R.color.transparent),
+                backgroundColor = Color.Transparent,
                 focusedIndicatorColor = MaterialTheme.colors.primary
             )
         )
@@ -175,7 +173,7 @@ private fun Header(position: Int, nameAccount: String, onClickToMore: (position:
             onClick = { onClickToMore(position) },
             modifier = Modifier
                 .padding(16.dp)
-                .background(colorResource(android.R.color.transparent))
+                .background(Color.Transparent)
                 .align(Alignment.CenterVertically)
                 .weight(1f)
                 .fillMaxHeight()
@@ -183,10 +181,9 @@ private fun Header(position: Int, nameAccount: String, onClickToMore: (position:
             Icon(
                 Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.rename_data),
-                tint = MaterialTheme.colors.onSurface,
+                tint = MaterialTheme.colors.onBackground,
                 modifier = Modifier
                     .scale(1.4f)
-//                    .background(colorResource(R.color.data_background_color))
                     .align(Alignment.CenterVertically)
                     .fillMaxHeight()
             )
@@ -196,31 +193,54 @@ private fun Header(position: Int, nameAccount: String, onClickToMore: (position:
 
 
 @Composable
-fun OutlinedDataTextField(text: String, @StringRes hintRes: Int) {
-    OutlinedDataTextField(text = text, hint = stringResource(hintRes))
+fun OutlinedDataTextField(
+    text: KMutableProperty0<String>,
+    @StringRes hintRes: Int,
+    whenFocused: () -> Unit = {}
+) {
+    OutlinedDataTextField(
+        textField = text,
+        hint = stringResource(hintRes),
+        whenFocused = whenFocused
+    )
 }
 
 
 @Composable
-fun OutlinedDataTextField(text: String, hint: String) {
-    val rememberedText = remember { mutableStateOf(text) }
+fun OutlinedDataTextField(
+    textField: KMutableProperty0<String>,
+    hint: String,
+    whenFocused: () -> Unit = {}
+) {
+    val rememberedText = remember { mutableStateOf(textField.get()) }
     val focusManager = LocalFocusManager.current
 
     OutlinedTextField(
         value = rememberedText.value,
-        onValueChange = { newText -> rememberedText.value = newText },
-        textStyle = TextStyle.Default.copy(
-            fontSize = 16.sp
+        onValueChange = { newText ->
+            rememberedText.value = newText
+            textField.set(newText)
+        },
+        textStyle = TextStyle(
+            fontSize = 16.sp,
+            fontFamily = MaterialTheme.typography.caption.fontFamily
         ),
-        label = { Text(hint) },
+        label = { Text(
+            hint,
+            fontFamily = MaterialTheme.typography.caption.fontFamily,
+            color = if (rememberedText.value.isNotEmpty())
+                colorResource(R.color.raspberry)
+            else
+                colorResource(android.R.color.darker_gray)
+        ) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
         shape = RoundedCornerShape(dimensionResource(R.dimen.text_view_corner)),
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            textColor = colorResource(R.color.text_color),
+            textColor = MaterialTheme.colors.onBackground,
             placeholderColor = colorResource(android.R.color.darker_gray),
-            backgroundColor = colorResource(R.color.app_background_color),
+            backgroundColor = MaterialTheme.colors.background,
             focusedBorderColor = colorResource(R.color.raspberry),
             unfocusedBorderColor = colorResource(R.color.raspberry),
             focusedLabelColor = colorResource(R.color.raspberry),
@@ -228,6 +248,11 @@ fun OutlinedDataTextField(text: String, hint: String) {
         ),
         modifier = Modifier
             .padding(dimensionResource(R.dimen.activity_vertical_margin))
+            .onFocusChanged {
+                when {
+                    it.isFocused -> whenFocused()
+                }
+            }
             .fillMaxWidth()
             .padding()
     )

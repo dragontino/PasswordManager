@@ -10,11 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.security.passwordmanager.*
-import com.security.passwordmanager.data.Data
 import com.security.passwordmanager.databinding.FragmentPasswordListBinding
+import com.security.passwordmanager.model.Data
 import com.security.passwordmanager.view.adapters.PasswordListAdapter
 import com.security.passwordmanager.viewmodel.DataViewModel
 
@@ -62,10 +61,8 @@ class PasswordListFragment : Fragment() {
                 drawSearchView(searchView)
 
                 searchView.doOnQueryTextChange {
-                    val list = dataViewModel.searchData(it)
-                    openedView =
-                        if (list.size == 1) 0
-                        else -1
+                    val list = emptyList<Data>() //dataViewModel.searchData(it)
+                    openedView = -1
                     adapter.dataList = list
                 }
             }
@@ -93,7 +90,7 @@ class PasswordListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         activity?.let {
-            dataViewModel = ViewModelProvider(it)[DataViewModel::class.java]
+            dataViewModel = DataViewModel.getInstance(this)
         }
 
         val openedView = savedInstanceState.getInt(OPENED_VIEW_KEY, -1)
@@ -128,7 +125,7 @@ class PasswordListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        dataList.updateAll(dataViewModel.getDataList())
+//        dataList.updateAll(dataViewModel.getDataList())
         adapter.dataList = dataList
     }
 

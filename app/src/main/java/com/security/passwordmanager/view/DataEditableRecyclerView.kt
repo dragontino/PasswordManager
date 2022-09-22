@@ -1,4 +1,4 @@
-package com.security.passwordmanager.ui
+package com.security.passwordmanager.view
 
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,10 +12,12 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.security.passwordmanager.*
-import com.security.passwordmanager.data.*
 import com.security.passwordmanager.databinding.NewBankCardBinding
 import com.security.passwordmanager.databinding.NewWebsiteBinding
-import com.security.passwordmanager.view.BottomDialogFragment
+import com.security.passwordmanager.model.BankCard
+import com.security.passwordmanager.model.Data
+import com.security.passwordmanager.model.DataType
+import com.security.passwordmanager.model.Website
 import com.security.passwordmanager.view.customviews.BeautifulTextView
 import com.security.passwordmanager.viewmodel.DataViewModel
 import com.security.passwordmanager.viewmodel.SettingsViewModel
@@ -33,7 +35,7 @@ class DataEditableRecyclerView(
     private val settings = SettingsViewModel.getInstance(activity)
     private val dataViewModel = DataViewModel.getInstance(activity)
 
-    private val accountList = dataViewModel.getAccountList(key, type) as ArrayList<Data>
+    private val accountList = arrayListOf<Data>() //dataViewModel.getAccountList(key, type) as ArrayList<Data>
 
     //стартовое количество элементов
     val startCount = accountList.size
@@ -45,7 +47,7 @@ class DataEditableRecyclerView(
     init {
         if (isEmpty()) {
             accountList.add(
-                if (type == DataType.WEBSITE) Website()
+                if (type == DataType.Website) Website()
                 else BankCard()
             )
         }
@@ -60,8 +62,6 @@ class DataEditableRecyclerView(
     fun scrollToPosition(position : Int) = recyclerView.post {
         Log.d(BottomDialogFragment.TAG, "test")
         recyclerView.smoothScrollToPosition(position)
-
-
     }
 
     private fun scrollToEnd() = scrollToPosition(itemCount - 1)
@@ -97,14 +97,14 @@ class DataEditableRecyclerView(
 
     private inner class EditableAdapter: RecyclerView.Adapter<EditableHolder>() {
 
-        override fun getItemViewType(position: Int) =
-            getData(position).type.number
+        override fun getItemViewType(position: Int): Int =
+            getData(position).type.ordinal
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EditableHolder {
             val layoutInflater = LayoutInflater.from(activity)
 
             return when(viewType) {
-                DataType.BANK_CARD.number -> {
+                DataType.BankCard.ordinal -> {
                     val binding = NewBankCardBinding
                         .inflate(layoutInflater, parent, false)
                     EditableHolder(binding)
@@ -230,10 +230,7 @@ class DataEditableRecyclerView(
                 comment.setTextWatcher(data::comment, false)
 
                 nameAccount.txt =
-                    if (data.nameAccount.isEmpty())
-                        getDefaultHeadingName(adapterPosition)
-                    else
-                        data.nameAccount
+                    data.nameAccount.ifEmpty { getDefaultHeadingName(adapterPosition) }
 
                 nameAccount.setOnEnterListener {
                     nameAccount.changeNameStatus(R.string.rename_data)
@@ -376,8 +373,8 @@ class DataEditableRecyclerView(
         }
 
         fun getDefaultHeadingName() = when (data.type) {
-            DataType.WEBSITE -> activity.getString(R.string.account_start, pos + 1)
-            DataType.BANK_CARD -> activity.getString(R.string.bank_card_hint, pos + 1)
+            DataType.Website -> activity.getString(R.string.account_start, pos + 1)
+            DataType.BankCard -> activity.getString(R.string.bank_card_hint, pos + 1)
             // TODO: 13.06.2022 поменять номер позиции для банковской карты
         }
 
@@ -476,10 +473,7 @@ class DataEditableRecyclerView(
             comment.setTextWatcher(website::comment, false)
 
             nameAccount.txt =
-                if (website.nameAccount.isEmpty())
-                    getDefaultHeadingName()
-                else
-                    website.nameAccount
+                website.nameAccount.ifEmpty { getDefaultHeadingName() }
 
             nameAccount.setOnEnterListener {
                 nameAccount.changeNameStatus(R.string.rename_data)
@@ -527,10 +521,7 @@ class DataEditableRecyclerView(
             comment.setTextWatcher(bankCard::comment, false)
 
             nameBankCard.txt =
-                if (bankCard.bankCardName.isEmpty())
-                    getDefaultHeadingName()
-                else
-                    bankCard.bankCardName
+                bankCard.bankCardName.ifEmpty { getDefaultHeadingName() }
 
             nameBankCard.setOnEnterListener {
                 nameBankCard.changeNameStatus(R.string.cancel_renaming_data)

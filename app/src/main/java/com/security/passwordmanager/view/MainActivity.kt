@@ -1,4 +1,4 @@
-package com.security.passwordmanager.ui.entry
+package com.security.passwordmanager.view
 
 import android.content.Context
 import android.content.Intent
@@ -20,7 +20,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.security.passwordmanager.*
 import com.security.passwordmanager.databinding.ActivityMainBinding
 import com.security.passwordmanager.getString
-import com.security.passwordmanager.view.NavigationActivity
 import com.security.passwordmanager.viewmodel.SettingsViewModel
 
 @ExperimentalMaterialApi

@@ -26,20 +26,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
-import com.security.passwordmanager.*
 import com.security.passwordmanager.R
+import com.security.passwordmanager.TimePickerActivity
 import com.security.passwordmanager.databinding.SwitchViewBinding
-import com.security.passwordmanager.view.compose.*
 import com.security.passwordmanager.viewmodel.SettingsViewModel
 import java.util.*
 
 
-class SettingsFragment: Fragment(), Theme {
+class SettingsFragment: Fragment() {
 
     private lateinit var settings: SettingsViewModel
 
 //    private lateinit var binding: FragmentSettingsBinding
-    private lateinit var themeBottomFragment : ThemeBottomSheetFragment
+//    private lateinit var themeBottomFragment : ThemeBottomSheetFragment
 
     private val currentThemeText: String
         get() {
@@ -59,11 +58,11 @@ class SettingsFragment: Fragment(), Theme {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                AppTheme(assetManager = inflater.context.assets) {
-                    SettingsFragment {
-                        themeBottomFragment.show(parentFragmentManager)
-                    }
-                }
+//                AppTheme(assetManager = inflater.context.assets) {
+////                    SettingsFragment {
+////                        themeBottomFragment.show(parentFragmentManager)
+////                    }
+//                }
             }
         }
     }
@@ -75,11 +74,11 @@ class SettingsFragment: Fragment(), Theme {
         super.onCreate(savedInstanceState)
 
         settings = SettingsViewModel.getInstance(activity as AppCompatActivity)
-        themeBottomFragment = ThemeBottomSheetFragment(
-            context = requireContext(),
-            theme = this,
-            settingsViewModel = settings
-        )
+//        themeBottomFragment = ThemeBottomSheetFragment(
+//            context = requireContext(),
+//            theme = this,
+//            settingsViewModel = settings
+//        )
 
         val bottomSheet = BottomDialogFragment(settings)
         bottomSheet.setHeading(getString(R.string.feedback), beautifulDesign = true)
@@ -190,7 +189,7 @@ class SettingsFragment: Fragment(), Theme {
     }
     
 
-    override fun updateTheme() {
+    fun updateTheme() {
         settings.updateThemeInScreen(activity?.window, (activity as AppCompatActivity).supportActionBar)
 //        binding.switchTheme.text = currentThemeText
 //
@@ -242,22 +241,22 @@ class SettingsFragment: Fragment(), Theme {
             Divider(color = colorResource(android.R.color.darker_gray))
             SwitchView(
                 isChecked = settings.baseSettings.isUsingBeautifulFont,
-                titleTextRes = R.string.beautiful_font,
-                subtitleTextRes = R.string.beautiful_font_explain,
+                titleText = stringResource(R.string.beautiful_font),
+                subtitleText = stringResource(R.string.beautiful_font_explain),
                 listener = settings::updateBeautifulFont
             )
             Divider(color = colorResource(android.R.color.darker_gray))
             SwitchView(
                 isChecked = settings.baseSettings.isShowingDataHints,
-                titleTextRes = R.string.data_hints,
-                subtitleTextRes = R.string.data_hints_description,
+                titleText = stringResource(R.string.data_hints),
+                subtitleText = stringResource(R.string.data_hints_description),
                 listener = settings::updateUsingDataHints
             )
             Divider(color = colorResource(android.R.color.darker_gray))
             SwitchView(
                 isChecked = settings.baseSettings.isUsingBottomView,
-                titleTextRes = R.string.using_bottom_view,
-                subtitleTextRes = R.string.using_bottom_view_explain,
+                titleText = stringResource(R.string.using_bottom_view),
+                subtitleText = stringResource(R.string.using_bottom_view_explain),
                 listener = settings::updateUsingBottomView
             )
         }
@@ -267,8 +266,8 @@ class SettingsFragment: Fragment(), Theme {
     @Composable
     private fun SwitchView(
         isChecked: Boolean,
-        @StringRes titleTextRes: Int,
-        @StringRes subtitleTextRes: Int,
+        titleText: String,
+        subtitleText: String,
         listener: (Boolean) -> Unit
     ) {
         Row(
@@ -286,15 +285,15 @@ class SettingsFragment: Fragment(), Theme {
             ) {
 
                 Text(
-                    text = stringResource(titleTextRes),
+                    text = titleText,
                     fontSize = 16.sp,
-                    color = MaterialTheme.colors.onSurface
+                    color = MaterialTheme.colors.onBackground
                 )
 
                 Text(
-                    text = stringResource(subtitleTextRes),
+                    text = subtitleText,
                     fontSize = 13.sp,
-                    color = MaterialTheme.colors.onSurface
+                    color = MaterialTheme.colors.onBackground
                 )
             }
 
@@ -341,13 +340,13 @@ fun PreviewSwitch() {
             Text(
                 text = titleText,
                 fontSize = 16.sp,
-                color = MaterialTheme.colors.onSurface
+                color = MaterialTheme.colors.onBackground
             )
 
             Text(
                 text = subtitleText,
                 fontSize = 13.sp,
-                color = MaterialTheme.colors.onSurface
+                color = MaterialTheme.colors.onBackground
             )
         }
 

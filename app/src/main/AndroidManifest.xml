@@ -1,23 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.security.passwordmanager">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:allowBackup="true"
         android:icon="@mipmap/ic_app_icon"
         android:label="@string/app_name"
         android:theme="@style/Theme.PasswordManager"
+        android:name=".PasswordManagerApplication"
         tools:ignore="AllowBackup">
         <activity
-            android:name=".ui.DialogSaveActivity"
-            android:exported="false"
-            android:theme="@style/DialogTheme"/>
-        <activity
-            android:name=".activities.BankCardActivity"
+            android:name=".view.BankCardActivity"
             android:exported="false"
             android:label="@string/bank_label" />
         <activity
@@ -25,7 +20,7 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Dialog"/>
         <activity
-            android:name=".ui.entry.MainActivity"
+            android:name=".view.MainActivity"
             android:exported="true"
             android:label="@string/app_label">
             <intent-filter>
@@ -35,9 +30,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.WebsiteActivity"
+            android:name=".view.WebsiteActivity"
             android:label="@string/website_label"
-            android:parentActivityName=".view.NavigationActivity" />
+            android:theme="@style/Theme.PasswordManager.NoActionBar"/>
         <activity
             android:name=".view.NavigationActivity"
             android:label="@string/app_label"

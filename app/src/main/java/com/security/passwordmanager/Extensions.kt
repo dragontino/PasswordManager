@@ -1,12 +1,15 @@
 package com.security.passwordmanager
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import android.webkit.URLUtil
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -17,6 +20,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.SearchView
+import com.security.passwordmanager.model.DataUI
 import java.lang.Integer.min
 import android.content.res.ColorStateList as AndroidColorList
 
@@ -115,5 +119,25 @@ fun ColorStateList(@ColorInt color: Int) =
     AndroidColorList.valueOf(color)
 
 
-fun StringBuilder.deleteLast(count: Int = 1) =
+fun StringBuilder.deleteFromLast(count: Int = 1) =
     deleteRange(length - count, length)
+
+fun <E> List<E>.slice(fromIndex: Int = 0, toIndex: Int = size) =
+    subList(fromIndex, toIndex)
+
+fun Context.getActivity(): AppCompatActivity? = when (this) {
+    is AppCompatActivity -> this
+    is ContextWrapper -> baseContext.getActivity()
+    else -> null
+}
+
+
+fun Intent.getDataUIExtra(name : String, defaultValue : DataUI) =
+    if (Build.VERSION.SDK_INT >= 33) {
+        getSerializableExtra(name, DataUI::class.java)
+    } else {
+        getSerializableExtra(name) as DataUI?
+    } ?: defaultValue
+
+
+fun String.isValidUrl() = URLUtil.isValidUrl(this)

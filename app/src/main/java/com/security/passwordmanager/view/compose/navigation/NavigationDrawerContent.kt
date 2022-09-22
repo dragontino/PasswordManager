@@ -1,46 +1,47 @@
 package com.security.passwordmanager.view.compose.navigation
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.security.passwordmanager.R
+import com.security.passwordmanager.model.ScreenType
 
 private val screens = listOf(
-    DrawerScreens.Home,
-    DrawerScreens.Website,
-    DrawerScreens.BankCard,
-    DrawerScreens.Settings
+    ScreenType.Home,
+    ScreenType.Website,
+    ScreenType.BankCard,
+    ScreenType.Settings
 )
 
 
 @Composable
-fun ColumnScope.DrawerContent(onDestinationClicked: (route: String) -> Unit) {
-    NavHeader()
+fun DrawerContent(onDestinationClicked: (route: String) -> Unit) {
 
-    screens.forEach { screen ->
-        if (screen == DrawerScreens.Settings)
-            Divider(
-                color = colorResource(android.R.color.darker_gray),
-                modifier = Modifier.padding(top = 3.dp, bottom = 2.dp)
-            )
-        DrawerItem(screen, onDestinationClicked)
+    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        NavHeader()
+
+        screens.forEach { screen ->
+            if (screen == ScreenType.Settings)
+                Divider(
+                    color = colorResource(android.R.color.darker_gray),
+                    modifier = Modifier.padding(top = 3.dp, bottom = 2.dp)
+                )
+            DrawerItem(screen, onDestinationClicked)
+        }
     }
 }
 
@@ -52,9 +53,9 @@ private fun NavHeader() {
             .background(
                 Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFFFFB6B8),
-                        colorResource(R.color.raspberry),
-                        Color(0xFFF1C4DF)
+                        MaterialTheme.colors.primaryVariant,
+                        MaterialTheme.colors.primary,
+                        MaterialTheme.colors.primaryVariant
                     )
                 )
             )
@@ -63,14 +64,10 @@ private fun NavHeader() {
         horizontalAlignment = Alignment.Start
     ) {
 
-        Icon(
-            imageVector = Icons.Rounded.Lock,
+        Image(
+            painter = painterResource(R.drawable.icon),
             contentDescription = stringResource(R.string.nav_header_desc),
-            tint = colorResource(android.R.color.holo_orange_dark),
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .padding(vertical = 12.dp)
-                .scale(2.2f)
+            modifier = Modifier.size(80.dp)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -89,7 +86,7 @@ private fun NavHeader() {
 
 
 @Composable
-private fun ColumnScope.DrawerItem(screen: DrawerScreens, onDestinationClicked: (route: String) -> Unit) {
+private fun ColumnScope.DrawerItem(screen: ScreenType, onDestinationClicked: (route: String) -> Unit) {
     Row(modifier = Modifier
         .clickable {
             onDestinationClicked(screen.route)
@@ -97,16 +94,17 @@ private fun ColumnScope.DrawerItem(screen: DrawerScreens, onDestinationClicked: 
         .align(Alignment.Start)
         .padding(vertical = 16.dp)
         .padding(start = 8.dp, end = 8.dp)
+        .fillMaxWidth()
     ) {
         Icon(
             imageVector = screen.icon,
-            contentDescription = stringResource(screen.titleRes),
+            contentDescription = stringResource(screen.pluralTitleRes),
             tint = colorResource(R.color.raspberry)
         )
-        Spacer(modifier = Modifier.width(7.dp))
+        Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = stringResource(screen.titleRes),
-            color = colorResource(R.color.text_color),
+            text = stringResource(screen.pluralTitleRes),
+            color = MaterialTheme.colors.onBackground,
             fontSize = 16.sp
         )
     }

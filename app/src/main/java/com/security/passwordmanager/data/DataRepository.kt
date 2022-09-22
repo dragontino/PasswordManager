@@ -1,56 +1,48 @@
 package com.security.passwordmanager.data
-import com.security.passwordmanager.data.DataType.BANK_CARD
-import com.security.passwordmanager.data.DataType.WEBSITE
+
+import com.security.passwordmanager.model.*
+import com.security.passwordmanager.slice
 import kotlin.math.min
 
 class DataRepository(private val dataDao: DataDao) {
 
-    fun addData(data: Data) = if (data is Website)
-        dataDao.addWebsite(data)
-    else
-        dataDao.addBankCard(data as BankCard)
-
-
-    fun updateData(data: Data) = if (data is Website)
-        dataDao.updateWebsite(data)
-    else
-        dataDao.updateBankCard(data as BankCard)
-
-
-    fun getDataList(email: String): MutableList<Data> {
-        val websiteList = dataDao.getWebsiteList(email)
-        val bankCardList = dataDao.getBankCardList(email)
-
-        return sortedConcat(websiteList, bankCardList)
+    fun addData(data: Data) = when (data) {
+        is Website -> dataDao.addWebsite(data)
+        is BankCard -> dataDao.addBankCard(data)
+        else -> TODO()
     }
 
-    fun getAccountList(email: String, key: String, type: DataType): MutableList<Data> {
-        val accountList = dataDao.getAccountList(email, key)
 
-        return when (type) {
-            BANK_CARD -> {
-                val bankAccountList = dataDao.getBankAccountList(email, key)
-
-                sortedConcat(accountList, bankAccountList) { d1, d2 ->
-                    d1.id > d2.id
-                }
-            }
-            WEBSITE -> accountList.toMutableList()
-        }
+    fun updateData(data: Data) = when (data) {
+        is Website -> dataDao.updateWebsite(data)
+        is BankCard -> dataDao.updateBankCard(data)
+        else -> TODO()
     }
 
-    fun searchData(email: String, query: String?, type: DataType? = null) : List<Data> {
+
+    suspend fun getDataUIList(email: String, dataType: DataType? = null): List<DataUI> =
+        when (dataType) {
+            DataType.Website -> dataDao.getWebsiteList(email)
+            DataType.BankCard -> dataDao.getBankCardList(email)
+            null -> sortedConcatenation(
+                dataDao.getWebsiteList(email),
+                dataDao.getBankCardList(email)
+            )
+        }.toDataUIList()
+
+
+    suspend fun searchData(email: String, query: String?, type: DataType? = null) : List<DataUI> {
         if (query == null || query.isBlank())
-            return getDataList(email)
+            return getDataUIList(email, type)
 
         return when (type) {
-            WEBSITE -> dataDao.searchWebsite(email, query)
-            BANK_CARD -> dataDao.searchBankCard(email, query)
+            DataType.Website -> dataDao.searchWebsite(email, query)
+            DataType.BankCard -> dataDao.searchBankCard(email, query)
             null -> {
                 val search = dataDao.search(email, query)
-                sortedConcat(websiteList = search.first, bankCardList = search.second)
+                sortedConcatenation(websiteList = search.first, bankCardList = search.second)
             }
-        }
+        }.toDataUIList()
     }
 
     //удаляет только 1 запись в бд
@@ -66,61 +58,50 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
 
-    private fun sortedConcat(
+
+
+    private fun sortedConcatenation(
         websiteList: MutableList<Website>,
-        bankCardList: MutableList<BankCard>,
-        //TODO переделать
-        funCompare: (Data, Data) -> Boolean = { d1, d2 -> d1 > d2 }
-    ): MutableList<Data> {
-
+        bankCardList: MutableList<BankCard>
+    ): List<Data> {
         if (bankCardList.isEmpty())
-            return websiteList.check()
+            return websiteList
         else if (websiteList.isEmpty())
-            return bankCardList.check()
+            return bankCardList
 
-        val dataList = ArrayList<Data>()
-
-        val min = min(websiteList.size, bankCardList.size)
+        val resultList = ArrayList<Data>()
+        val minLength = min(websiteList.size, bankCardList.size)
         var w = 0
         var b = 0
 
-        while (w < min && b < min) {
+        while (w < minLength && b < minLength) {
             val website = websiteList[w]
             val bankCard = bankCardList[b]
-            if (funCompare(website, bankCard)) {
-                dataList.checkAndAdd(website)
+            if (website > bankCard) {
+                resultList.add(website)
                 w++
-            } else {
-                dataList.checkAndAdd(bankCard)
+            }
+            else {
+                resultList.add(bankCard)
                 b++
             }
         }
 
-        if (w > b) while (b < bankCardList.size) {
-            dataList.checkAndAdd(bankCardList[b])
-            b++
-        } else if (w < b) while (w < websiteList.size) {
-            dataList.checkAndAdd(websiteList[w])
-            w++
+        if (w > b)
+            resultList.addAll(bankCardList.slice(fromIndex = b))
+        else if (w < b)
+            resultList.addAll(websiteList.slice(fromIndex = w))
+
+        return resultList
+    }
+
+
+    private fun List<Data>.toDataUIList() =
+        groupBy { it.key }
+        .map {
+            DataUI(
+                title = it.value[0],
+                accountList = it.value.toMutableList()
+            )
         }
-
-        return dataList
-    }
-
-    private fun MutableList<Data>.checkAndAdd(value: Data) {
-        this.forEach { if (value == it) return }
-        add(value)
-    }
-
-    private fun <T : Data>MutableList<T>.check() : MutableList<Data> {
-        var index = 0
-
-        while (index < size) {
-            if (this[index] in subList(index + 1, size)) {
-                removeAt(index)
-            }
-            index++
-        }
-        return this.toMutableList()
-    }
 }

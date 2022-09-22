@@ -8,10 +8,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import com.security.passwordmanager.*
-import com.security.passwordmanager.data.Data
 import com.security.passwordmanager.data.DataRepository
-import com.security.passwordmanager.data.DataType
 import com.security.passwordmanager.data.MainDatabase
+import com.security.passwordmanager.model.Data
+import com.security.passwordmanager.model.DataType
+import com.security.passwordmanager.model.DataUI
 
 class DataViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -41,17 +42,13 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
     fun updateData(data: Data) =
         dataRepository.updateData(data.encrypt(cryptographer::encrypt))
 
-    fun getDataList() =
-        dataRepository.getDataList(email).decrypt()
-
-    fun getAccountList(key: String, type: DataType) =
-        dataRepository.getAccountList(email, key, type).decrypt()
-
-    fun getAccountList(data: Data) = getAccountList(data.key, data.type)
+    suspend fun getDataUIList(dataType: DataType? = null) =
+        dataRepository.getDataUIList(email, dataType).decrypt()
 
 
-    fun searchData(query: String, type: DataType? = null): List<Data> =
-        dataRepository.searchData(email, query, type)
+    suspend fun searchData(query: String, type: DataType? = null) =
+        dataRepository.searchData(email, query, type).decrypt()
+
 
     fun deleteData(data: Data) = dataRepository.deleteData(data)
 
@@ -82,11 +79,10 @@ class DataViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-
-    private fun MutableList<Data>.decrypt(): List<Data> {
-        for (i in indices) {
-            val data = this[i]
-            this[i] = data.decrypt(cryptographer::decrypt)
+    private fun List<DataUI>.decrypt(): List<DataUI> {
+        for (dataUI in this) {
+            dataUI.title.decrypt(cryptographer::decrypt)
+            dataUI.accountList.forEach { it.decrypt(cryptographer::decrypt) }
         }
         return this
     }

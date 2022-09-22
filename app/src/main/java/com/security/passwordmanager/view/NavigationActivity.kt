@@ -4,65 +4,37 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
-import com.security.passwordmanager.activities.BankCardActivity
-import com.security.passwordmanager.activities.WebsiteActivity
+import com.security.passwordmanager.model.DataType
+import com.security.passwordmanager.model.ScreenType
 import com.security.passwordmanager.view.compose.AppTheme
 import com.security.passwordmanager.view.compose.BottomSheetContent
-import com.security.passwordmanager.view.compose.navigation.*
-import com.security.passwordmanager.viewmodel.SettingsViewModel
+import com.security.passwordmanager.view.compose.BottomSheetItem
+import com.security.passwordmanager.view.compose.BottomSheetItems
+import com.security.passwordmanager.view.compose.navigation.DrawerContent
+import com.security.passwordmanager.view.compose.navigation.MainScreen
+import com.security.passwordmanager.view.compose.navigation.SettingsScreen
+import com.security.passwordmanager.viewmodel.DataViewModel
+import com.security.passwordmanager.viewmodel.MySettingsViewModel
 import kotlinx.coroutines.launch
 
 @ExperimentalMaterialApi
 class NavigationActivity : AppCompatActivity(), RecyclerCallback {
-
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var settingsViewModel: SettingsViewModel
-
-//    private lateinit var navigationView: NavigationView
-//    private lateinit var navListener: NavController.OnDestinationChangedListener
-
-//    private lateinit var navController: NavController
-
-//    private lateinit var drawerListener: DrawerLayout.DrawerListener
-
-//    private lateinit var fab: FloatingActionButton
-
-    private lateinit var bottomFragment: BottomDialogFragment
-
-
 
     companion object {
         fun getIntent(context: Context) =
@@ -73,39 +45,63 @@ class NavigationActivity : AppCompatActivity(), RecyclerCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_navigation)
+
+        val settingsViewModelFactory =
+            (application as PasswordManagerApplication)
+                .settingsViewModelFactory
+        val settingsViewModel = MySettingsViewModel
+            .getInstance(this, settingsViewModelFactory)
+        val dataViewModel = DataViewModel.getInstance(this)
 
         setContent {
-            AppTheme(assets) {
-                NavigationScreen {
-                    bottomFragment.show(supportFragmentManager)
-                }
+            AppTheme(assets, settingsViewModel) {
+                NavigationScreen(
+                    BottomSheetItems.screenType(ScreenType.Website),
+                    BottomSheetItems.screenType(ScreenType.BankCard),
+                    dataViewModel = dataViewModel,
+                    settingsViewModel = settingsViewModel,
+                    onClickToBottomItem = {
+                        when (it) {
+                            DataType.Website ->
+                                startActivity(WebsiteActivity.getIntent(this, null))
+                            DataType.BankCard ->
+                                startActivity(BankCardActivity.getIntent(this, null))
+                        }
+                    },
+                    openUrl = { address ->
+                        val urlString = when {
+                            "www." in address -> "https://$address"
+                            "https://www." in address || "http://www." in address -> address
+                            else -> "https://www.$address"
+                        }
+
+                        if (urlString.isValidUrl()) {
+                            val intent = Intent(Intent.ACTION_VIEW, urlString.toUri())
+                            startActivity(intent)
+                        } else
+                            showToast(this, "Адрес $address — некорректный!")
+                    }
+                )
             }
         }
 
-        settingsViewModel = SettingsViewModel.getInstance(this)
 
-//        val email = intent.getStringExtra(EMAIL_EXTRA)
-        // TODO: 25.03.2022 сделать загрузку в бд
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-
-        bottomFragment = BottomDialogFragment(settingsViewModel)
-        bottomFragment.addView(
-            image = R.drawable.account_image,
-            context = this,
-            text = R.string.website_label
-        ) {
-            startActivity(WebsiteActivity.getIntent(this, ""))
-        }
-        bottomFragment.addView(
-            image = R.drawable.bank_card_image,
-            context = this,
-            text = R.string.bank_label
-        ) {
-            startActivity(BankCardActivity.getIntent(this, ""))
-        }
+//        bottomFragment = BottomDialogFragment(settingsViewModel)
+//        bottomFragment.addView(
+//            image = R.drawable.account_image,
+//            context = this,
+//            text = R.string.website_label
+//        ) {
+//            startActivity(WebsiteActivity.getIntent(this, ""))
+//        }
+//        bottomFragment.addView(
+//            image = R.drawable.bank_card_image,
+//            context = this,
+//            text = R.string.bank_label
+//        ) {
+//            startActivity(BankCardActivity.getIntent(this, ""))
+//        }
 
 //        fab = findViewById(R.id.fab)
 //        fab.setOnClickListener {
@@ -182,7 +178,7 @@ class NavigationActivity : AppCompatActivity(), RecyclerCallback {
         super.onResume()
 //        navController.addOnDestinationChangedListener(navListener)
 
-        settingsViewModel.updateThemeInScreen(window, supportActionBar)
+//        settingsViewModel.updateThemeInScreen(window, supportActionBar)
 
 //        findViewById<DrawerLayout>(R.id.drawer_layout).addDrawerListener(drawerListener)
 
@@ -190,22 +186,11 @@ class NavigationActivity : AppCompatActivity(), RecyclerCallback {
 //        fab.backgroundTintList = ColorStateList(settingsViewModel.headerColor)
     }
 
-    override fun onPause() {
-        super.onPause()
-//        navController.removeOnDestinationChangedListener(navListener)
-//        findViewById<DrawerLayout>(R.id.drawer_layout).removeDrawerListener(drawerListener)
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
-    }
-
-
-    private fun FloatingActionButton.setBackground(@ColorInt color: Int) {
-        backgroundTintList = ColorStateList(color)
-    }
+    //    override fun onSupportNavigateUp(): Boolean {
+//        val navController = findNavController(R.id.nav_host_fragment)
+//        return navController.navigateUp(appBarConfiguration)
+//                || super.onSupportNavigateUp()
+//    }
 
     override fun onScroll(recyclerDirection: RecyclerDirection, currentState: RecyclerState) {
 //        if (currentState != RecyclerState.STOPPED) {
@@ -231,148 +216,107 @@ class NavigationActivity : AppCompatActivity(), RecyclerCallback {
 
 @ExperimentalMaterialApi
 @Composable
-fun NavigationScreen(onFloatingActionButtonClick: () -> Unit) {
-    val navController = rememberNavController()
-    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
-    val scope = rememberCoroutineScope()
-    val openDrawer = {
-        scope.launch { bottomSheetScaffoldState.drawerState.open() }
-    }
+private fun NavigationScreen(
+    vararg bottomSheetItems: BottomSheetItem,
+    dataViewModel: DataViewModel = DataViewModel(PasswordManagerApplication()),
+    settingsViewModel: MySettingsViewModel = PasswordManagerApplication()
+        .settingsViewModelFactory
+        .create(MySettingsViewModel::class.java),
+    onClickToBottomItem: (DataType) -> Unit = {},
+    openUrl: (address: String) -> Unit = {}
+) {
+    val bottomSheetState = rememberModalBottomSheetState(
+        ModalBottomSheetValue.Hidden,
+        animationSpec = BottomAnimationSpec
+    )
+    val scaffoldState = rememberScaffoldState()
 
-    val onDestinationClicked = { route: String ->
-        scope.launch { bottomSheetScaffoldState.drawerState.close() }
+    val navController = rememberNavController()
+    val scope = rememberCoroutineScope()
+
+    val currentScreenType: MutableState<ScreenType?> = remember { mutableStateOf(null) }
+
+    val openDrawer = {
+        scope.launch { scaffoldState.drawerState.open() }
+    }
+    val onDrawerDestinationClicked = { route: String ->
+        scope.launch { scaffoldState.drawerState.close() }
 
         navController.navigate(route) {
             popUpTo(navController.graph.startDestinationId)
             launchSingleTop = true
         }
     }
+    val openBottomSheet = {
+        scope.launch { bottomSheetState.show() }
+    }
 
-//    val bottomItems = listOf(
-//        BottomSheetItem()
-//    )
+    val closeBottomSheet = {
+        scope.launch { bottomSheetState.hide() }
+    }
 
-    BottomSheetScaffold(
-        scaffoldState = bottomSheetScaffoldState,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onFloatingActionButtonClick,
-                backgroundColor = colorResource(R.color.header_color),
-                contentColor = Color.White,
-            ) {
-                Icon(Icons.Default.Add, stringResource(R.string.create_record))
+    val showFloatingActionButton = remember { mutableStateOf(true) }
+
+    ModalBottomSheetLayout(
+        sheetState = bottomSheetState,
+        sheetContent = {
+            BottomSheetContent(
+                bottomItems = bottomSheetItems
+            ) { bottomItem ->
+                closeBottomSheet()
+                onClickToBottomItem(
+                    ScreenType
+                        .values()
+                        .find { it.id == bottomItem.id }
+                        ?.toDataType()
+                        ?: DataType.Website
+                )
             }
         },
-        drawerGesturesEnabled = bottomSheetScaffoldState.drawerState.isOpen,
-        drawerContent = { DrawerContent(onDestinationClicked) },
-        drawerBackgroundColor = MaterialTheme.colors.background,
-        sheetContent = { BottomSheetContent() },
-        sheetShape = RoundedCornerShape(
-            topStart = dimensionResource(R.dimen.bottom_sheet_corner),
-            topEnd = dimensionResource(R.dimen.bottom_sheet_corner)
-        ),
-        sheetBackgroundColor = MaterialTheme.colors.background,
-        sheetGesturesEnabled = bottomSheetScaffoldState.bottomSheetState.isExpanded,
-        sheetPeekHeight = 0.dp
-    ) { contentPadding ->
+        sheetShape = BottomSheetShape,
+        sheetBackgroundColor = MaterialTheme.colors.background
+    ) {
+        Scaffold(
+            scaffoldState = scaffoldState,
+            floatingActionButton = {
+                if (showFloatingActionButton.value)
+                    FloatingActionButton(
+                        onClick = { openBottomSheet() },
+                        backgroundColor = MaterialTheme.colors.primary,
+                        contentColor = Color.White,
+                    ) {
+                        Icon(Icons.Default.Add, stringResource(R.string.create_record))
+                    }
+            },
+            drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
+            drawerContent = { DrawerContent(onDrawerDestinationClicked) },
+            drawerBackgroundColor = MaterialTheme.colors.background
+        ) { contentPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = ScreenType.Home.route,
+                modifier = Modifier.padding(contentPadding)
+            ) {
+                ScreenType.values().forEach { screenType ->
 
-        NavHost(
-            navController = navController,
-            startDestination = DrawerScreens.Home.route,
-            modifier = Modifier.padding(contentPadding)
-        ) {
-            composable(DrawerScreens.Home.route) {
-                HomeScreen(
-                    openDrawer = { openDrawer() },
-                    onSearch = { /* TODO: 02.09.2022 реализовать поиск */ }
-                )
-            }
-
-            composable(DrawerScreens.Website.route) {
-                WebsitesScreen(
-                    openDrawer = { openDrawer() },
-                    onSearch = { }
-                )
-            }
-
-            composable(DrawerScreens.BankCard.route) {
-                BankCardsScreen(
-                    openDrawer = { openDrawer() },
-                    onSearch = { }
-                )
-            }
-
-            composable(DrawerScreens.Settings.route) {
-                SettingsScreen(navController = navController)
+                    composable(screenType.route) {
+                        if (screenType == ScreenType.Settings) {
+                            showFloatingActionButton.value = false
+                            SettingsScreen(navController, settingsViewModel)
+                        } else {
+                            showFloatingActionButton.value = true
+                            MainScreen(
+                                screenType = screenType,
+                                dataViewModel = dataViewModel,
+                                bottomSheetState = bottomSheetState,
+                                openDrawer = { openDrawer() },
+                                openUrl = openUrl
+                            )
+                        }
+                    }
+                }
             }
         }
-    }
-}
-
-
-@Composable
-private fun NavHeader() {
-    Column(
-        modifier = Modifier
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFFFFB6B8),
-                        colorResource(R.color.raspberry),
-                        Color(0xFFF1C4DF)
-                    )
-                )
-            )
-            .padding(vertical = 16.dp, horizontal = 12.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.Start
-    ) {
-
-        Icon(
-            imageVector = Icons.Rounded.Lock,
-            contentDescription = stringResource(R.string.nav_header_desc),
-            tint = colorResource(android.R.color.holo_orange_dark),
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .padding(vertical = 12.dp)
-                .scale(2.2f)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            stringResource(R.string.app_label),
-            color = Color.White,
-            style = MaterialTheme.typography.body1
-        )
-        Spacer(Modifier.height(3.dp))
-        Text(
-            stringResource(R.string.app_version),
-            color = Color.White.copy(alpha = 0.8f)
-        )
-    }
-}
-
-
-@Composable
-private fun DrawerItem(screen: DrawerScreens, onDestinationClicked: (route: String) -> Unit) {
-    Row(modifier = Modifier
-        .clickable {
-            onDestinationClicked(screen.route)
-        }
-        .padding(vertical = 16.dp)
-        .padding(start = 8.dp, end = 8.dp)
-    ) {
-        Icon(
-            imageVector = screen.icon,
-            contentDescription = stringResource(screen.titleRes),
-            tint = colorResource(R.color.raspberry)
-        )
-        Spacer(modifier = Modifier.width(7.dp))
-        Text(
-            text = stringResource(screen.titleRes),
-            color = colorResource(R.color.text_color),
-            fontSize = 16.sp
-        )
     }
 }
 
@@ -381,5 +325,5 @@ private fun DrawerItem(screen: DrawerScreens, onDestinationClicked: (route: Stri
 @Preview
 @Composable
 fun NavigationScreenPreview() {
-    NavigationScreen {  }
+    NavigationScreen()
 }

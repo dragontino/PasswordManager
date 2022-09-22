@@ -3,10 +3,11 @@
     <string name="app_label">Менеджер паролей</string>
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 5.2.2 от 25 апреля 2022</string>
+    <string name="app_version">Версия 5.4.0 от 23 сентября 2022</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="create_record">Создать новую запись</string>
     <string name="clipText">Скопировано в буфер обмена</string>
+    <string name="search_no_results">Поиск не дал результатов</string>
 
 
     <!--Лейблы-->
@@ -43,8 +44,8 @@
 
 
     <!--Темы-->
-    <string name="dark_theme">Включена</string>
-    <string name="light_theme">Выключена</string>
+    <string name="dark_theme">Тёмная</string>
+    <string name="light_theme">Светлая</string>
     <string name="system_theme">Как на устройстве</string>
     <string name="auto_theme">Автоматически</string>
 
@@ -54,8 +55,8 @@
     <string name="end_time">Время заката</string>
     <string name="changing_theme_time">Время перемен</string>
 
-    <string name="button_cancel">Отмена</string>
-    <string name="button_ok">ОК</string>
+    <string name="button_save">Сохранить</string>
+    <string name="button_cancel">Не сохранять</string>
 
 
     <!--PasswordActivity-->
@@ -86,7 +87,7 @@
     <string name="delete_password">Удалить</string>
     <string name="delete_account">Удалить аккаунт</string>
 
-    <string name="menu_item_save">Сохранить</string>
+
 
     <string name="more_info">Больше информации</string>
 
@@ -130,4 +131,5 @@
     <string name="wrong_month">Неправильный номер месяца!</string>
     <string name="payment_system">Платёжная система</string>
     <string name="default_hint">default hint</string>
+    <string name="empty_data_list">Нажми на «+» для добавления новых записей</string>
 </resources>

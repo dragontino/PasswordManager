@@ -5,7 +5,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
-import com.security.passwordmanager.settings.Settings
+import com.security.passwordmanager.model.BankCard
+import com.security.passwordmanager.model.Settings
+import com.security.passwordmanager.model.Website
 import com.security.passwordmanager.settings.SettingsDao
 
 @Database(entities = [Website::class, BankCard::class, Settings::class], version = 4, exportSchema = false)

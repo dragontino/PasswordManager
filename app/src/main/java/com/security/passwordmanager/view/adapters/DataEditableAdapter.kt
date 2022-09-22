@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.security.passwordmanager.ColorStateList
 import com.security.passwordmanager.R
-import com.security.passwordmanager.data.Data
+import com.security.passwordmanager.model.Data
 import com.security.passwordmanager.txt
 import com.security.passwordmanager.view.BottomDialogFragment
 import com.security.passwordmanager.view.customviews.BeautifulTextView
