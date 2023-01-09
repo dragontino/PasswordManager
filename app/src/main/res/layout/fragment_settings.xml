@@ -57,7 +57,7 @@
         android:layout_marginVertical="60dp"
         android:gravity="top|center"
         android:textColor="@color/black"
-        android:text="@string/have_questions"/>
+        android:text="@string/feedback"/>
 
     <Button
         android:id="@+id/button_logout"

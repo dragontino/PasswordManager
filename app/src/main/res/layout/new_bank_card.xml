@@ -102,22 +102,22 @@
                 android:inputType="numberDecimal"
                 android:minHeight="48dp" />
 
-            <com.security.passwordmanager.view.customviews.PasswordView
-                android:id="@+id/card_cvv"
+<!--            <com.security.passwordmanager.view.customviews.PasswordView-->
+<!--                android:id="@+id/card_cvv"-->
 
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/activity_vertical_margin"
-                android:hint="@string/card_cvv"
-                android:maxLength="3"/>
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_margin="@dimen/activity_vertical_margin"-->
+<!--                android:hint="@string/card_cvv"-->
+<!--                android:maxLength="3"/>-->
 
-            <com.security.passwordmanager.view.customviews.PasswordView
-                android:id="@+id/pin_code"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/activity_vertical_margin"
-                android:hint="@string/pin_code"
-                android:maxLength="4"/>
+<!--            <com.security.passwordmanager.view.customviews.PasswordView-->
+<!--                android:id="@+id/pin_code"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_margin="@dimen/activity_vertical_margin"-->
+<!--                android:hint="@string/pin_code"-->
+<!--                android:maxLength="4"/>-->
 
             <TextView
                 android:id="@+id/bank_optionally_info"
