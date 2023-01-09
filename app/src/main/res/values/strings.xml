@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Password Manager</string>
-    <string name="app_label">Менеджер паролей</string>
+
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 5.4.0 от 23 сентября 2022</string>
+    <string name="app_version">Версия 5.5.0 от 10 января 2023</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="create_record">Создать новую запись</string>
     <string name="clipText">Скопировано в буфер обмена</string>
@@ -11,6 +11,7 @@
 
 
     <!--Лейблы-->
+    <string name="app_label">Менеджер паролей</string>
     <string name="default_label">Все записи</string>
     <string name="website_label">Сайт</string>
     <string name="bank_label">Банковская карта</string>
@@ -20,23 +21,24 @@
 
 
     <!--Пункты меню-->
-    <string name="all_entries">Все записи</string>
+    <string name="all_notes">Все записи</string>
     <string name="websites">Сайты</string>
     <string name="bank_cards">Банковские карты</string>
     <string name="settings">Настройки</string>
 
 
-
     <!--Вход-->
     <string name="action_sign_in">Войти</string>
     <string name="action_sign_up">Зарегестрироваться</string>
-    <string name="valid_email">Введите корректный email адрес, пожалуйста!</string>
-    <string name="min_password_length">Длина пароля должна быть не менее 6 символов!</string>
+    <string name="enter_email">Введите адрес электронной почты</string>
+    <string name="invalid_email">Введите корректный email адрес!</string>
+    <string name="invalid_password">Длина пароля должна быть > 6 символов!</string>
     <string name="register_successful">Новый пользователь успешно добавлен!</string>
     <string name="register_failed">Ошибка регистрации! Попробуйте, пожалуйста, ещё раз</string>
-    <string name="login_failed">Неверный логин или пароль! Проверьте правильность введённых данных</string>
+    <string name="login_failed">Неверный пароль. Проверьте корректность введённых данных</string>
     <string name="logout">Выйти из аккаунта</string>
     <string name="remember_password">Запомнить пароль</string>
+    <string name="repeat_password">Введите пароль ещё раз</string>
     <string name="prompt_email">Email</string>
     <string name="required">Обязательно</string>
     <string name="main_image_view">Иконка приложения</string>
@@ -44,22 +46,22 @@
 
 
     <!--Темы-->
-    <string name="dark_theme">Тёмная</string>
-    <string name="light_theme">Светлая</string>
-    <string name="system_theme">Как на устройстве</string>
-    <string name="auto_theme">Автоматически</string>
+    <string name="dark_theme">Тёмное</string>
+    <string name="light_theme">Светлое</string>
+    <string name="system_theme">Как на устройстве (сейчас %s)</string>
+    <string name="auto_theme">По времени (сейчас %s)</string>
 
-    <string name="switchThemeText">Тёмная тема: %s</string>
+    <string name="switchThemeText">Оформление:</string>
 
     <string name="start_time">Время рассвета</string>
     <string name="end_time">Время заката</string>
     <string name="changing_theme_time">Время перемен</string>
 
     <string name="button_save">Сохранить</string>
-    <string name="button_cancel">Не сохранять</string>
+    <string name="button_cancel">Отменить</string>
 
 
-    <!--PasswordActivity-->
+<!--  Website Screen  -->
     <string name="url_address">Адрес сайта</string>
     <string name="name_website">Название</string>
     <string name="account_start">Аккаунт №%d</string>
@@ -70,10 +72,10 @@
     <string name="comment">Комментарий</string>
     <string name="add_account">Добавить аккаунт</string>
 
-    <string name="required_url">Введите адрес сайта!</string>
-    <string name="required_website_name">Введите название сайта!</string>
-
-    <string name="blank_fields">Некоторые поля незаполнены!</string>
+    <string name="empty_url">Введите URL адрес сайта</string>
+    <string name="empty_website_name">Введите название сайта</string>
+    <string name="empty_login">Логин не может быть пустым!</string>
+    <string name="empty_password">Пароль не может быть пустым!</string>
 
     <string name="show_password">Показать пароль</string>
     <string name="hide_password">Скрыть пароль</string>
@@ -88,11 +90,10 @@
     <string name="delete_account">Удалить аккаунт</string>
 
 
-
     <string name="more_info">Больше информации</string>
 
 
-    <!--BankCardActivity-->
+<!--  BankCard Screen  -->
     <string name="bank_card_hint">Банковская карта №%d</string>
     <string name="bank_name">Название банка</string>
     <string name="bank_head">Основные данные</string>
@@ -105,31 +106,34 @@
 
 
     <!--Экран "О приложении"-->
-    <string name="vk">Написать в VK</string>
-    <string name="telegram">Написать в Telegram</string>
-    <string name="instagram">Подписаться на Instagram :)</string>
-    <string name="email">Написать на почту</string>
+    <string name="vk">Вконтакте</string>
+    <string name="telegram">Telegram</string>
+    <string name="email">Почта</string>
     <string name="feedback">Обратная связь</string>
-    <string name="have_questions">Есть вопросы?</string>
 
 
     <!--Экран "Настройки"-->
     <string name="beautiful_font">Использовать красивый шрифт</string>
-    <string name="beautiful_font_explain">На выдвигающемся меню будет отображаться красивый шрифт</string>
+    <string name="beautiful_font_explain">Отображать на некоторых элементах красивый шрифт</string>
     <string name="data_hints_description">Заполнении поля «Название сайта» при редактировании раздела «Сайт» будет происходить автоматически, если заполнено поле «адрес»</string>
     <string name="data_hints">Включить подсказки</string>
     <string name="using_bottom_view">Включить выдвигающийся виджет на главном экране</string>
     <string name="using_bottom_view_explain">На главном экране при нажатии на элемент с данными будет выдвигаться виджет, при нажатии на который можно будет перейти непосредственно к этому элементу</string>
+
+    <!--Экран "Логин"-->
     <string name="prompt_password">Password</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="welcome">"Welcome!"</string>
     <string name="invalid_username">Not a valid username</string>
-    <string name="invalid_password">Password must be >5 characters</string>
+
+
     <string name="website_image">Иконка сайта</string>
     <string name="open">Открыть</string>
     <string name="optionally">Дополнительно</string>
     <string name="wrong_month">Неправильный номер месяца!</string>
     <string name="payment_system">Платёжная система</string>
-    <string name="default_hint">default hint</string>
-    <string name="empty_data_list">Нажми на «+» для добавления новых записей</string>
+    <string name="empty_data_list">Нажмите на «+» для добавления новых записей</string>
+    <string name="new_note">Новая запись</string>
+    <string name="passwords_is_not_equals">Пароли не совпадают!</string>
+    <string name="check_internet_connection">Проверьте интернет соединение</string>
 </resources>

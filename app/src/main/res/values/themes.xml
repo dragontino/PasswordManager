@@ -9,8 +9,8 @@
         <item name="android:fontFamily">@font/roboto</item>
         <item name="bottomSheetDialogTheme">@style/Theme.MaterialComponents.BottomSheetDialog</item>
         <!-- Customize your theme here. -->
-<!--        <item name="android:windowTranslucentStatus">true</item>-->
-<!--        <item name="android:windowTranslucentNavigation">true</item>-->
+        <!--        <item name="android:windowTranslucentStatus">true</item>-->
+        <!--        <item name="android:windowTranslucentNavigation">true</item>-->
     </style>
 
     <style name="Theme.PasswordManager.Dark" parent="Theme.AppCompat.DayNight">
@@ -28,6 +28,7 @@
     </style>
 
     <style name="Theme.PasswordManager.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
     <style name="Theme.PasswordManager.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="AccountTextViewThemeWithoutMargin">
@@ -107,6 +108,7 @@
 
     <style name="AppModalStyle" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:background">@drawable/bottom_sheet_background</item>
+        <item name="android:backgroundTint">@android:color/transparent</item>
     </style>
 
     <style name="AboutButtons" parent="Widget.AppCompat.Button.Borderless.Colored">
@@ -116,7 +118,7 @@
         <item name="android:textSize">17sp</item>
         <item name="android:textAllCaps">false</item>
     </style>
-    
+
     <style name="SwitchTheme" parent="Theme.MaterialComponents.Light">
         <item name="colorControlActivated">@color/raspberry</item>
         <item name="colorSwitchThumbNormal">@color/light_gray</item>

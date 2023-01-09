@@ -4,24 +4,18 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
+import android.os.Parcel
+import android.view.Gravity
 import android.view.View
 import android.webkit.URLUtil
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.annotation.ColorInt
-import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.appcompat.widget.SearchView
-import com.security.passwordmanager.model.DataUI
-import java.lang.Integer.min
 import android.content.res.ColorStateList as AndroidColorList
 
 fun TextView?.isEmpty() =
@@ -34,11 +28,6 @@ fun View.hide() {
 fun View.show() {
     visibility = View.VISIBLE
 }
-
-inline fun onBackPressedCallback(enabled: Boolean, crossinline handle: () -> Unit) =
-    object : OnBackPressedCallback(enabled) {
-        override fun handleOnBackPressed() = handle()
-    }
 
 internal fun Bundle?.getInt(key: String, defaultValue: Int) =
     this?.getInt(key) ?: defaultValue
@@ -53,67 +42,26 @@ var EditText.txt: String
     get() = text.toString()
     set(value) = setText(value)
 
+
 inline fun <reified T: AppCompatActivity>createIntent(context: Context?, block: Intent.() -> Unit) =
     Intent(context, T::class.java).apply(block)
 
+
 fun showToast(context: Context?, text: String, duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(context, text, duration).show()
+    Toast.makeText(context, text, duration).modify().show()
 
 fun showToast(context: Context?, @StringRes text: Int, duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(context, text, duration).show()
+    Toast.makeText(context, text, duration).modify().show()
+
+private fun Toast.modify() = apply {
+    setGravity(Gravity.CENTER, 0, 0)
+}
 
 
-inline fun buildString(initString: String, builderAction: StringBuilder.() -> Unit) =
+inline fun buildString(initString: String = "", builderAction: StringBuilder.() -> Unit) =
     StringBuilder(initString).apply(builderAction).toString()
 
 
-inline fun SearchView.doOnQueryTextChange(crossinline doInChange: (query: String) -> Unit) =
-    setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-        override fun onQueryTextSubmit(query: String?) = false
-
-        override fun onQueryTextChange(newText: String): Boolean {
-            doInChange(newText)
-            return true
-        }
-    })
-
-
-fun <T> MutableList<T>.updateAll(list: List<T>) {
-    val minSize = min(this.size, list.size)
-
-    for (index in 0 until minSize)
-        this[index] = list[index]
-
-    if (this.size < list.size)
-        this.addAll(list.subList(this.size, list.size))
-}
-
-inline fun EditText.setOnEnterListener(crossinline function: () -> Unit) =
-    setOnKeyListener { _, keyCode, event ->
-        if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-            function()
-            true
-        }
-        else false
-    }
-
-
-fun EditText.deleteLast() {
-    txt = txt.substring(0, txt.lastIndex)
-}
-
-
-// TODO: 10.07.2022 проверить работоспособность 
-fun TextView.setFont(path: String, style: Int? = null) {
-    typeface = if (style == null)
-        Typeface.createFromAsset(context.assets, path)
-    else
-        Typeface.create(Typeface.createFromAsset(context.assets, path), style)
-}
-
-
-fun Context.findDrawableById(@DrawableRes resId: Int) =
-    AppCompatResources.getDrawable(this, resId)
 
 fun ColorStateList(@ColorInt color: Int) =
     AndroidColorList.valueOf(color)
@@ -132,12 +80,33 @@ fun Context.getActivity(): AppCompatActivity? = when (this) {
 }
 
 
-fun Intent.getDataUIExtra(name : String, defaultValue : DataUI) =
-    if (Build.VERSION.SDK_INT >= 33) {
-        getSerializableExtra(name, DataUI::class.java)
-    } else {
-        getSerializableExtra(name) as DataUI?
-    } ?: defaultValue
+fun Parcel.getString(defaultValue: String = "") =
+    readString() ?: defaultValue
+
+
+//fun Intent.getDataUIExtra(name : String, defaultValue : DataUI) =
+//    if (Build.VERSION.SDK_INT >= 33) {
+//        getSerializableExtra(name, DataUI::class.java)
+//    } else {
+//        getSerializableExtra(name) as DataUI?
+//    } ?: defaultValue
 
 
 fun String.isValidUrl() = URLUtil.isValidUrl(this)
+
+@Suppress("UNCHECKED_CAST", "DEPRECATION")
+fun <D : Enum<*>> Bundle?.getEnum(key: String, defaultValue: D): D =
+    when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+            this?.getSerializable(key, defaultValue::class.java) ?: defaultValue
+        }
+        else -> {
+            this?.getSerializable(key) as D? ?: defaultValue
+        }
+    }
+
+
+fun <T> MutableList<T>.swapList(newList: List<T>) {
+    clear()
+    addAll(newList)
+}
