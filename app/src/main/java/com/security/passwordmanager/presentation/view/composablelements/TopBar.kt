@@ -1,4 +1,4 @@
-package com.security.passwordmanager.presentation.view
+package com.security.passwordmanager.presentation.view.composablelements
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.shape.CircleShape
@@ -86,7 +86,7 @@ fun RowScope.TopBarAction(
 @Preview
 @Composable
 private fun TopBarPreview() {
-    PasswordManagerTheme {
+    PasswordManagerTheme(isDarkTheme = false) {
         TopBar(title = "Wrecked", navigationIcon = Icons.Default.Menu)
     }
 }

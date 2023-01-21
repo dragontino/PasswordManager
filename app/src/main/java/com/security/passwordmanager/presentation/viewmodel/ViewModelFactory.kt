@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.security.passwordmanager.PasswordManagerApplication
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.CryptoManager
 import com.security.passwordmanager.data.LoginDataSource
@@ -41,8 +42,15 @@ class ViewModelFactory(private val application: Application) : ViewModelProvider
                     preferences = AppPreferences(application)
                 ) as T
             }
-            modelClass.isAssignableFrom(WebsiteViewModel::class.java) -> return WebsiteViewModel() as T
-            modelClass.isAssignableFrom(NotesViewModel::class.java) -> return NotesViewModel() as T
+            modelClass.isAssignableFrom(WebsiteViewModel::class.java) -> {
+                return WebsiteViewModel() as T
+            }
+            modelClass.isAssignableFrom(NotesViewModel::class.java) -> {
+                return NotesViewModel() as T
+            }
+            modelClass.isAssignableFrom(NavigationViewModel::class.java) -> {
+                return NavigationViewModel(application as PasswordManagerApplication) as T
+            }
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }
 

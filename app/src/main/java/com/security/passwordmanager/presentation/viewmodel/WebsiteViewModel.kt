@@ -1,16 +1,18 @@
 package com.security.passwordmanager.presentation.viewmodel
 
 import android.content.Context
-import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.lifecycle.ViewModel
 import com.security.passwordmanager.R
+import com.security.passwordmanager.animationTimeMillis
 import com.security.passwordmanager.buildString
 import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.deleteFromLast
@@ -18,63 +20,20 @@ import com.security.passwordmanager.presentation.model.ObservableWebsite
 
 class WebsiteViewModel : ViewModel() {
 
-    @ExperimentalAnimationApi
-    val enterScreenAnimation = slideInHorizontally(
-        animationSpec = tween(
-            durationMillis = 600,
-            easing = FastOutSlowInEasing
-        )
-    ) { it / 2 } + scaleIn(
-        animationSpec = tween(
-            durationMillis = 600,
-            easing = FastOutSlowInEasing,
-        ),
-        initialScale = .5f,
-        transformOrigin = TransformOrigin(0.5f, 1f),
-    )
-
     val enterFabAnimation = slideInHorizontally(
         animationSpec = tween(
-            durationMillis = 600,
-            delayMillis = 100,
-            easing = FastOutSlowInEasing
-        )
-    ) { it / 2 } + fadeIn(
-        animationSpec = tween(
-            durationMillis = 200,
-            delayMillis = 100,
+            durationMillis = animationTimeMillis,
             easing = LinearEasing
         )
-    )
-
-
-    @ExperimentalAnimationApi
-    val exitScreenAnimation = slideOutHorizontally(
-        animationSpec = tween(
-            durationMillis = 600,
-            easing = FastOutSlowInEasing
-        )
-    ) { it / 2 } + scaleOut(
-        animationSpec = tween(
-            durationMillis = 600,
-            easing = FastOutSlowInEasing
-        ),
-        targetScale = .5f,
-        transformOrigin = TransformOrigin(.5f, 1f)
-    )
+    ) { it / 2 }
 
 
     val exitFabAnimation = slideOutHorizontally(
         animationSpec = tween(
-            durationMillis = 600,
-            easing = FastOutSlowInEasing
-        )
-    ) { it / 2 } + fadeOut(
-        animationSpec = tween(
-            durationMillis = 100,
+            durationMillis = animationTimeMillis,
             easing = LinearEasing
         )
-    )
+    ) { it / 2 }
 
 
     val accountList = mutableStateListOf(ObservableWebsite())
@@ -106,6 +65,13 @@ class WebsiteViewModel : ViewModel() {
         private set
 
     val currentWebsite get() = accountList.getOrElse(currentWebsitePosition) { ObservableWebsite() }
+
+
+    @Composable
+    fun screenShape() = MaterialTheme.shapes.medium.copy(
+        bottomStart = CornerSize(0),
+        bottomEnd = CornerSize(0)
+    )
 
 
     fun openDialog(content: @Composable () -> Unit) {

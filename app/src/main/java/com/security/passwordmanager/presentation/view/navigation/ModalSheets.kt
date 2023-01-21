@@ -87,7 +87,7 @@ private fun NavHeader(topPadding: Dp = 0.dp) {
                     1f to MaterialTheme.colorScheme.primaryContainer.animate(),
                 )
             )
-            .padding(vertical = 16.dp, horizontal = 12.dp)
+            .padding(vertical = 16.dp, horizontal = 17.dp)
             .fillMaxWidth(),
         horizontalAlignment = Alignment.Start
     ) {
@@ -103,14 +103,14 @@ private fun NavHeader(topPadding: Dp = 0.dp) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             stringResource(R.string.app_label),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimary.animate(),
             style = MaterialTheme.typography.labelSmall
         )
         Spacer(Modifier.height(3.dp))
         Text(
             stringResource(R.string.app_version),
             style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.8f)
+            color = MaterialTheme.colorScheme.onPrimary.animate().copy(alpha = 0.8f)
         )
     }
 }
@@ -223,15 +223,16 @@ object ModalSheetItems {
         text: String,
         @DrawableRes image: Int?,
         modifier: Modifier = Modifier,
+        imageModifier: Modifier = Modifier,
         imageAlignment: Alignment.Horizontal = Alignment.Start,
         padding: Dp = 16.dp,
         onClick: (text: String) -> Unit
-    ) = BottomSheetItem(text, imageAlignment, onClick, padding) { horizontalPadding ->
+    ) = BottomSheetItem(text, imageAlignment, onClick, modifier, padding) { horizontalPadding ->
         if (image != null) {
             Image(
                 painter = painterResource(image),
                 contentDescription = text,
-                modifier = modifier
+                modifier = imageModifier
                     .padding(horizontal = horizontalPadding)
                     .scale(1.17f)
                     .clip(CircleShape.copy(CornerSize(40)))
@@ -245,18 +246,18 @@ object ModalSheetItems {
         icon: ImageVector?,
         iconTintColor: Color,
         modifier: Modifier = Modifier,
+        iconModifier: Modifier = Modifier,
         iconAlignment: Alignment.Horizontal = Alignment.Start,
         padding: Dp = 16.dp,
         onClick: (text: String) -> Unit
-    ) = BottomSheetItem(text, iconAlignment, onClick, padding) { horizontalPadding ->
+    ) = BottomSheetItem(text, iconAlignment, onClick, modifier, padding) { horizontalPadding ->
         if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = text,
                 tint = iconTintColor,
-                modifier = modifier
+                modifier = iconModifier
                     .padding(horizontal = horizontalPadding)
-                    .scale(1.17f)
                     .clip(CircleShape.copy(CornerSize(40)))
             )
         }
@@ -267,6 +268,7 @@ object ModalSheetItems {
         text = stringResource(screen.titleRes),
         icon = screen.icon,
         iconTintColor = RaspberryLight,
+        iconModifier = Modifier.scale(1.17f),
         onClick = onClick
     )
 
@@ -275,6 +277,7 @@ object ModalSheetItems {
         text = text,
         icon = Icons.Outlined.Edit,
         iconTintColor = RaspberryLight,
+        iconModifier = Modifier.scale(1.17f),
         onClick = onClick
     )
 
@@ -283,6 +286,7 @@ object ModalSheetItems {
         text = text,
         icon = Icons.Outlined.ContentCopy,
         iconTintColor = RaspberryLight,
+        iconModifier = Modifier.scale(1.17f),
         onClick = onClick
     )
 
@@ -291,6 +295,7 @@ object ModalSheetItems {
         text = text,
         icon = Icons.Outlined.Delete,
         iconTintColor = RaspberryLight,
+        iconModifier = Modifier.scale(1.17f),
         onClick = onClick
     )
 
@@ -300,11 +305,12 @@ object ModalSheetItems {
         text: String,
         imageAlignment: Alignment.Horizontal,
         onClick: (text: String) -> Unit,
+        modifier: Modifier = Modifier,
         padding: Dp = 16.dp,
         image: @Composable (horizontalPadding: Dp) -> Unit
     ) {
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .clickable { onClick(text) }
                 .align(Alignment.Start)
                 .padding(vertical = padding)
@@ -350,7 +356,7 @@ internal fun FeedbackSheet(
         ImageTextItem(
             text = stringResource(R.string.telegram),
             image = R.drawable.telegram_icon,
-            modifier = Modifier.scale(2f)
+            imageModifier = Modifier.scale(2f)
         ) {
             openAddress("https://t.me/cepetroff")
         }
@@ -366,7 +372,7 @@ internal fun FeedbackSheet(
             text = stringResource(R.string.email),
             icon = Icons.Default.AlternateEmail,
             iconTintColor = RaspberryLight,
-            modifier = Modifier.scale(0.9f)
+            iconModifier = Modifier.scale(0.9f)
         ) {
             openAddress("mailto:petrovsd2002@gmail.com")
         }

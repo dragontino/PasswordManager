@@ -1,16 +1,16 @@
-package com.security.passwordmanager;
+package com.security.passwordmanager
 
-import static org.testng.Assert.assertEquals;
-import org.testng.annotations.Test;
+import org.testng.Assert
+import org.testng.annotations.Test
 
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ * @see [Testing documentation](http://d.android.com/tools/testing)
  */
-public class ExampleUnitTest {
+class ExampleUnitTest {
     @Test
-    public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
+    fun addition_isCorrect() {
+        Assert.assertEquals(4, 2 + 2)
     }
 }

@@ -1,7 +1,5 @@
 package com.security.passwordmanager.presentation.view
 
-import android.annotation.SuppressLint
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -11,6 +9,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -32,8 +32,10 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -44,7 +46,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
@@ -52,27 +53,28 @@ import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.presentation.model.ObservableWebsite
 import com.security.passwordmanager.presentation.model.enums.DataType
-import com.security.passwordmanager.presentation.view.TrailingActions.CopyIconButton
-import com.security.passwordmanager.presentation.view.TrailingActions.VisibilityIconButton
+import com.security.passwordmanager.presentation.view.composablelements.*
+import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
+import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.CopyItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.DeleteItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.EditItem
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
-import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
+import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
 import com.security.passwordmanager.presentation.viewmodel.WebsiteViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.onebone.toolbar.*
+import me.onebone.toolbar.FabPosition
 
-@ExperimentalLayoutApi
-@SuppressLint("SourceLockedOrientationActivity")
+@OptIn(ExperimentalMaterialApi::class, ExperimentalLayoutApi::class)
+@ExperimentalToolbarApi
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @ExperimentalMaterial3Api
-@ExperimentalMaterialApi
 @Composable
 internal fun AnimatedVisibilityScope.WebsiteScreen(
     address: String,
@@ -87,9 +89,6 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 
     val isKeyboardOpen by keyboardAsState()
     val focusManager = LocalFocusManager.current
-
-    // TODO: 04.12.2022 удалить
-    context.getActivity()?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     
     val bottomState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -97,6 +96,7 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
     )
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scaffoldState = rememberCollapsingToolbarScaffoldState()
     val settings by settingsViewModel.settings.observeAsState(initial = Settings())
 
 
@@ -137,11 +137,6 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
     }
 
 
-//    systemUiController.setSystemBarsColor(
-//        color = MaterialTheme.colorScheme.primary.animate(),
-//        darkIcons = false
-//    )
-
 //    viewModel.result = loadWebsiteList(address = address, dataViewModel = dataViewModel).value
 //    if (viewModel.result is Result.Success) {
 //        viewModel.accountList.swapList(
@@ -152,30 +147,31 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 //    }
 
 
-    LaunchedEffect(key1 = address) {
+    LaunchedEffect(key1 = Unit) {
         viewModel.isLoading = true
         delay(200)
         val newList = dataViewModel
             .getAccountList(key = address, dataType = DataType.Website)
-            .ifEmpty { listOf(Website()) }
+            .ifEmpty {
+                viewModel.newWebsites = 1
+                listOf(Website())
+            }
 
         viewModel.accountList.swapList(
             newList
                 .map { it.observe() }
                 .filterIsInstance<ObservableWebsite>()
         )
-        delay(200)
-
         viewModel.isLoading = false
     }
 
 
-//    LaunchedEffect(key1 = startPosition) {
-//        delay(50)
-//        listState.smoothScrollToItem(
-//            targetPosition = startPosition + (startPosition > 0).toInt()
-//        )
-//    }
+    LaunchedEffect(key1 = startPosition) {
+        delay(50)
+        listState.scrollToItem(
+            index = startPosition
+        )
+    }
 
 
     if (viewModel.showDialog) {
@@ -228,8 +224,10 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
         sheetShape = MaterialTheme.shapes.large,
         sheetBackgroundColor = MaterialTheme.colorScheme.background.animate()
     ) {
-        Scaffold(
-            topBar = {
+        ToolbarWithFabScaffold(
+            state = scaffoldState,
+            scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
+            toolbar = {
                 TopBar(
                     title = stringResource(R.string.website_label),
                     navigationIcon = if (isInEditing) Icons.Rounded.Close else Icons.Rounded.ArrowBackIos,
@@ -245,7 +243,11 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                         } else {
                             popBackStack()
                         }
-                    }
+                    },
+//                    modifier = Modifier.animateEnterExit(
+//                        enter = EnterTopBarAnimation,
+//                        exit = ExitTopBarAnimation
+//                    )
                 ) {
                     TopBarAction(
                         icon = Icons.Rounded.Delete,
@@ -261,9 +263,7 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                                         val itemToDelete = viewModel.accountList.firstOrNull()
                                             ?: return@DeleteDialog
 
-                                        scope.launch(Dispatchers.IO) {
-                                            dataViewModel.deleteRecords(itemToDelete.toData())
-                                        }
+                                        dataViewModel.deleteRecords(itemToDelete.toData())
                                         popBackStack()
                                     },
                                     onDismiss = {
@@ -285,7 +285,7 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 
                 }
             },
-            floatingActionButton = {
+            fab = {
                 ExtendedFloatingActionButton(
                     text = {
                         Text(
@@ -307,10 +307,11 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                             )
                         )
                         viewModel.newWebsites++
-//                        scope.launch {
-//                            delay(100)
+                        scope.launch {
+                            delay(100)
 //                            listState.smoothScrollToItem(accountList.lastIndex + 1)
-//                        }
+                            listState.scrollToItem(viewModel.accountList.lastIndex)
+                        }
 
                     },
                     expanded = listState.isScrollingUp(),
@@ -328,26 +329,54 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                         )
                 )
             },
-            floatingActionButtonPosition = FabPosition.Center,
-            contentWindowInsets = WindowInsets(0.dp),
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState) {
-                    Snackbar(
-                        snackbarData = it,
-                        shape = RoundedCornerShape(11.dp)
-                    )
-                }
-            }
-        ) { contentPadding ->
+            fabPosition = FabPosition.Center,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.primary.animate())
+                .fillMaxSize()
+        ) {
 
             Loading(
                 isLoading = viewModel.isLoading,
-                modifier = Modifier.animateEnterExit(
-                    enter = viewModel.enterScreenAnimation,
-                    exit = viewModel.exitScreenAnimation
-                )
+                modifier = Modifier
+                    .animateEnterExit(
+                        enter = EnterContentAnimation,
+                        exit = ExitContentAnimation,
+                    )
+                    .clip(viewModel.screenShape())
+                    .background(
+                        color = MaterialTheme.colorScheme.background.animate(),
+                        shape = viewModel.screenShape(),
+                    )
+                    .border(
+                        width = screenBorderThickness,
+                        shape = viewModel.screenShape(),
+                        brush = Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.background,
+                            ).map { it.animate() },
+                        ),
+                    )
+                    .fillMaxSize(),
             )
-//            if (viewModel.isLoading) return@Scaffold
+
+            if (viewModel.isLoading) return@ToolbarWithFabScaffold
+
+
+
+
+
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                Snackbar(
+                    snackbarData = it,
+                    shape = RoundedCornerShape(11.dp)
+                )
+            }
+
 
 
             LazyColumn(
@@ -356,10 +385,25 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 16.dp),
                 modifier = Modifier
                     .animateEnterExit(
-                        enter = viewModel.enterScreenAnimation,
-                        exit = viewModel.exitScreenAnimation
+                        enter = EnterContentAnimation,
+                        exit = ExitContentAnimation
                     )
-                    .padding(contentPadding)
+                    .clip(viewModel.screenShape())
+                    .background(
+                        color = MaterialTheme.colorScheme.background.animate(),
+                        shape = viewModel.screenShape()
+                    )
+                    .border(
+                        width = screenBorderThickness,
+                        shape = viewModel.screenShape(),
+                        brush = Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.background,
+                            ).map { it.animate() }
+                        )
+                    )
+                    .fillMaxSize()
             ) {
                 item {
                     FirstTwoItems(
@@ -698,31 +742,5 @@ private fun WebsiteHeader(
                 modifier = Modifier.scale(1.3f)
             )
         }
-    }
-}
-
-
-
-
-
-
-@ExperimentalMaterial3Api
-@Preview
-@Composable
-private fun WebsitePreview() {
-    PasswordManagerTheme {
-        Website(
-            ObservableWebsite(
-                login = "Imagine Dragons",
-                password = "Wrecked",
-                nameAccount = "Dan",
-                nameWebsite = "Dragons",
-                address = "imagine dragons"
-            ),
-            viewModel = WebsiteViewModel(),
-            position = 1,
-            copyText = {},
-            openBottomSheet = {},
-        )
     }
 }

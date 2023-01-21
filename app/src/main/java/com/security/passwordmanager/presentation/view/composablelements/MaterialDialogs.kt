@@ -1,4 +1,4 @@
-package com.security.passwordmanager.presentation.view
+package com.security.passwordmanager.presentation.view.composablelements
 
 import androidx.compose.foundation.border
 import androidx.compose.material3.*

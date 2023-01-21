@@ -1,4 +1,4 @@
-package com.security.passwordmanager.presentation.view
+package com.security.passwordmanager.presentation.view.composablelements
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
-import com.security.passwordmanager.presentation.view.TrailingActions.CopyIconButton
-import com.security.passwordmanager.presentation.view.TrailingActions.VisibilityIconButton
+import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
+import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.RaspberryLight
 
@@ -257,7 +257,7 @@ object TrailingActions {
 @Composable
 private fun DataTextFieldPreview() {
     var visible by remember { mutableStateOf(false) }
-    PasswordManagerTheme {
+    PasswordManagerTheme(isDarkTheme = true) {
         Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface.animate())) {
             DataTextField(
                 text = "Wrecked",
