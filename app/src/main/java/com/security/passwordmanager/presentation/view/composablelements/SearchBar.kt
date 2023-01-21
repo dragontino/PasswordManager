@@ -1,4 +1,4 @@
-package com.security.passwordmanager.presentation.view
+package com.security.passwordmanager.presentation.view.composablelements
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
@@ -26,7 +26,11 @@ import kotlinx.coroutines.delay
 
 @ExperimentalMaterial3Api
 @Composable
-internal fun SearchBar(onQueryChange: (query: String) -> Unit, onCloseSearchBar: () -> Unit) {
+internal fun SearchBar(
+    onQueryChange: (query: String) -> Unit,
+    onCloseSearchBar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     var query by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -36,8 +40,8 @@ internal fun SearchBar(onQueryChange: (query: String) -> Unit, onCloseSearchBar:
         focusRequester.requestFocus()
     }
 
-    TopAppBar(
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
+    CenterAlignedTopAppBar(
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary.animate(),
             scrolledContainerColor = Color.Transparent,
             navigationIconContentColor = MaterialTheme.colorScheme.onPrimary.animate(),
@@ -90,10 +94,10 @@ internal fun SearchBar(onQueryChange: (query: String) -> Unit, onCloseSearchBar:
                     cursorColor = MaterialTheme.colorScheme.onPrimary.animate(),
                     placeholderColor = DarkerGray
                 ),
-                modifier = Modifier
-                    .focusRequester(focusRequester)
+                modifier = Modifier.focusRequester(focusRequester)
             )
-        }
+        },
+        modifier = modifier
     )
 }
 
@@ -102,8 +106,7 @@ internal fun SearchBar(onQueryChange: (query: String) -> Unit, onCloseSearchBar:
 @Preview
 @Composable
 fun SearchBarPreview() {
-    PasswordManagerTheme {
+    PasswordManagerTheme(isDarkTheme = false) {
         SearchBar(onQueryChange = {}, onCloseSearchBar = {})
     }
-
 }

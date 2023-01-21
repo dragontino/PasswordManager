@@ -28,6 +28,8 @@
 
 
     <!--Вход-->
+    <string name="authorization">Авторизация</string>
+    <string name="registration">Регистрация</string>
     <string name="action_sign_in">Войти</string>
     <string name="action_sign_up">Зарегестрироваться</string>
     <string name="enter_email">Введите адрес электронной почты</string>
@@ -48,8 +50,9 @@
     <!--Темы-->
     <string name="dark_theme">Тёмное</string>
     <string name="light_theme">Светлое</string>
-    <string name="system_theme">Как на устройстве (сейчас %s)</string>
-    <string name="auto_theme">По времени (сейчас %s)</string>
+    <string name="system_theme">Как на устройстве</string>
+    <string name="auto_theme">По времени</string>
+    <string name="now">(сейчас %s)</string>
 
     <string name="switchThemeText">Оформление:</string>
 
@@ -74,8 +77,8 @@
 
     <string name="empty_url">Введите URL адрес сайта</string>
     <string name="empty_website_name">Введите название сайта</string>
-    <string name="empty_login">Логин не может быть пустым!</string>
-    <string name="empty_password">Пароль не может быть пустым!</string>
+    <string name="empty_login">Введите логин</string>
+    <string name="empty_password">Введите пароль</string>
 
     <string name="show_password">Показать пароль</string>
     <string name="hide_password">Скрыть пароль</string>
@@ -136,4 +139,6 @@
     <string name="new_note">Новая запись</string>
     <string name="passwords_is_not_equals">Пароли не совпадают!</string>
     <string name="check_internet_connection">Проверьте интернет соединение</string>
+
+
 </resources>

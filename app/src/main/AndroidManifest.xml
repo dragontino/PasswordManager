@@ -12,7 +12,7 @@
         android:theme="@style/Theme.PasswordManager"
         tools:ignore="AllowBackup">
         <activity
-            android:name=".presentation.view.DefaultActivity"
+            android:name=".presentation.view.MainActivity"
             android:exported="true"
             android:label="@string/app_label"
             android:theme="@style/Theme.PasswordManager.NoActionBar">
@@ -27,24 +27,6 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-        <activity
-            android:name=".presentation.view.BankCardActivity"
-            android:exported="false"
-            android:label="@string/bank_label" />
-        <activity
-            android:name=".presentation.view.MainActivity"
-            android:exported="false"
-            android:label="@string/app_label">
-
-        </activity>
-        <activity
-            android:name=".presentation.view.WebsiteActivity"
-            android:label="@string/website_label"
-            android:theme="@style/Theme.PasswordManager.NoActionBar" />
-        <activity
-            android:name=".presentation.view.NavigationActivity"
-            android:label="@string/app_label"
-            android:theme="@style/Theme.PasswordManager.NoActionBar" />
     </application>
 
 </manifest>

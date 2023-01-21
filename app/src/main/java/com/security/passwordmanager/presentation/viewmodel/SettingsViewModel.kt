@@ -15,7 +15,6 @@ import com.security.passwordmanager.presentation.model.Time
 import com.security.passwordmanager.presentation.model.Times
 import com.security.passwordmanager.presentation.model.enums.Themes
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,38 +24,6 @@ class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
     private val preferences: AppPreferences,
 ) : ViewModel() {
-
-    enum class State {
-        Loading,
-        Ready
-    }
-
-
-    companion object {
-        @Volatile
-        private var INSTANCE: SettingsViewModel? = null
-
-        fun getInstance(
-            owner: ViewModelStoreOwner,
-            factory: ViewModelFactory
-        ): SettingsViewModel {
-            val temp = INSTANCE
-            if (temp != null)
-                return temp
-
-            synchronized(this) {
-                val instance = ViewModelProvider(owner, factory)[SettingsViewModel::class.java]
-
-                INSTANCE = instance
-                return instance
-            }
-        }
-    }
-
-
-    var state by mutableStateOf(State.Loading)
-        private set
-
 
     val settings: LiveData<Settings> by lazy {
         when {
@@ -83,25 +50,28 @@ class SettingsViewModel(
     private val _times: MutableStateFlow<Times> = MutableStateFlow(Times(startTime, endTime))
     val times: StateFlow<Times> = _times.asStateFlow()
 
-
     var bottomSheetContent: @Composable (ColumnScope.(BottomSheetFragment) -> Unit) by mutableStateOf({})
 
-
-    init {
-        state = State.Loading
-        viewModelScope.launch {
-            delay(200)
-//            _settings = settingsRepository.getSettings(preferences.email)
-//            _theme.value = _settings.value.theme.toThemes()
-            state = State.Ready
-        }
-    }
+    var switchThemeTextLineCount by mutableStateOf(1)
 
 
     fun isDarkTheme(isDark: Boolean, context: Context): String =
         context.getString(
             if (isDark) R.string.dark_theme else R.string.light_theme
         ).lowercase()
+
+    fun getThemeText(currentTheme: Themes, isDark: Boolean, context: Context) = buildString {
+        append(context.getString(currentTheme.titleRes).lowercase())
+
+        if (currentTheme == Themes.System || currentTheme == Themes.Auto) {
+            append(" ", context.getString(R.string.now, isDarkTheme(isDark, context)))
+        }
+    }
+
+
+    fun clearEmail() {
+        preferences.email = ""
+    }
 
 
     // TODO: сделать stateFlow в репозитории
@@ -136,12 +106,5 @@ class SettingsViewModel(
         _times.value = newTimes
         startTime = newTimes.startTime
         endTime = newTimes.endTime
-    }
-
-    // TODO: исправить
-    fun updateSettings(update: Settings.() -> Unit) {
-        viewModelScope.launch {
-            settingsRepository.addSettings(settings.value?.apply(update) ?: Settings())
-        }
     }
 }

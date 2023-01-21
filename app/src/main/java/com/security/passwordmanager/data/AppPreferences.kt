@@ -4,8 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.annotation.StyleRes
 import com.security.passwordmanager.R
-import com.security.passwordmanager.data.EnumPreferences.*
-import com.security.passwordmanager.getString
+import com.security.passwordmanager.data.AppPreferences.EnumPreferences.*
 import com.security.passwordmanager.presentation.model.Time
 
 class AppPreferences(application: Application) {
@@ -38,13 +37,8 @@ class AppPreferences(application: Application) {
             }.apply()
         }
 
-    var isPasswordRemembered: Boolean
-        get() = preferences.getBoolean(APP_PREFERENCES_IS_PASSWORD_REMEMBERED.title, false)
-        set(value) = preferences.edit()
-            .putBoolean(APP_PREFERENCES_IS_PASSWORD_REMEMBERED.title, value).apply()
-
     var email: String
-        get() = preferences.getString(APP_PREFERENCES_EMAIL.title) ?: ""
+        get() = preferences.getString(APP_PREFERENCES_EMAIL.title, "") ?: ""
         set(value) = preferences.edit()
             .putString(APP_PREFERENCES_EMAIL.title, value).apply()
 
@@ -53,16 +47,15 @@ class AppPreferences(application: Application) {
             .getInt(APP_PREFERENCES_THEME.title, R.style.Theme_PasswordManager)
         set(@StyleRes value) = preferences.edit()
             .putInt(APP_PREFERENCES_THEME.title, value).apply()
-}
 
 
-enum class EnumPreferences(val title: String) {
-    APP_PREFERENCES("my_settings"),
-    APP_PREFERENCES_START_HOURS("start_hours"),
-    APP_PREFERENCES_START_MINUTES("start_minutes"),
-    APP_PREFERENCES_END_HOURS("end_hours"),
-    APP_PREFERENCES_END_MINUTES("end_minutes"),
-    APP_PREFERENCES_IS_PASSWORD_REMEMBERED("is_password_remembered"),
-    APP_PREFERENCES_EMAIL("login"),
-    APP_PREFERENCES_THEME("appTheme")
+    enum class EnumPreferences(val title: String) {
+        APP_PREFERENCES("my_settings"),
+        APP_PREFERENCES_START_HOURS("start_hours"),
+        APP_PREFERENCES_START_MINUTES("start_minutes"),
+        APP_PREFERENCES_END_HOURS("end_hours"),
+        APP_PREFERENCES_END_MINUTES("end_minutes"),
+        APP_PREFERENCES_EMAIL("login"),
+        APP_PREFERENCES_THEME("appTheme")
+    }
 }

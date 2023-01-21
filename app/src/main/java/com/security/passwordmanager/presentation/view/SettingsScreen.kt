@@ -1,14 +1,11 @@
 package com.security.passwordmanager.presentation.view
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -22,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentManager
 import com.google.firebase.auth.FirebaseAuth
+import com.security.passwordmanager.EnterContentAnimation
+import com.security.passwordmanager.ExitContentAnimation
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
 import com.security.passwordmanager.data.model.Settings
@@ -49,14 +47,17 @@ import com.security.passwordmanager.presentation.view.navigation.createRouteToLo
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.RaspberryLight
+import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.onebone.toolbar.CollapsingToolbarScaffold
+import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 
 @ExperimentalAnimationApi
 @ExperimentalMaterial3Api
-@ExperimentalMaterialApi
 @Composable
 internal fun AnimatedVisibilityScope.SettingsScreen(
     title: String,
@@ -69,6 +70,7 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
 
     val times = viewModel.times.collectAsState()
     val context = LocalContext.current
+    val scaffoldState = rememberCollapsingToolbarScaffoldState()
 
     val settings by viewModel.settings.observeAsState(initial = Settings())
     val screenShape = MaterialTheme.shapes.large.copy(
@@ -80,8 +82,11 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
         viewModel.bottomSheetContent(this, it)
     }
 
-    Scaffold(
-        topBar = {
+
+    CollapsingToolbarScaffold(
+        state = scaffoldState,
+        scrollStrategy = ScrollStrategy.EnterAlways,
+        toolbar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
@@ -102,6 +107,7 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
                     IconButton(
                         onClick = {
                             FirebaseAuth.getInstance().signOut()
+                            viewModel.clearEmail()
                             navigateTo(createRouteToLoginScreen())
                         },
                     ) {
@@ -112,63 +118,43 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent,
+                    containerColor = MaterialTheme.colorScheme.background.animate(),
                     navigationIconContentColor = RaspberryLight,
                     actionIconContentColor = RaspberryLight,
                     titleContentColor = MaterialTheme.colorScheme.onBackground.animate(),
                 ),
             )
         },
-        containerColor = MaterialTheme.colorScheme.background.animate(),
-        contentColor = MaterialTheme.colorScheme.onBackground.animate()
-    ) { contentPadding ->
-
+        modifier = Modifier.fillMaxSize()
+    ) {
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 1.dp)
-                .padding(contentPadding)
                 .animateEnterExit(
-                    enter = fadeIn(
-                        animationSpec = tween(
-                            durationMillis = 300,
-                            easing = LinearEasing
-                        )
-                    ) + slideInVertically(
-                        animationSpec = tween(
-                            durationMillis = 500,
-                            delayMillis = 300,
-                            easing = LinearOutSlowInEasing
-                        )
-                    ) { it / 2 },
-                    exit = fadeOut(
-                        animationSpec = tween(
-                            durationMillis = 300,
-                            delayMillis = 500,
-                            easing = LinearEasing
-                        )
-                    ) + slideOutVertically(
-                        animationSpec = tween(
-                            durationMillis = 500,
-                            easing = FastOutLinearInEasing
-                        )
-                    ) { it / 2 }
+                    enter = EnterContentAnimation,
+                    exit = ExitContentAnimation
                 )
                 .clip(screenShape)
+                .background(
+                    color = MaterialTheme.colorScheme.background.animate(),
+                    shape = screenShape
+                )
                 .border(
-                    width = 1.3.dp,
+                    width = screenBorderThickness,
                     brush = Brush.verticalGradient(
                         0.01f to MaterialTheme.colorScheme.onBackground.animate(),
                         0.08f to MaterialTheme.colorScheme.background.animate()
                     ),
                     shape = screenShape
                 )
-                .fillMaxSize(),
         ) {
             Text(
                 text = buildAnnotatedString {
-                    append(stringResource(R.string.switchThemeText))
-                    append("\n")
+                    append(stringResource(R.string.switchThemeText) + " ")
+                    if (viewModel.switchThemeTextLineCount > 1) append("\n")
+
                     withStyle(
                         style = SpanStyle(
                             fontWeight = FontWeight.Bold,
@@ -178,16 +164,21 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
                         ),
                     ) {
                         append(
-                            text = stringResource(
-                                settings.theme.titleRes,
-                                viewModel.isDarkTheme(isDarkTheme, context)
-                            ).lowercase()
+                            text = viewModel.getThemeText(
+                                currentTheme = settings.theme,
+                                isDark = isDarkTheme,
+                                context
+                            )
                         )
                     }
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground.animate(),
                 textAlign = TextAlign.Start,
+                onTextLayout = {
+                    println("lineCount = ${it.lineCount}")
+                    viewModel.switchThemeTextLineCount = it.lineCount
+                },
                 modifier = Modifier
                     .clickable {
                         viewModel.bottomSheetContent = { fragment ->
@@ -197,7 +188,6 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
                                     viewModel.updateTheme(it)
                                     if (it != Themes.Auto) fragment.dismiss()
                                 },
-                                themeName = viewModel.isDarkTheme(isDarkTheme, context),
                                 showAdditionalContent = settings.theme == Themes.Auto
                             ) {
                                 Times(times = times.value) {
@@ -326,7 +316,6 @@ private fun SwitchItem(
 private fun ThemeSheet(
     currentTheme: Themes,
     updateTheme: (newTheme: Themes) -> Unit,
-    themeName: String,
     showAdditionalContent: Boolean,
     additionalContent: @Composable AnimatedVisibilityScope.() -> Unit,
 ) {
@@ -336,7 +325,7 @@ private fun ThemeSheet(
     BottomSheetContent {
         Themes.values().forEach { theme ->
             IconTextItem(
-                text = stringResource(theme.titleRes, themeName),
+                text = stringResource(theme.titleRes),
                 icon = if (theme == currentTheme) Icons.Rounded.CheckCircle else null,
                 iconTintColor = RaspberryLight,
                 iconAlignment = Alignment.End,

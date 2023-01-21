@@ -46,8 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LiveData
+import com.security.passwordmanager.*
 import com.security.passwordmanager.R
-import com.security.passwordmanager.animate
 import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
@@ -86,22 +86,38 @@ internal fun AnimatedVisibilityScope.LoginPasswordScreen(
 
 
     BackHandler {
-        if (!viewModel.enterLogin) {
-            viewModel.enterLogin = true
-            viewModel.password = ""
-            viewModel.passwordErrorMessage = ""
-            viewModel.isPasswordVisible = false
+        if (!viewModel.enterLogin && !viewModel.hasEmailInPreferences()) {
+            viewModel.changeLogin()
             keyboardController?.show()
+            focusManager.moveFocus(FocusDirection.Previous)
         } else {
             popBackStack()
         }
     }
 
 
+    Loading(isLoading = viewModel.isLoading)
+    if (viewModel.isLoading && viewModel.viewModelState == LoginViewModel.ViewModelState.Loading) return
+
+
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {},
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = when {
+                            viewModel.enterLogin ->
+                                stringResource(R.string.authorization) + "/" +
+                                        stringResource(R.string.registration)
+                            viewModel.currentEntryState == EntryState.SignIn ->
+                                stringResource(R.string.authorization)
+                            else -> stringResource(R.string.registration)
+                        },
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 actions = {
                     IconButton(
                         onClick = { bottomSheetFragment.show(fragmentManager) }
@@ -113,9 +129,11 @@ internal fun AnimatedVisibilityScope.LoginPasswordScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.mediumTopAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent,
-                    actionIconContentColor = RaspberryLight
+                    scrolledContainerColor = Color.Transparent,
+                    actionIconContentColor = RaspberryLight,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground.animate()
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -129,309 +147,360 @@ internal fun AnimatedVisibilityScope.LoginPasswordScreen(
         contentColor = MaterialTheme.colorScheme.onBackground.animate(),
         modifier = Modifier
             .animateEnterExit(
-                enter = slideInHorizontally(
-                    animationSpec = tween(
-                        durationMillis = 800,
-                        easing = LinearOutSlowInEasing
-                    )
-                ),
-                exit = slideOutHorizontally(
-                    animationSpec = tween(
-                        durationMillis = 800,
-                        easing = FastOutLinearInEasing
-                    )
-                )
+                enter = EnterContentAnimation,
+                exit = ExitContentAnimation
             )
             .fillMaxSize()
     ) { contentPadding ->
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(top = 16.dp)
-                .padding(contentPadding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(contentPadding)
         ) {
-            Image(
-                painter = painterResource(R.drawable.icon),
-                contentDescription = "app icon",
-                alignment = Alignment.Center,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(160.dp)
-            )
-
-
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(fontSize = 35.sp, fontWeight = FontWeight.Bold)
-                    ) {
-                        append(stringResource(R.string.app_label))
-                    }
-
-                    append("\n")
-
-                    withStyle(
-                        MaterialTheme.typography.titleLarge.toSpanStyle()
-                    ) {
-                        append("by CuteCat")
-                    }
-                },
-                color = MaterialTheme.colorScheme.onBackground.animate(),
-                textAlign = TextAlign.Center,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .padding(horizontal = 8.dp, vertical = 24.dp)
-                    .fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(32.dp))
-
-            Text(
-                text = when {
-                    viewModel.enterLogin -> stringResource(R.string.enter_email)
-                    viewModel.currentEntryState == EntryState.SignIn -> "Введите пароль"
-                    else -> "Придумайте пароль и введите его в поля ввода"
-                },
-                color = MaterialTheme.colorScheme.onBackground.animate(),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
-                    .fillMaxWidth()
-            )
-
-
-
-            LoginPasswordTextField(
-                text = viewModel.email,
-                onTextChange = {
-                    viewModel.email = it
-                    viewModel.emailErrorMessage =
-                        if (!viewModel.isEmailValid())
-                            context.getString(R.string.invalid_email)
-                        else ""
-                },
-                label = "Email",
-                error = viewModel.emailErrorMessage.isNotBlank(),
-                errorMessage = viewModel.emailErrorMessage,
-                readOnly = !viewModel.enterLogin,
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        viewModel.onEmailNext { isEmailValid ->
-                            if (isEmailValid)
-                                focusManager.moveFocus(FocusDirection.Next)
-                            else {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        context.getString(R.string.invalid_email)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                ),
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next,
-            )
-
-
-            Spacer(Modifier.height(16.dp))
-
-
-            AnimatedVisibility(
-                visible = !viewModel.enterLogin,
-                enter = expandVertically(
-                    animationSpec = tween(
-                        durationMillis = 350,
-                        easing = FastOutSlowInEasing
-                    )
-                ),
-                exit = shrinkVertically(
-                    animationSpec = tween(
-                        durationMillis = 350,
-                        easing = FastOutSlowInEasing
-                    )
-                )
+                    .padding(top = 16.dp)
+                    .align(Alignment.TopCenter)
+                    .fillMaxSize()
             ) {
-                Column {
-                    LoginPasswordTextField(
-                        text = viewModel.password,
-                        onTextChange = {
-                            viewModel.password = it
-                            viewModel.passwordErrorMessage =
-                                if (!viewModel.isPasswordValid() && viewModel.currentEntryState == EntryState.Registration)
-                                    context.getString(R.string.invalid_password)
-                                else ""
-                        },
-                        label = stringResource(R.string.password),
-                        error = viewModel.passwordErrorMessage.isNotBlank(),
-                        errorMessage = viewModel.passwordErrorMessage,
-                        keyboardType = KeyboardType.Password,
-                        imeAction = when (viewModel.currentEntryState) {
-                            EntryState.SignIn -> ImeAction.Done
-                            EntryState.Registration -> ImeAction.Next
-                        },
-                        keyboardActions = KeyboardActions {
-                            if (!viewModel.isPasswordValid()) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        context.getString(R.string.invalid_password)
-                                    )
-                                }
-                            }
-                        },
-                        visualTransformation = if (viewModel.isPasswordVisible) {
-                            VisualTransformation.None
-                        } else {
-                            PasswordVisualTransformation()
-                        },
-                        trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    viewModel.isPasswordVisible =
-                                        !viewModel.isPasswordVisible
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = if (viewModel.isPasswordVisible) {
-                                        Icons.Outlined.VisibilityOff
-                                    } else {
-                                        Icons.Outlined.Visibility
-                                    },
-                                    contentDescription = "show/hide password"
-                                )
-                            }
+                Image(
+                    painter = painterResource(R.drawable.icon),
+                    contentDescription = "app icon",
+                    alignment = Alignment.Center,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(160.dp)
+                )
+
+
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(fontSize = 35.sp, fontWeight = FontWeight.Bold)
+                        ) {
+                            append(stringResource(R.string.app_label))
                         }
-                    )
 
-                    Spacer(Modifier.height(8.dp))
+                        append("\n")
+
+                        withStyle(
+                            MaterialTheme.typography.titleLarge.toSpanStyle()
+                        ) {
+                            append("by CuteCat")
+                        }
+                    },
+                    color = MaterialTheme.colorScheme.onBackground.animate(),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp, vertical = 24.dp)
+                        .fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                Text(
+                    text = when {
+                        viewModel.enterLogin -> stringResource(R.string.enter_email)
+                        viewModel.currentEntryState == EntryState.SignIn -> "Введите пароль"
+                        else -> "Придумайте пароль и введите его в поля ввода"
+                    },
+                    color = MaterialTheme.colorScheme.onBackground.animate(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                        .fillMaxWidth()
+                )
 
 
-                    if (viewModel.currentEntryState == EntryState.Registration) {
-                        LoginPasswordTextField(
-                            text = viewModel.repeatedPassword,
-                            onTextChange = viewModel::repeatedPassword::set,
-                            label = stringResource(R.string.repeat_password),
-                            error = viewModel.repeatedPassword != viewModel.password,
-                            errorMessage = stringResource(R.string.passwords_is_not_equals),
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done,
-                            keyboardActions = KeyboardActions {
-                                if (viewModel.repeatedPassword != viewModel.password) {
+
+                LoginPasswordTextField(
+                    text = viewModel.email,
+                    onTextChange = {
+                        viewModel.email = it
+                        viewModel.emailErrorMessage =
+                            if (!viewModel.isEmailValid())
+                                context.getString(R.string.invalid_email)
+                            else ""
+                    },
+                    label = "Email",
+                    error = viewModel.emailErrorMessage.isNotBlank(),
+                    errorMessage = viewModel.emailErrorMessage,
+                    readOnly = !viewModel.enterLogin,
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            viewModel.onEmailNext { isEmailValid ->
+                                if (isEmailValid)
+                                    focusManager.moveFocus(FocusDirection.Next)
+                                else {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
-                                            context.getString(R.string.passwords_is_not_equals)
+                                            context.getString(R.string.invalid_email)
                                         )
                                     }
                                 }
-                            },
-                            visualTransformation = if (viewModel.isRepeatedPasswordVisible) {
-                                VisualTransformation.None
-                            } else {
-                                PasswordVisualTransformation()
-                            },
-                            trailingIcon = {
-                                IconButton(
-                                    onClick = {
-                                        viewModel.isRepeatedPasswordVisible =
-                                            !viewModel.isRepeatedPasswordVisible
-                                    },
-                                ) {
-                                    Icon(
-                                        imageVector = if (viewModel.isRepeatedPasswordVisible) {
-                                            Icons.Outlined.VisibilityOff
-                                        } else {
-                                            Icons.Outlined.Visibility
-                                        },
-                                        contentDescription = "show/hide password"
-                                    )
-                                }
                             }
+                        }
+                    ),
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
+                )
+
+
+                Spacer(Modifier.height(16.dp))
+
+
+                AnimatedVisibility(
+                    visible = !viewModel.enterLogin,
+                    enter = expandVertically(
+                        animationSpec = tween(
+                            durationMillis = 350,
+                            easing = FastOutSlowInEasing
                         )
-                    }
-
-
-                    Spacer(Modifier.height(32.dp))
-
-
-                    TextButton(
-                        onClick = {
-                            viewModel.loginOrRegisterUser(context) { isSuccess, entryState ->
-                                when {
-                                    isSuccess -> navigateTo(
-                                        createRouteToNotesScreen(
-                                            dataType = DataType.All,
-                                            title = context.getString(Screen.Notes.titleRes),
-                                        )
+                    ),
+                    exit = shrinkVertically(
+                        animationSpec = tween(
+                            durationMillis = 350,
+                            easing = FastOutSlowInEasing
+                        )
+                    )
+                ) {
+                    Column {
+                        LoginPasswordTextField(
+                            text = viewModel.password,
+                            onTextChange = {
+                                viewModel.password = it
+                                viewModel.passwordErrorMessage =
+                                    if (
+                                        !viewModel.isPasswordValid() &&
+                                        viewModel.currentEntryState == EntryState.Registration
                                     )
-                                    else -> {
-                                        viewModel.passwordErrorMessage = entryState.message
+                                        context.getString(R.string.invalid_password)
+                                    else ""
+                            },
+                            label = stringResource(R.string.password),
+                            error = viewModel.passwordErrorMessage.isNotBlank(),
+                            errorMessage = viewModel.passwordErrorMessage,
+                            keyboardType = KeyboardType.Password,
+                            imeAction = when (viewModel.currentEntryState) {
+                                EntryState.SignIn -> ImeAction.Done
+                                EntryState.Registration -> ImeAction.Next
+                                EntryState.Undefined -> ImeAction.None
+                            },
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    if (!viewModel.isPasswordValid()) {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar(entryState.message)
+                                            snackbarHostState.showSnackbar(
+                                                context.getString(R.string.invalid_password)
+                                            )
+                                        }
+                                    }
+                                },
+                                onDone = {
+                                    keyboardController?.hide()
+                                    focusManager.clearFocus()
+                                }
+                            ),
+                                visualTransformation = if (viewModel.isPasswordVisible) {
+                                    VisualTransformation.None
+                                } else {
+                                    PasswordVisualTransformation()
+                                },
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            viewModel.isPasswordVisible =
+                                                !viewModel.isPasswordVisible
+                                        },
+                                    ) {
+                                        Icon(
+                                            imageVector = if (viewModel.isPasswordVisible) {
+                                                Icons.Outlined.VisibilityOff
+                                            } else {
+                                                Icons.Outlined.Visibility
+                                            },
+                                            contentDescription = "show/hide password"
+                                        )
+                                    }
+                                }
+                            )
+
+
+                        if (viewModel.currentEntryState == EntryState.Registration) {
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            LoginPasswordTextField(
+                                text = viewModel.repeatedPassword,
+                                onTextChange = viewModel::repeatedPassword::set,
+                                label = stringResource(R.string.repeat_password),
+                                error = viewModel.repeatedPassword != viewModel.password,
+                                errorMessage = stringResource(R.string.passwords_is_not_equals),
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done,
+                                keyboardActions = KeyboardActions {
+                                    if (viewModel.repeatedPassword != viewModel.password) {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                context.getString(R.string.passwords_is_not_equals)
+                                            )
+                                        }
+                                    }
+                                },
+                                visualTransformation = if (viewModel.isRepeatedPasswordVisible) {
+                                    VisualTransformation.None
+                                } else {
+                                    PasswordVisualTransformation()
+                                },
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            viewModel.isRepeatedPasswordVisible =
+                                                !viewModel.isRepeatedPasswordVisible
+                                        },
+                                    ) {
+                                        Icon(
+                                            imageVector = if (viewModel.isRepeatedPasswordVisible) {
+                                                Icons.Outlined.VisibilityOff
+                                            } else {
+                                                Icons.Outlined.Visibility
+                                            },
+                                            contentDescription = "show/hide password"
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+
+                        Spacer(Modifier.height(16.dp))
+
+
+                        TextButton(
+                            onClick = {
+                                viewModel.loginOrRegisterUser(context) { isSuccess, entryState ->
+                                    when {
+                                        isSuccess -> navigateTo(
+                                            createRouteToNotesScreen(
+                                                dataType = DataType.All,
+                                                title = context.getString(Screen.Notes.titleRes),
+                                            )
+                                        )
+                                        else -> {
+                                            viewModel.passwordErrorMessage = entryState.message
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(entryState.message)
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        },
-                        shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.textButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.animate(),
-                            contentColor = MaterialTheme.colorScheme.onPrimary.animate()
-                        ),
-                        border = BorderStroke(
-                            width = 1.1.dp,
-                            brush = Brush.horizontalGradient(
-                                listOf(
-                                    MaterialTheme.colorScheme.onBackground,
-                                    MaterialTheme.colorScheme.background
-                                ).map { it.animate() }
-                            )
-                        ),
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(
-                                if (viewModel.currentEntryState == EntryState.SignIn) {
-                                    R.string.action_sign_in
-                                } else {
-                                    R.string.action_sign_up
-                                }
+                            },
+                            shape = MaterialTheme.shapes.small,
+                            colors = ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.animate(),
+                                contentColor = MaterialTheme.colorScheme.onPrimary.animate()
                             ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
+                            border = BorderStroke(
+                                width = 1.1.dp,
+                                brush = Brush.horizontalGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.onBackground,
+                                        MaterialTheme.colorScheme.background
+                                    ).map { it.animate() }
+                                )
+                            ),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                androidx.compose.animation.AnimatedVisibility(
+                                    visible = viewModel.isLoading,
+                                    enter = fadeIn(
+                                        animationSpec = tween(
+                                            durationMillis = 250,
+                                            easing = LinearOutSlowInEasing
+                                        )
+                                    ),
+                                    exit = fadeOut(
+                                        animationSpec = tween(
+                                            durationMillis = 250,
+                                            easing = FastOutLinearInEasing
+                                        )
+                                    )
+                                ) {
+                                    CircularProgressIndicator(
+                                        strokeWidth = 4.dp,
+                                        color = MaterialTheme.colorScheme.onPrimary.animate(),
+                                        modifier = Modifier.scale(0.8f)
+                                    )
+                                }
+
+
+                                androidx.compose.animation.AnimatedVisibility(
+                                    visible = !viewModel.isLoading,
+                                    enter = fadeIn(
+                                        animationSpec = tween(
+                                            durationMillis = 250,
+                                            easing = LinearOutSlowInEasing
+                                        )
+                                    ),
+                                    exit = fadeOut(
+                                        animationSpec = tween(
+                                            durationMillis = 250,
+                                            easing = FastOutLinearInEasing
+                                        )
+                                    )
+                                ) {
+                                    Text(
+                                        text = stringResource(
+                                            if (viewModel.currentEntryState == EntryState.SignIn) {
+                                                R.string.action_sign_in
+                                            } else {
+                                                R.string.action_sign_up
+                                            }
+                                        ),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+
+
+                        Spacer(Modifier.height(32.dp))
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
 
-            AnimatedVisibility(
-                visible = viewModel.isLoading,
-                enter = fadeIn(
-                    animationSpec = tween(
-                        durationMillis = 250,
-                        easing = LinearOutSlowInEasing
+            if (!viewModel.enterLogin) {
+                TextButton(
+                    onClick = {
+                        viewModel.changeLogin()
+                        keyboardController?.show()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = RaspberryLight
+                    ),
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp)
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                ) {
+                    Text(
+                        text = "Войти в другой аккаунт",
+                        style = MaterialTheme.typography.bodyMedium
                     )
-                ),
-                exit = fadeOut(
-                    animationSpec = tween(
-                        durationMillis = 250,
-                        easing = FastOutLinearInEasing
-                    )
-                )
-            ) {
-                CircularProgressIndicator(
-                    strokeWidth = 3.dp,
-                    color = MaterialTheme.colorScheme.primary.animate(),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                }
             }
-
-
-            Spacer(Modifier.height(32.dp))
         }
     }
 }
@@ -483,8 +552,10 @@ private fun LoginPasswordTextField(
                 imeAction = imeAction,
                 autoCorrect = false
             ),
-            cursorBrush = Brush.verticalGradient(colors),
-            textStyle = MaterialTheme.typography.bodyMedium,
+            cursorBrush = brush,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onBackground.animate()
+            ),
             keyboardActions = keyboardActions,
             visualTransformation = visualTransformation,
             decorationBox = { innerTextField ->
@@ -605,41 +676,16 @@ private fun LoginPasswordTextFieldPreview() {
     PasswordManagerTheme(isDarkTheme = false) {
         var text by remember { mutableStateOf("Hello!") }
 
-        Column {
-            LoginPasswordTextField(
-                text = text,
-                onTextChange = { text = it },
-                label = "Email",
-                readOnly = true,
-                error = true,
-                errorMessage = "Error",
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done,
-                keyboardActions = KeyboardActions()
-            )
-
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                isError = true,
-                label = {
-                    Text(
-                        text = "Email",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                },
-                supportingText = {
-                    Text(
-                        text = "Error",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                },
-                textStyle = MaterialTheme.typography.bodyMedium,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-            )
-        }
+        LoginPasswordTextField(
+            text = text,
+            onTextChange = { text = it },
+            label = "Email",
+            readOnly = true,
+            error = true,
+            errorMessage = "Error",
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done,
+            keyboardActions = KeyboardActions()
+        )
     }
 }

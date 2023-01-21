@@ -6,6 +6,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -29,14 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -54,8 +50,12 @@ import com.security.passwordmanager.data.model.Data
 import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.presentation.model.DataUI
 import com.security.passwordmanager.presentation.model.enums.DataType
-import com.security.passwordmanager.presentation.view.TrailingActions.CopyIconButton
-import com.security.passwordmanager.presentation.view.TrailingActions.VisibilityIconButton
+import com.security.passwordmanager.presentation.view.composablelements.DataTextField
+import com.security.passwordmanager.presentation.view.composablelements.SearchBar
+import com.security.passwordmanager.presentation.view.composablelements.TopBar
+import com.security.passwordmanager.presentation.view.composablelements.TopBarAction
+import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
+import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.navigation.Header
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.CopyItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.DeleteItem
@@ -66,31 +66,41 @@ import com.security.passwordmanager.presentation.view.navigation.createRouteToBa
 import com.security.passwordmanager.presentation.view.navigation.createRouteToWebsiteScreen
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
+import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
 import com.security.passwordmanager.presentation.viewmodel.NotesViewModel
 import kotlinx.coroutines.delay
+import me.onebone.toolbar.*
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
+@ExperimentalToolbarApi
 @ExperimentalMaterial3Api
-@ExperimentalMaterialApi
 @Composable
-internal fun NotesScreen(
+internal fun AnimatedVisibilityScope.NotesScreen(
     title: String,
+    isDarkTheme: Boolean,
     dataType: DataType,
     dataViewModel: DataViewModel,
     viewModel: NotesViewModel,
     fragmentManager: FragmentManager,
     openDrawer: () -> Unit,
-    navigateTo: (route: String) -> Unit
+    navigateTo: (route: String) -> Unit,
+    isDarkStatusBarIcons: (Boolean) -> Unit
 ) {
     viewModel.isLoading = true
-    viewModel.dataList = if (viewModel.isSearching) {
-        dataViewModel.searchData(viewModel.query, dataType).observeAsState(listOf(DataUI.DefaultWebsite))
-    } else {
-        dataViewModel.getDataUIList(dataType).observeAsState(listOf(DataUI.DefaultWebsite))
-    }.value
+    viewModel.dataList = when {
+        viewModel.isSearching -> dataViewModel.searchData(viewModel.query, dataType)
+        else -> dataViewModel.getDataUIList(dataType)
+    }.observeAsState(listOf(DataUI.DefaultWebsite)).value
     viewModel.isLoading = false
+
+    val toolbarState = rememberCollapsingToolbarState(0)
+    val scaffoldState = rememberCollapsingToolbarScaffoldState(toolbarState)
+
+    isDarkStatusBarIcons(toolbarState.progress() < 0.5f && !isDarkTheme)
+
+    viewModel.showTopBar = scaffoldState.toolbarState.progress() != 0f
 
 
     val bottomFragment = BottomSheetFragment(
@@ -102,97 +112,53 @@ internal fun NotesScreen(
             fragment.dismiss()
         }
 
-        ScreenTypeItem(Screen.BankCard) {
-            navigateTo(createRouteToBankCardScreen(dataUI = DataUI.DefaultBankCard))
-            fragment.dismiss()
-        }
+//        ScreenTypeItem(Screen.BankCard) {
+//            navigateTo(createRouteToBankCardScreen(dataUI = DataUI.DefaultBankCard))
+//            fragment.dismiss()
+//        }
     }
 
 
-    val topBarHeight = 64.dp
-    val topBarHeightPx = with(LocalDensity.current) { topBarHeight.roundToPx().toFloat() }
-    var topBarOffsetHeightPx by rememberSaveable { mutableStateOf(0f) }
-    val topAppBarState = rememberTopAppBarState()
+    Loading(
+        isLoading = viewModel.isLoading ||
+                viewModel.dataList.isEmpty() ||
+                viewModel.dataList.any { it.title.isEmpty() },
+    )
+    if (viewModel.isLoading || viewModel.dataList.any { it.title.isEmpty() }) return
 
-    // connection to the nested scroll system and listen to the scroll
-    // happening inside child LazyColumn
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val delta = available.y
-                val newOffset = topAppBarState.heightOffset + delta
-                topAppBarState.heightOffset = newOffset.coerceIn(0f, topBarHeightPx)
 
-                return Offset.Zero
-            }
-        }
-    }
 
-//    val getDataList = {
-//        scope.launch {
-////            isLoading = true
-////            delay(1000)
-//            dataList.value = dataViewModel.getDataUIList(screenType.toDataType())
-////            isLoading = false
-//        }
-//    }
-//
-//    val searchData = { query: String ->
-//        scope.launch {
-//            dataList.value = dataViewModel.searchData(query, screenType.toDataType())
-//        }
-//    }
-
-//    if (!search.value)
-//        getDataList()
-
-    Scaffold(
-        topBar = {
-            AnimatedVisibility(
-                visible = viewModel.isSearching,
-                enter = fadeIn(tween(durationMillis = 600)),
-                exit = fadeOut(tween(durationMillis = 600))
-            ) {
-                SearchBar(
-                    onQueryChange = viewModel::query::set,
-                    onCloseSearchBar = { viewModel.isSearching = false }
-                )
-            }
-            AnimatedVisibility(
-                visible = !viewModel.isSearching,
-                enter = fadeIn(tween(durationMillis = 600)),
-                exit = fadeOut(tween(durationMillis = 600)),
-            ) {
-                TopBar(
-                    title = title,
-                    topAppBarState = topAppBarState,
-                    navigationIcon = Icons.Rounded.Menu,
-                    onNavigate = openDrawer,
-                    modifier = Modifier
-//                        .height(
-//                            with(LocalDensity.current) {
-//                                (topBarHeightPx - topBarOffsetHeightPx).toDp()
-//                            }
-//                        )
-//                        .offset { IntOffset(x = 0, y = -topBarOffsetHeightPx.roundToInt()) }
-                ) {
-                    TopBarAction(icon = Icons.Filled.Search) {
-                        viewModel.isSearching = true
+    ToolbarWithFabScaffold(
+        state = scaffoldState,
+        scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
+        toolbar = {
+            Toolbar(
+                viewModel = viewModel,
+                title = title,
+                onNavigate = openDrawer,
+                modifier = Modifier
+                    .progress {
+                        println("progress = $it, isDarkTheme = $isDarkTheme")
+                        isDarkStatusBarIcons(scaffoldState.toolbarState.scrollProgress < 0.5 && !isDarkTheme)
                     }
-                }
-            }
+                    .pin()
+            )
         },
-        floatingActionButton = {
+        fab = {
             AnimatedVisibility(
                 visible = viewModel.showFab,
                 enter = viewModel.enterFabAnimation,
-                exit = viewModel.exitFabAnimation
+                exit = viewModel.exitFabAnimation,
+                modifier = Modifier.animateEnterExit(
+                    enter = viewModel.enterScreenFabAnimation,
+                    exit = viewModel.exitScreenFabAnimation
+                )
             ) {
                 FloatingActionButton(
                     onClick = {
                         when (dataType) {
-//                            DataType.All -> bottomFragment.show(fragmentManager)
-                            DataType.Website, DataType.All ->
+                            DataType.All -> bottomFragment.show(fragmentManager)
+                            DataType.Website ->
                                 navigateTo(createRouteToWebsiteScreen(address = ""))
                             DataType.BankCard ->
                                 TODO("Доделать")
@@ -201,11 +167,12 @@ internal fun NotesScreen(
                     containerColor = MaterialTheme.colorScheme.primary.animate(),
                     contentColor = MaterialTheme.colorScheme.onPrimary.animate(),
                     elevation = FloatingActionButtonDefaults.loweredElevation(),
-                    modifier = Modifier.padding(
-                        WindowInsets.navigationBars
-                            .only(WindowInsetsSides.Vertical)
-                            .asPaddingValues()
-                    )
+                    modifier = Modifier
+                        .padding(
+                            WindowInsets.navigationBars
+                                .only(WindowInsetsSides.Vertical)
+                                .asPaddingValues()
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Add,
@@ -214,49 +181,117 @@ internal fun NotesScreen(
                 }
             }
         },
-        contentWindowInsets = WindowInsets(0.dp),
-        containerColor = MaterialTheme.colorScheme.background.animate(),
-        contentColor = MaterialTheme.colorScheme.onBackground.animate(),
-        modifier = Modifier
-            .nestedScroll(nestedScrollConnection)
-            .fillMaxSize()
-    ) { contentPadding ->
-
-        Loading(viewModel.isLoading)
-        if (viewModel.isLoading) return@Scaffold
-
-
-
-        if (viewModel.dataList.isEmpty()) {
-            if (viewModel.isSearching) {
-                EmptyList(
-                    text = stringResource(R.string.search_no_results),
-                    modifier = Modifier.padding(contentPadding)
-                )
-            } else {
-                EmptyList(
-                    text = stringResource(R.string.empty_data_list),
-                    icon = Icons.Rounded.DataArray,
-                    modifier = Modifier.padding(contentPadding)
-                )
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.primary.animate())
+                .fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .animateEnterExit(
+                        enter = EnterContentAnimation,
+                        exit = ExitContentAnimation
+                    )
+                    .clip(viewModel.screenShape())
+                    .background(
+                        color = MaterialTheme.colorScheme.background.animate(),
+                        shape = viewModel.screenShape()
+                    )
+                    .border(
+                        width = if (viewModel.showTopBar) screenBorderThickness else 0.dp,
+                        brush = Brush.verticalGradient(
+                            0.1f to MaterialTheme.colorScheme.primary.animate(),
+                            0.6f to MaterialTheme.colorScheme.background.animate()
+                        ),
+                        shape = viewModel.screenShape()
+                    )
+                    .fillMaxSize()
+            ) {
+                when {
+                    viewModel.dataList.isEmpty() -> EmptyList(
+                        text = stringResource(
+                            if (viewModel.isSearching) R.string.search_no_results else R.string.empty_data_list
+                        ),
+                        icon = {
+                            if (viewModel.isSearching) {
+                                Text(
+                                    "\\(o_o)/",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontSize = 70.sp,
+                                    color = MaterialTheme.colorScheme.onBackground.animate(),
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Rounded.DataArray,
+                                    contentDescription = "empty list",
+                                    tint = MaterialTheme.colorScheme.onBackground.animate(),
+                                    modifier = Modifier.scale(2.5f)
+                                )
+                            }
+                        }
+                    )
+                    else -> PasswordList(
+                        dataList = viewModel.dataList,
+                        dataViewModel = dataViewModel,
+                        notesViewModel = viewModel,
+                        fragmentManager = fragmentManager,
+                        isScrolling = { _, scrollUp ->
+                            LaunchedEffect(key1 = scrollUp) {
+                                delay(100)
+                                viewModel.showFab = scrollUp
+                            }
+                        },
+                        navigateTo = navigateTo,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
-        else PasswordList(
-            dataList = viewModel.dataList,
-            dataViewModel = dataViewModel,
-            fragmentManager = fragmentManager,
-            isScrolling = { _, scrollUp ->
-                LaunchedEffect(key1 = scrollUp) {
-                    delay(100)
-                    viewModel.showFab = scrollUp
-                }
-                // TODO: 06.11.2022 сделать скрытие топбара при скролле
-            },
-            navigateTo = navigateTo,
-            modifier = Modifier.padding(contentPadding)
-        )
     }
 }
+
+
+
+@ExperimentalMaterial3Api
+@Composable
+private fun Toolbar(
+    viewModel: NotesViewModel,
+    title: String,
+    modifier: Modifier = Modifier,
+    onNavigate: () -> Unit
+) {
+    AnimatedVisibility(
+        visible = viewModel.isSearching,
+        enter = fadeIn(tween(durationMillis = 600)),
+        exit = fadeOut(tween(durationMillis = 600))
+    ) {
+        SearchBar(
+            onQueryChange = viewModel::query::set,
+            onCloseSearchBar = { viewModel.isSearching = false },
+            modifier = modifier
+        )
+    }
+
+    AnimatedVisibility(
+        visible = !viewModel.isSearching,
+        enter = fadeIn(tween(durationMillis = 600)),
+        exit = fadeOut(tween(durationMillis = 600)),
+    ) {
+        TopBar(
+            title = title,
+            navigationIcon = Icons.Rounded.Menu,
+            onNavigate = onNavigate,
+            modifier = modifier
+        ) {
+            TopBarAction(icon = Icons.Filled.Search) {
+                viewModel.isSearching = true
+            }
+        }
+    }
+}
+
 
 
 
@@ -264,7 +299,7 @@ internal fun NotesScreen(
 private fun EmptyList(
     text: String,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
+    icon: @Composable (() -> Unit) = {}
 ) {
     Column(
         modifier = modifier
@@ -273,26 +308,15 @@ private fun EmptyList(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (icon == null) {
-            Text(
-                "\\(o_o)/",
-                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 70.sp),
-                color = MaterialTheme.colorScheme.onBackground.animate(),
-                modifier = Modifier.padding(top = 30.dp, bottom = 20.dp)
-            )
-        } else {
-            Icon(
-                icon,
-                contentDescription = text,
-                tint = MaterialTheme.colorScheme.onBackground.animate(),
-                modifier = Modifier
-                    .scale(2.5f)
-                    .padding(top = 30.dp, bottom = 20.dp)
-            )
+        Box(
+            modifier = Modifier
+                .padding(top = 30.dp, bottom = 20.dp)
+        ) {
+            icon()
         }
 
         Text(
-            text,
+            text = text,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onBackground.animate(),
             textAlign = TextAlign.Center
@@ -303,13 +327,13 @@ private fun EmptyList(
 
 
 @ExperimentalFoundationApi
-@ExperimentalAnimationApi
 @ExperimentalMaterial3Api
 @Composable
 private fun PasswordList(
     dataList: List<DataUI>,
     fragmentManager: FragmentManager,
     dataViewModel: DataViewModel,
+    notesViewModel: NotesViewModel,
     navigateTo: (route: String) -> Unit,
     isScrolling: @Composable (isScrolling: Boolean, scrollUp: Boolean) -> Unit,
     modifier: Modifier = Modifier
@@ -321,8 +345,8 @@ private fun PasswordList(
     if (openedItem != null) {
         LaunchedEffect(key1 = openedItem) {
             delay(50)
-            listState.smoothScrollToItem(
-                targetPosition = dataList.indexOf(openedItem).takeIf { it >= 0 } ?: 0
+            listState.scrollToItem(
+                index = dataList.indexOf(openedItem).takeIf { it >= 0 } ?: 0
             )
         }
     }
@@ -343,6 +367,8 @@ private fun PasswordList(
                     openedItem = if (openedItem == dataUI) null else dataUI
                 },
                 navigateTo = navigateTo,
+                enterAnimation = notesViewModel.enterDataItemAnimation,
+                exitAnimation = notesViewModel.exitDataItemAnimation,
                 modifier = Modifier
                     .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
                     .animateItemPlacement(spring(stiffness = Spring.StiffnessMediumLow))
@@ -363,7 +389,6 @@ private fun PasswordList(
 
 
 @ExperimentalMaterial3Api
-@ExperimentalAnimationApi
 @Composable
 private fun DataListItem(
     dataUI: DataUI,
@@ -373,6 +398,8 @@ private fun DataListItem(
     copyAccountList: (List<Data>) -> Unit,
     deleteRecords: (Data) -> Unit,
     navigateTo: (route: String) -> Unit,
+    enterAnimation: EnterTransition,
+    exitAnimation: ExitTransition,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -420,6 +447,8 @@ private fun DataListItem(
         }
     }
 
+
+
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.background.animate())
@@ -434,15 +463,8 @@ private fun DataListItem(
         dataUI.accountList.forEachIndexed { position, data ->
             AnimatedVisibility(
                 visible = showAll,
-                enter = fadeIn(animationSpec = tween(
-                    durationMillis = 300,
-                    easing = LinearOutSlowInEasing
-                )) + expandVertically(animationSpec = tween(
-                    durationMillis = 300,
-                    easing = LinearOutSlowInEasing
-                )),
-                exit = fadeOut(tween(durationMillis = 300, easing = FastOutLinearInEasing))
-                        + shrinkVertically(tween(durationMillis = 300, easing = FastOutLinearInEasing))
+                enter = enterAnimation,
+                exit = exitAnimation,
             ) {
                 // TODO: 07.09.2022 подумать над тем, как будут размещатся элементы bank Card
                 when (data) {
@@ -682,11 +704,14 @@ private fun BankCard(bankCard: BankCard) {
 }
 
 
+
+
+
 @ExperimentalMaterial3Api
 @Preview
 @Composable
 private fun WebsitePreview() {
-    PasswordManagerTheme {
+    PasswordManagerTheme(isDarkTheme = true) {
         Website(
             website = Website(
                 nameWebsite = "Wrecked",
@@ -714,7 +739,7 @@ private fun DataListItemPreview() {
         login = "qwerevmlkkiekekxxkxiekdkd",
         password = "12sskskxkxksmmsmsmssmms"
     )
-    PasswordManagerTheme {
+    PasswordManagerTheme(isDarkTheme = false) {
         DataListItem(
             dataUI = DataUI(
                 title = website,
@@ -726,7 +751,29 @@ private fun DataListItemPreview() {
             copyAccountList = {},
             navigateTo = {},
             deleteRecords = {},
-            onClick = {}
+            onClick = {},
+            enterAnimation = fadeIn(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    easing = LinearOutSlowInEasing,
+                ),
+            ) + expandVertically(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    easing = LinearOutSlowInEasing,
+                ),
+            ),
+            exitAnimation = fadeOut(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    easing = FastOutLinearInEasing
+                )
+            ) + shrinkVertically(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    easing = FastOutLinearInEasing,
+                ),
+            )
         )
     }
 }

@@ -2,60 +2,48 @@ package com.security.passwordmanager
 
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
-import android.view.Gravity
-import android.view.View
+import android.util.Log
 import android.webkit.URLUtil
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
-import android.content.res.ColorStateList as AndroidColorList
-
-fun TextView?.isEmpty() =
-    this == null || text.isEmpty()
-
-fun View.hide() {
-    visibility = View.GONE
-}
-
-fun View.show() {
-    visibility = View.VISIBLE
-}
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import me.onebone.toolbar.CollapsingToolbarState
 
 internal fun Bundle?.getInt(key: String, defaultValue: Int) =
     this?.getInt(key) ?: defaultValue
 
+
+
 internal fun Bundle?.getString(key: String, defaultValue: String = "") =
     this?.getString(key) ?: defaultValue
 
-fun SharedPreferences.getString(key: String) =
-    this.getString(key, "")
-
-var EditText.txt: String
-    get() = text.toString()
-    set(value) = setText(value)
-
-
-inline fun <reified T: AppCompatActivity>createIntent(context: Context?, block: Intent.() -> Unit) =
-    Intent(context, T::class.java).apply(block)
 
 
 fun showToast(context: Context?, text: String, duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(context, text, duration).modify().show()
+    Toast.makeText(context, text, duration).show()
+
+
 
 fun showToast(context: Context?, @StringRes text: Int, duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(context, text, duration).modify().show()
+    Toast.makeText(context, text, duration).show()
 
-private fun Toast.modify() = apply {
-    setGravity(Gravity.CENTER, 0, 0)
-}
 
 
 inline fun buildString(initString: String = "", builderAction: StringBuilder.() -> Unit) =
@@ -63,15 +51,15 @@ inline fun buildString(initString: String = "", builderAction: StringBuilder.() 
 
 
 
-fun ColorStateList(@ColorInt color: Int) =
-    AndroidColorList.valueOf(color)
-
-
 fun StringBuilder.deleteFromLast(count: Int = 1) =
     deleteRange(length - count, length)
 
+
+
 fun <E> List<E>.slice(fromIndex: Int = 0, toIndex: Int = size) =
     subList(fromIndex, toIndex)
+
+
 
 fun Context.getActivity(): AppCompatActivity? = when (this) {
     is AppCompatActivity -> this
@@ -80,19 +68,14 @@ fun Context.getActivity(): AppCompatActivity? = when (this) {
 }
 
 
-fun Parcel.getString(defaultValue: String = "") =
-    readString() ?: defaultValue
 
+fun Parcel.getString(defaultValue: String = "") = readString() ?: defaultValue
 
-//fun Intent.getDataUIExtra(name : String, defaultValue : DataUI) =
-//    if (Build.VERSION.SDK_INT >= 33) {
-//        getSerializableExtra(name, DataUI::class.java)
-//    } else {
-//        getSerializableExtra(name) as DataUI?
-//    } ?: defaultValue
 
 
 fun String.isValidUrl() = URLUtil.isValidUrl(this)
+
+
 
 @Suppress("UNCHECKED_CAST", "DEPRECATION")
 fun <D : Enum<*>> Bundle?.getEnum(key: String, defaultValue: D): D =
@@ -106,7 +89,190 @@ fun <D : Enum<*>> Bundle?.getEnum(key: String, defaultValue: D): D =
     }
 
 
+
 fun <T> MutableList<T>.swapList(newList: List<T>) {
     clear()
     addAll(newList)
 }
+
+
+
+// Compose functions
+
+
+
+val BottomAnimationSpec: AnimationSpec<Float> = tween(
+    durationMillis = 350,
+    easing = LinearOutSlowInEasing
+)
+
+
+
+//fun LazyListState.isItemFullyVisible(index: Int): Boolean {
+//    with(layoutInfo) {
+//        val itemVisibleInfo = visibleItemsInfo.find { it.index == index }
+//        return if (itemVisibleInfo == null)
+//            false
+//        else firstVisibleItemScrollOffset > 0
+//        //viewportStartOffset - itemVisibleInfo.offset >= itemVisibleInfo.size
+//    }
+//}
+
+
+@Composable
+fun CollapsingToolbarState.progress(): Float =
+    ((height - minHeight).toFloat() / (maxHeight - minHeight)).coerceIn(0f, 1f)
+
+val CollapsingToolbarState.scrollProgress: Float
+get() = ((height - minHeight).toFloat() / (maxHeight - minHeight)).coerceIn(0f, 1f)
+
+
+
+@Composable
+fun Color.animate(durationMillis: Int = 600): Color =
+    animateColorAsState(
+        targetValue = this,
+        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing)
+    ).value
+
+
+
+@Composable
+fun LazyListState.isScrollingUp(): Boolean {
+    var previousIndex by remember(this) { mutableStateOf(firstVisibleItemIndex) }
+    var previousScrollOffset by remember(this) { mutableStateOf(firstVisibleItemScrollOffset) }
+    return remember(this) {
+        derivedStateOf {
+            if (previousIndex != firstVisibleItemIndex) {
+                previousIndex > firstVisibleItemIndex
+            } else {
+                previousScrollOffset >= firstVisibleItemScrollOffset
+            }.also {
+                previousIndex = firstVisibleItemIndex
+                previousScrollOffset = firstVisibleItemScrollOffset
+            }
+        }
+    }.value
+}
+
+
+
+suspend fun LazyListState.smoothScrollToItem(targetPosition: Int) {
+    // TODO: 11.11.2022 доделать
+//    val firstVisibleItemPosition =
+//        if (isItemFullyVisible(firstVisibleItemIndex)) {
+//            firstVisibleItemIndex
+//        } else {
+//            firstVisibleItemIndex + 1
+//        }
+
+
+
+    val itemsToScroll = targetPosition - firstVisibleItemIndex
+
+    Log.d("ComposeExtensions", "target = $targetPosition, itemsToScroll = $itemsToScroll, offset = $firstVisibleItemScrollOffset")
+    val pixelsToScroll = layoutInfo
+        .visibleItemsInfo
+        .slice(toIndex = itemsToScroll)
+        .sumOf { it.size } - firstVisibleItemScrollOffset
+
+//    val duration = layoutInfo
+//        .visibleItemsInfo
+//        .slice(toIndex = itemsToScroll)
+//        .fold(0) { acc, item ->
+//            (acc + item.size * 1.2).roundToInt()
+//        }
+
+
+    Log.d("ComposeExtensions", "pixelsToScroll = $pixelsToScroll")
+
+    animateScrollBy(
+        value = pixelsToScroll.toFloat(),
+        animationSpec = tween(
+            durationMillis = 300 * itemsToScroll,//duration,
+            delayMillis = 60,
+            easing = FastOutSlowInEasing
+        )
+    )
+}
+
+
+
+@ExperimentalLayoutApi
+@Composable
+fun keyboardAsState(): State<Boolean> {
+    val isImeVisible = //WindowInsets.ime.getBottom(LocalDensity.current) > 0
+        WindowInsets.isImeVisible
+
+    return rememberUpdatedState(newValue = isImeVisible)
+}
+
+
+
+@ExperimentalAnimationApi
+@Composable
+fun Loading(isLoading: Boolean, modifier: Modifier = Modifier) {
+    AnimatedVisibility(
+        visible = isLoading,
+        enter = fadeIn(spring(stiffness = Spring.StiffnessLow)),
+        exit = fadeOut(spring(stiffness = Spring.StiffnessLow)),
+        modifier = modifier.fillMaxSize()
+    ) {
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background.animate())
+                .fillMaxSize(),
+        ) {
+            CircularProgressIndicator(
+                strokeWidth = 3.5.dp,
+                color = MaterialTheme.colorScheme.primary.animate(),
+                modifier = Modifier
+                    .animateEnterExit(
+                        enter = slideInVertically(),
+                        exit = slideOutVertically()
+                    )
+                    .scale(1.4f)
+                    .align(Alignment.Center)
+            )
+        }
+    }
+}
+
+
+const val animationTimeMillis = 800
+const val screenEnterExitRatio = 1.0 / 1
+const val contentDurationRatio = 7.0 / 8
+
+
+
+val EnterScreenAnimation = fadeIn(
+    animationSpec = tween(
+        durationMillis = ((animationTimeMillis * screenEnterExitRatio) / (1 + screenEnterExitRatio)).toInt(),
+        delayMillis = (animationTimeMillis / (screenEnterExitRatio + 1)).toInt(),
+        easing = LinearEasing
+    )
+)
+
+val ExitScreenAnimation = fadeOut(
+    animationSpec = tween(
+        durationMillis = (animationTimeMillis / (screenEnterExitRatio + 1)).toInt(),
+        easing = LinearEasing
+    )
+)
+
+
+
+val EnterContentAnimation = slideInVertically(
+    animationSpec = tween(
+        durationMillis = ((animationTimeMillis * screenEnterExitRatio) / (1 + screenEnterExitRatio)).toInt(),
+        delayMillis = (animationTimeMillis / (screenEnterExitRatio + 1)).toInt(),
+        easing = LinearOutSlowInEasing
+    )
+) { it / 2 }
+
+val ExitContentAnimation = slideOutVertically(
+    animationSpec = tween(
+        durationMillis = (contentDurationRatio * animationTimeMillis / (screenEnterExitRatio + 1)).toInt(),
+        easing = LinearOutSlowInEasing
+    )
+) { it / 2 }

@@ -4,7 +4,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Parcelable
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.R
 import com.security.passwordmanager.buildString
 import com.security.passwordmanager.data.AppPreferences
@@ -26,33 +28,12 @@ class DataViewModel(
 
     companion object {
         private const val COPY_LABEL = "data copy"
-
-        @Volatile
-        private var INSTANCE: DataViewModel? = null
-
-        fun getInstance(
-            owner: ViewModelStoreOwner,
-            factory: ViewModelFactory
-        ): DataViewModel {
-
-            val temp = INSTANCE
-            if (temp != null)
-                return temp
-
-            synchronized(this) {
-                val instance = ViewModelProvider(owner, factory)[DataViewModel::class.java]
-
-                INSTANCE = instance
-                return instance
-            }
-        }
     }
-
-    private val email: String get() = preferences.email
 
 
     fun addData(data: Data) {
-        data.email = email
+        println("email = ${preferences.email}")
+        data.email = preferences.email
         viewModelScope.launch(Dispatchers.IO) {
             dataRepository.addData(data.encrypt(cryptoManager::encrypt))
         }
@@ -64,26 +45,30 @@ class DataViewModel(
 
     fun getDataUIList(dataType: DataType? = null) =
         dataRepository
-            .getDataUIList(email, dataType)
+            .getDataUIList(preferences.email, dataType)
             .map { it.decrypt() }
 
 
     suspend fun getAccountList(key: String, dataType: DataType) =
         dataRepository
-            .getAccountList(email, key, dataType)
+            .getAccountList(preferences.email, key, dataType)
             .decrypt()
 
 
     fun searchData(query: String, type: DataType = DataType.All) =
-        dataRepository.searchData(email, query, type).map { it.decrypt() }
+        dataRepository.searchData(preferences.email, query, type).map { it.decrypt() }
 
 
-    fun deleteData(data: Data) = viewModelScope.launch(Dispatchers.IO) {
-        dataRepository.deleteData(data)
+    fun deleteData(data: Data) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataRepository.deleteData(data)
+        }
     }
 
-    fun deleteRecords(data: Data) = viewModelScope.launch(Dispatchers.IO) {
-        dataRepository.deleteRecords(data)
+    fun deleteRecords(data: Data) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataRepository.deleteRecords(data)
+        }
     }
 
     fun copyText(context: Context, text: String) {

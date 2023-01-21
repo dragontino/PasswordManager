@@ -33,15 +33,15 @@ val Typography = Typography(
     ),
     titleLarge = TextStyle(
         fontFamily = FontFamily(BeautifulFont),
-        fontSize = 24.sp
+        fontSize = 28.sp
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily(BeautifulFont),
-        fontSize = 20.sp
+        fontSize = 24.sp
     ),
     titleSmall = TextStyle(
         fontFamily = FontFamily(BeautifulFont),
-        fontSize = 16.sp
+        fontSize = 20.sp
     ),
 
     /* Other default text styles to override
