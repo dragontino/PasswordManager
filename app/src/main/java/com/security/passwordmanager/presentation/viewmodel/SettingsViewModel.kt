@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.*
+import com.google.firebase.auth.FirebaseAuth
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.model.Settings
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
+    private val firebaseAuth: FirebaseAuth,
     private val preferences: AppPreferences,
 ) : ViewModel() {
 
@@ -45,6 +47,9 @@ class SettingsViewModel(
         set(value) {
             preferences.endTime = value
         }
+
+
+    val currentUsername: String get() = preferences.username
 
 
     private val _times: MutableStateFlow<Times> = MutableStateFlow(Times(startTime, endTime))
@@ -71,6 +76,11 @@ class SettingsViewModel(
 
     fun clearEmail() {
         preferences.email = ""
+    }
+
+
+    fun signOut() {
+        firebaseAuth.signOut()
     }
 
 

@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import me.onebone.toolbar.CollapsingToolbarState
 
@@ -30,9 +31,20 @@ internal fun Bundle?.getInt(key: String, defaultValue: Int) =
     this?.getInt(key) ?: defaultValue
 
 
-
 internal fun Bundle?.getString(key: String, defaultValue: String = "") =
     this?.getString(key) ?: defaultValue
+
+
+@Suppress("UNCHECKED_CAST", "DEPRECATION")
+fun <D : Enum<*>> Bundle?.getEnum(key: String, defaultValue: D): D =
+    when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+            this?.getSerializable(key, defaultValue::class.java) ?: defaultValue
+        }
+        else -> {
+            this?.getSerializable(key) as D? ?: defaultValue
+        }
+    }
 
 
 
@@ -74,19 +86,6 @@ fun Parcel.getString(defaultValue: String = "") = readString() ?: defaultValue
 
 
 fun String.isValidUrl() = URLUtil.isValidUrl(this)
-
-
-
-@Suppress("UNCHECKED_CAST", "DEPRECATION")
-fun <D : Enum<*>> Bundle?.getEnum(key: String, defaultValue: D): D =
-    when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-            this?.getSerializable(key, defaultValue::class.java) ?: defaultValue
-        }
-        else -> {
-            this?.getSerializable(key) as D? ?: defaultValue
-        }
-    }
 
 
 
@@ -208,6 +207,38 @@ fun keyboardAsState(): State<Boolean> {
 }
 
 
+// TODO: 22.01.2022 интегрировать progress
+@Composable
+fun Loading(modifier: Modifier = Modifier, progress: Float? = null) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background.animate())
+            .fillMaxSize(),
+    ) {
+        if (progress == null) {
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.primary.animate(),
+                strokeCap = StrokeCap.Round,
+                strokeWidth = 3.5.dp,
+                modifier = Modifier
+                    .scale(1.4f)
+                    .align(Alignment.Center)
+            )
+        } else {
+            CircularProgressIndicator(
+                progress = progress,
+                strokeWidth = 3.5.dp,
+                strokeCap = StrokeCap.Round,
+                color = MaterialTheme.colorScheme.primary.animate(),
+                modifier = Modifier
+                    .scale(1.4f)
+                    .align(Alignment.Center)
+            )
+        }
+    }
+}
+
+
 
 @ExperimentalAnimationApi
 @Composable
@@ -224,6 +255,7 @@ fun Loading(isLoading: Boolean, modifier: Modifier = Modifier) {
                 .fillMaxSize(),
         ) {
             CircularProgressIndicator(
+                progress = 0.8f,
                 strokeWidth = 3.5.dp,
                 color = MaterialTheme.colorScheme.primary.animate(),
                 modifier = Modifier

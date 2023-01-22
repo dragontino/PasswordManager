@@ -2,53 +2,54 @@ package com.security.passwordmanager.presentation.viewmodel
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.util.Log
 import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.*
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.SignInMethodQueryResult
-import com.google.firebase.database.FirebaseDatabase
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.Result
+import com.security.passwordmanager.data.Result.Loading
+import com.security.passwordmanager.data.Result.Success
 import com.security.passwordmanager.data.repository.LoginRepository
-import com.security.passwordmanager.presentation.view.login.LoggedInUserView
-import com.security.passwordmanager.presentation.view.login.LoginFormState
-import com.security.passwordmanager.presentation.view.login.LoginResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.internal.http2.ConnectionShutdownException
 
 class LoginViewModel(
-    private val loginRepository: LoginRepository,
+    private val repository: LoginRepository,
     private val preferences: AppPreferences
 ) : ViewModel() {
 
-    companion object {
-        private const val TAG = "LoginViewModel"
-
-        fun getInstance(owner: ViewModelStoreOwner, factory: ViewModelFactory) =
-            ViewModelProvider(owner, factory)[LoginViewModel::class.java]
+    private companion object {
+        const val TAG = "LoginViewModel"
+        const val loadingTimeMillis = 400L
     }
 
 
     enum class ViewModelState {
+        PreLoading,
         Loading,
         Ready
     }
 
 
+    internal enum class EntryState(var message: String) {
+        Undefined("null"),
+        SignIn(""),
+        Registration("")
+    }
 
-    var viewModelState by mutableStateOf(ViewModelState.Loading)
+
+
+    var viewModelState by mutableStateOf(ViewModelState.PreLoading)
         private set
 
 
-    internal var currentEntryState by mutableStateOf(EntryState.Undefined)
-
-    private val firebaseAuth = FirebaseAuth.getInstance()
+    internal var entryState by mutableStateOf(EntryState.Undefined)
 
 
     var email by mutableStateOf(preferences.email)
@@ -56,57 +57,44 @@ class LoginViewModel(
     var password by mutableStateOf("")
     var repeatedPassword by mutableStateOf(password)
 
-    var enterLogin by mutableStateOf(preferences.email.isBlank())
-
     var isPasswordVisible by mutableStateOf(false)
     var isRepeatedPasswordVisible by mutableStateOf(false)
-
-    var isLoading by mutableStateOf(false)
 
     var emailErrorMessage by mutableStateOf("")
 
     var passwordErrorMessage by mutableStateOf("")
 
 
+    private var startLoadingTime = -1L
+
+
     init {
         viewModelScope.launch {
-            isLoading = true
-            delay(400)
+
+            startLoadingTime = System.currentTimeMillis()
+            delay(loadingTimeMillis)
+            startLoadingTime = -1
             viewModelState = ViewModelState.Ready
-            updateEntryState()
-            isLoading = false
+            entryState = if (hasEmailInPreferences()) EntryState.SignIn else EntryState.Undefined
         }
+    }
+
+    internal val loadingProgress: Float get() = when {
+        startLoadingTime < 0 -> 0f
+        else -> (System.currentTimeMillis() - startLoadingTime).toFloat() / loadingTimeMillis
     }
 
 
     fun hasEmailInPreferences(): Boolean = preferences.email.isNotBlank()
 
 
-    private val _loginForm = MutableLiveData<LoginFormState>()
-    @Deprecated("Use email property instead", replaceWith = ReplaceWith("email"))
-    val loginFormState: LiveData<LoginFormState> = _loginForm
-
-    private val _loginResult = MutableLiveData<LoginResult>()
-    val loginResult: LiveData<LoginResult> = _loginResult
-
-
-    private fun updateEntryState(emailExists: Boolean = true) {
-        currentEntryState = when {
-            enterLogin -> EntryState.Undefined
-            emailExists -> EntryState.SignIn
-            else -> EntryState.Registration
-        }
-    }
-
-
     internal fun onEmailNext(block: (isEmailValid: Boolean) -> Unit = {}) {
         if (isEmailValid()) {
-            isLoading = true
-            checkEmailExists {
-                updateEntryState(emailExists = it)
-                isLoading = false
+            viewModelState = ViewModelState.Loading
+            repository.checkEmailExists(email) { emailExists ->
+                viewModelState = ViewModelState.Ready
+                entryState = if (emailExists) EntryState.SignIn else EntryState.Registration
             }
-            enterLogin = false
             emailErrorMessage = ""
             block(true)
         }
@@ -114,42 +102,64 @@ class LoginViewModel(
     }
 
 
-    internal fun loginOrRegisterUser(
+    internal fun signWithEmail(
         context: Context,
-        afterBlock: (isSuccess: Boolean, state: EntryState) -> Unit = { _, _ -> }
+        afterBlock: (result: Result<FirebaseUser>, state: EntryState) -> Unit = { _, _ -> }
     ) {
         if (!checkNetworkConnection(context)) {
-            currentEntryState.message = context.getString(R.string.check_internet_connection)
-            afterBlock(false, currentEntryState)
+            entryState.message = context.getString(R.string.check_internet_connection)
+            afterBlock(Result.Error(ConnectionShutdownException()), entryState)
             return
         }
 
-        when (currentEntryState) {
+        when (entryState) {
             EntryState.SignIn -> {
-                loginUser { isSuccess ->
-                    currentEntryState.message = when {
-                        isSuccess -> {
-                            saveLogin()
-                            ""
+                repository.login(email, password) { result ->
+                    if (result is Loading) {
+                        viewModelState = ViewModelState.Loading
+                    } else {
+                        viewModelState = ViewModelState.Ready
+                        entryState.message = when {
+                            result is Success -> {
+                                saveCredentials(email, username = result.data.displayName ?: "")
+                                ""
+                            }
+                            password.isBlank() -> context.getString(R.string.empty_password)
+                            else -> context.getString(
+                                R.string.login_failed,
+                                (result as Result.Error).exception
+                            )
                         }
-                        password.isBlank() -> context.getString(R.string.empty_password)
-                        else -> context.getString(R.string.login_failed)
+
+                        afterBlock(result, entryState)
                     }
-                    afterBlock(isSuccess, currentEntryState)
                 }
             }
+
             EntryState.Registration -> {
-                registerUser { isSuccess ->
-                    currentEntryState.message = when {
-                        isSuccess -> {
-                            saveLogin()
-                            context.getString(R.string.register_successful)
+                if (!isPasswordValid()) {
+                    entryState.message = context.getString(R.string.invalid_password)
+                    afterBlock(Result.Error(ConnectionShutdownException()), entryState)
+                    return
+                }
+
+                repository.register(email, password) { result ->
+                    if (result is Loading) viewModelState = ViewModelState.Loading
+                    else {
+                        viewModelState = ViewModelState.Ready
+                        entryState.message = when (result) {
+                            is Success -> {
+                                saveCredentials(email, username = result.data.displayName ?: "")
+                                context.getString(R.string.register_successful)
+                            }
+                            else -> context.getString(
+                                R.string.register_failed,
+                                (result as Result.Error).exception
+                            )
                         }
-                        password.isBlank() -> context.getString(R.string.empty_password)
-                        password.length <= 6 -> context.getString(R.string.invalid_password)
-                        else -> context.getString(R.string.register_failed)
+
+                        afterBlock(result, entryState)
                     }
-                    afterBlock(isSuccess, currentEntryState)
                 }
             }
             EntryState.Undefined -> return
@@ -157,19 +167,37 @@ class LoginViewModel(
     }
 
 
+    internal fun restorePassword(afterRestore: (success: Boolean) -> Unit) {
+        viewModelState = ViewModelState.Loading
+
+        if (!isEmailValid()) {
+            viewModelState = ViewModelState.Ready
+            afterRestore(false)
+            return
+        }
+
+        repository.restorePassword(email) { result ->
+            if (result !is Loading) {
+                viewModelState = ViewModelState.Ready
+                afterRestore(result is Success)
+            }
+        }
+    }
+
+
     fun changeLogin() {
         restoreLogin()
-        enterLogin = true
+        entryState = EntryState.Undefined
         password = ""
         passwordErrorMessage = ""
         isPasswordVisible = false
-        currentEntryState = EntryState.Undefined
     }
 
 
 
-    private fun saveLogin() {
+    private fun saveCredentials(email: String, username: String) {
         preferences.email = email
+        preferences.username = username
     }
 
     private fun restoreLogin() {
@@ -189,106 +217,12 @@ class LoginViewModel(
     }
 
 
-
-    private fun registerUser(afterRegistration: (isSuccess: Boolean) -> Unit) {
-        isLoading = true
-
-        if (!isEmailValid() || !isPasswordValid()) {
-            afterRegistration(false)
-            isLoading = false
-        }
-        firebaseAuth
-            .createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    afterRegistration(false)
-                    isLoading = false
-                    return@addOnCompleteListener
-                }
-
-                firebaseAuth.currentUser?.uid?.let {
-                    FirebaseDatabase
-                        .getInstance()
-                        .getReference("Users")
-                        .child(it)
-                        .setValue(email)
-                        .addOnCompleteListener { task1 ->
-                            afterRegistration(task1.isSuccessful)
-                            isLoading = false
-                        }
-                }
-            }
-            .addOnFailureListener {
-                it.printStackTrace()
-                afterRegistration(false)
-                isLoading = false
-            }
-    }
-
-
-    private fun loginUser(afterLogin: (isSuccess: Boolean) -> Unit) {
-        isLoading = true
-
-        if (!isEmailValid() || !isPasswordValid()) {
-            isLoading = false
-            afterLogin(false)
-            return
-        }
-
-        firebaseAuth.signInWithEmailAndPassword(email.trim(), password.trim())
-            .addOnCompleteListener { task ->
-                afterLogin(task.isSuccessful)
-                isLoading = false
-            }
-    }
-
-
-    private fun checkEmailExists(isExists: (Boolean) -> Unit) = firebaseAuth
-        .fetchSignInMethodsForEmail(email)
-        .addOnCompleteListener { task: Task<SignInMethodQueryResult?> ->
-            Log.d(TAG, task.result?.signInMethods?.size.toString())
-                isExists(!task.result?.signInMethods.isNullOrEmpty())
-        }
-
-
-
-
-
-    fun login(username: String, password: String) {
-        // can be launched in a separate asynchronous job
-        val result = loginRepository.login(username, password)
-
-        if (result is Result.Success) {
-            _loginResult.value =
-                LoginResult(success = LoggedInUserView(displayName = result.data.displayName))
-        } else {
-            _loginResult.value = LoginResult(error = R.string.login_failed)
-        }
-    }
-
-    fun loginDataChanged(username: String, password: String) {
-        if (!isEmailValid()) {
-            _loginForm.value = LoginFormState(usernameError = R.string.invalid_email)
-        } else if (!isPasswordValid()) {
-            _loginForm.value = LoginFormState(passwordError = R.string.invalid_password)
-        } else {
-            _loginForm.value = LoginFormState(isDataValid = true)
-        }
-    }
-
     /** A placeholder email validation check **/
     internal fun isEmailValid() =
         email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
+
     /** A placeholder password validation check **/
     internal fun isPasswordValid() =
-        password.length > 6
-
-
-
-    internal enum class EntryState(var message: String) {
-        Undefined("null"),
-        SignIn(""),
-        Registration("")
-    }
+        password.isNotBlank() && password.length > 6
 }

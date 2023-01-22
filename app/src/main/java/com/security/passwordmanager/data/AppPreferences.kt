@@ -9,53 +9,62 @@ import com.security.passwordmanager.presentation.model.Time
 
 class AppPreferences(application: Application) {
     private val preferences =
-        application.getSharedPreferences(APP_PREFERENCES.title, Context.MODE_PRIVATE)
+        application.getSharedPreferences(PREFERENCES_NAME.title, Context.MODE_PRIVATE)
+
 
     var startTime: Time
         get() {
-            val hours = preferences.getInt(APP_PREFERENCES_START_HOURS.title, 7)
-            val minutes = preferences.getInt(APP_PREFERENCES_START_MINUTES.title, 0)
+            val hours = preferences.getInt(START_HOURS.title, 7)
+            val minutes = preferences.getInt(START_MINUTES.title, 0)
             return Time(hours, minutes)
         }
-        set(value) {
-            preferences.edit().apply {
-                putInt(APP_PREFERENCES_START_HOURS.title, value.hours)
-                putInt(APP_PREFERENCES_START_MINUTES.title, value.minutes)
-            }.apply()
-        }
+        set(value) = preferences.edit().apply {
+            putInt(START_HOURS.title, value.hours)
+            putInt(START_MINUTES.title, value.minutes)
+        }.apply()
+
 
     var endTime: Time
         get() {
-            val hours = preferences.getInt(APP_PREFERENCES_END_HOURS.title, 23)
-            val minutes = preferences.getInt(APP_PREFERENCES_END_MINUTES.title, 0)
+            val hours = preferences.getInt(END_HOURS.title, 23)
+            val minutes = preferences.getInt(END_MINUTES.title, 0)
             return Time(hours, minutes)
         }
-        set(value) {
-            preferences.edit().apply {
-                putInt(APP_PREFERENCES_END_HOURS.title, value.hours)
-                putInt(APP_PREFERENCES_END_MINUTES.title, value.minutes)
-            }.apply()
-        }
+        set(value) = preferences.edit().apply {
+            putInt(END_HOURS.title, value.hours)
+            putInt(END_MINUTES.title, value.minutes)
+        }.apply()
+
 
     var email: String
-        get() = preferences.getString(APP_PREFERENCES_EMAIL.title, "") ?: ""
+        get() = preferences.getString(EMAIL.title, "") ?: ""
         set(value) = preferences.edit()
-            .putString(APP_PREFERENCES_EMAIL.title, value).apply()
+            .putString(EMAIL.title, value)
+            .apply()
+
+
+    var username: String
+        get() = preferences.getString(USERNAME.title, "") ?: ""
+        set(value) = preferences.edit()
+            .putString(USERNAME.title, value)
+            .apply()
+
 
     var theme: Int
         get(): @StyleRes Int = preferences
-            .getInt(APP_PREFERENCES_THEME.title, R.style.Theme_PasswordManager)
+            .getInt(THEME.title, R.style.Theme_PasswordManager)
         set(@StyleRes value) = preferences.edit()
-            .putInt(APP_PREFERENCES_THEME.title, value).apply()
+            .putInt(THEME.title, value).apply()
 
 
-    enum class EnumPreferences(val title: String) {
-        APP_PREFERENCES("my_settings"),
-        APP_PREFERENCES_START_HOURS("start_hours"),
-        APP_PREFERENCES_START_MINUTES("start_minutes"),
-        APP_PREFERENCES_END_HOURS("end_hours"),
-        APP_PREFERENCES_END_MINUTES("end_minutes"),
-        APP_PREFERENCES_EMAIL("login"),
-        APP_PREFERENCES_THEME("appTheme")
+    private enum class EnumPreferences(val title: String) {
+        PREFERENCES_NAME("application_settings"),
+        START_HOURS("start_hours"),
+        START_MINUTES("start_minutes"),
+        END_HOURS("end_hours"),
+        END_MINUTES("end_minutes"),
+        EMAIL("email"),
+        USERNAME("username"),
+        THEME("appTheme")
     }
 }

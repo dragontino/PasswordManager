@@ -7,7 +7,10 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.outlined.ManageAccounts
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,7 +35,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentManager
-import com.google.firebase.auth.FirebaseAuth
 import com.security.passwordmanager.EnterContentAnimation
 import com.security.passwordmanager.ExitContentAnimation
 import com.security.passwordmanager.R
@@ -106,22 +108,32 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
                 actions = {
                     IconButton(
                         onClick = {
-                            FirebaseAuth.getInstance().signOut()
-                            viewModel.clearEmail()
-                            navigateTo(createRouteToLoginScreen())
+                            viewModel.bottomSheetContent = {
+                                AccountInfoSheet(
+                                    username = viewModel.currentUsername,
+                                    usingBeautifulHeading = settings.isUsingBeautifulFont
+                                ) {
+                                    it.dismiss()
+                                    viewModel.signOut()
+                                    viewModel.clearEmail()
+                                    navigateTo(createRouteToLoginScreen())
+                                }
+                            }
+                            bottomSheetFragment.show(fragmentManager)
                         },
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Logout,
-                            contentDescription = "logout",
+                            imageVector = Icons.Outlined.ManageAccounts,
+                            contentDescription = "manage accounts",
+                            modifier = Modifier.scale(1.3f)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background.animate(),
+                    containerColor = MaterialTheme.colorScheme.background.animate(durationMillis = 400),
                     navigationIconContentColor = RaspberryLight,
                     actionIconContentColor = RaspberryLight,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground.animate(),
+                    titleContentColor = MaterialTheme.colorScheme.onBackground.animate(400),
                 ),
             )
         },
@@ -290,21 +302,12 @@ private fun SwitchItem(
         Switch(
             checked = isChecked,
             onCheckedChange = onClick,
-            thumbContent = {
-                Icon(
-                    imageVector = if (isChecked) Icons.Rounded.Check else Icons.Rounded.Close,
-                    contentDescription = "switch",
-                    modifier = Modifier.scale(0.7f)
-                )
-            },
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.onPrimary.animate(),
                 checkedTrackColor = MaterialTheme.colorScheme.primary.animate(),
-                checkedIconColor = MaterialTheme.colorScheme.primary.animate(),
-                uncheckedThumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f).animate(),
-                uncheckedTrackColor = MaterialTheme.colorScheme.surface.animate(),
+                uncheckedThumbColor = MaterialTheme.colorScheme.onPrimaryContainer.animate(),
+                uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer.animate(),
                 uncheckedBorderColor = MaterialTheme.colorScheme.primary.animate(),
-                uncheckedIconColor = MaterialTheme.colorScheme.background.animate()
             ),
             modifier = Modifier.padding(start = 16.dp)
         )
@@ -360,16 +363,73 @@ private fun ThemeSheet(
 
 
 
+@Composable
+private fun AccountInfoSheet(username: String, usingBeautifulHeading: Boolean, signOut: () -> Unit) {
+    BottomSheetContent(
+        title = if (username.isNotBlank()) "Вы вошли под именем $username" else "",
+        beautifulDesign = usingBeautifulHeading
+    ) {
+        IconTextItem(
+            text = stringResource(R.string.logout),
+            icon = Icons.Rounded.Logout,
+            iconTintColor = MaterialTheme.colorScheme.primary.animate(),
+            modifier = Modifier.padding(vertical = 32.dp),
+            onClick = { signOut() }
+        )
+    }
+}
+
+
+
+
 
 @Preview
 @Composable
-fun SwitchItemPreview() {
-    PasswordManagerTheme {
-        SwitchItem(
-            title = "Wrecked",
-            subtitle = "Imagine Dragons",
-            isChecked = true,
-            onClick = {}
-        )
+private fun SwitchItemPreview() {
+    PasswordManagerTheme(isDarkTheme = false) {
+        Column(
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+        ) {
+            SwitchItem(
+                title = "Wrecked",
+                subtitle = "Imagine Dragons",
+                isChecked = true,
+                onClick = {}
+            )
+            
+            Spacer(modifier = Modifier.size(16.dp))
+            
+            SwitchItem(
+                isChecked = false,
+                title = "Wrecked",
+                subtitle = "Imagine Dragons",
+                onClick = {}
+            )
+
+            Spacer(modifier = Modifier.size(16.dp))
+
+            PasswordManagerTheme(isDarkTheme = true) {
+                SwitchItem(
+                    title = "Wrecked",
+                    subtitle = "Imagine Dragons",
+                    isChecked = true,
+                    onClick = {}
+                )
+
+                Spacer(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.background)
+                        .height(16.dp)
+                        .fillMaxWidth(),
+                )
+
+                SwitchItem(
+                    isChecked = false,
+                    title = "Wrecked",
+                    subtitle = "Imagine Dragons",
+                    onClick = {}
+                )
+            }
+        }
     }
 }

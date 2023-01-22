@@ -47,6 +47,7 @@ import com.security.passwordmanager.*
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.model.BankCard
 import com.security.passwordmanager.data.model.Data
+import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.presentation.model.DataUI
 import com.security.passwordmanager.presentation.model.enums.DataType
@@ -69,6 +70,7 @@ import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
 import com.security.passwordmanager.presentation.viewmodel.NotesViewModel
+import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 import me.onebone.toolbar.*
 
@@ -81,13 +83,16 @@ internal fun AnimatedVisibilityScope.NotesScreen(
     title: String,
     isDarkTheme: Boolean,
     dataType: DataType,
-    dataViewModel: DataViewModel,
     viewModel: NotesViewModel,
+    dataViewModel: DataViewModel,
+    settingsViewModel: SettingsViewModel,
     fragmentManager: FragmentManager,
     openDrawer: () -> Unit,
     navigateTo: (route: String) -> Unit,
     isDarkStatusBarIcons: (Boolean) -> Unit
 ) {
+    val settings by settingsViewModel.settings.observeAsState(initial = Settings())
+
     viewModel.isLoading = true
     viewModel.dataList = when {
         viewModel.isSearching -> dataViewModel.searchData(viewModel.query, dataType)
@@ -236,6 +241,7 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                         dataList = viewModel.dataList,
                         dataViewModel = dataViewModel,
                         notesViewModel = viewModel,
+                        settings = settings,
                         fragmentManager = fragmentManager,
                         isScrolling = { _, scrollUp ->
                             LaunchedEffect(key1 = scrollUp) {
@@ -334,6 +340,7 @@ private fun PasswordList(
     fragmentManager: FragmentManager,
     dataViewModel: DataViewModel,
     notesViewModel: NotesViewModel,
+    settings: Settings,
     navigateTo: (route: String) -> Unit,
     isScrolling: @Composable (isScrolling: Boolean, scrollUp: Boolean) -> Unit,
     modifier: Modifier = Modifier
@@ -358,10 +365,11 @@ private fun PasswordList(
         items(dataList) { dataUI ->
             DataListItem(
                 dataUI = dataUI,
-                showAll = openedItem == dataUI,
+                showAll = { openedItem == dataUI },
                 fragmentManager = fragmentManager,
                 copyText = { dataViewModel.copyText(context, it) },
                 copyAccountList = { dataViewModel.copyAccountList(context, it) },
+                useBottomView = settings.isUsingBottomView,
                 deleteRecords = { dataViewModel.deleteRecords(it) },
                 onClick = {
                     openedItem = if (openedItem == dataUI) null else dataUI
@@ -393,9 +401,10 @@ private fun PasswordList(
 private fun DataListItem(
     dataUI: DataUI,
     fragmentManager: FragmentManager,
-    showAll: Boolean,
+    showAll: () -> Boolean,
     copyText: (String) -> Unit,
     copyAccountList: (List<Data>) -> Unit,
+    useBottomView: Boolean,
     deleteRecords: (Data) -> Unit,
     navigateTo: (route: String) -> Unit,
     enterAnimation: EnterTransition,
@@ -462,7 +471,7 @@ private fun DataListItem(
 
         dataUI.accountList.forEachIndexed { position, data ->
             AnimatedVisibility(
-                visible = showAll,
+                visible = showAll(),
                 enter = enterAnimation,
                 exit = exitAnimation,
             ) {
@@ -485,17 +494,19 @@ private fun DataListItem(
                                 showToast(context, "Адрес $address — некорректный!")
                         },
                         onClick = { title ->
-                            BottomSheetFragment(title = title, beautifulDesign = true) { fragment ->
-                                EditItem(text = stringResource(R.string.edit)) {
-                                    navigateTo(
-                                        createRouteToWebsiteScreen(
-                                            address = (dataUI.title as Website).address,
-                                            startPosition = position
+                            if (useBottomView) {
+                                BottomSheetFragment(title = title, beautifulDesign = true) { fragment ->
+                                    EditItem(text = stringResource(R.string.edit)) {
+                                        navigateTo(
+                                            createRouteToWebsiteScreen(
+                                                address = (dataUI.title as Website).address,
+                                                startPosition = position
+                                            )
                                         )
-                                    )
-                                    fragment.dismiss()
-                                }
-                            }.show(fragmentManager)
+                                        fragment.dismiss()
+                                    }
+                                }.show(fragmentManager)
+                            }
                         }
                     )
                     is BankCard -> BankCard(
@@ -746,12 +757,13 @@ private fun DataListItemPreview() {
                 accountList = mutableListOf(website, Website(), Website())
             ),
             fragmentManager = AppCompatActivity().supportFragmentManager,
-            showAll = true,
+            showAll = { true },
             copyText = {},
             copyAccountList = {},
             navigateTo = {},
             deleteRecords = {},
             onClick = {},
+            useBottomView = true,
             enterAnimation = fadeIn(
                 animationSpec = tween(
                     durationMillis = 300,

@@ -22,23 +22,22 @@ import java.util.*
 private val DarkColorScheme = darkColorScheme(
     primary = RaspberryDark,
     primaryContainer = Color(0xFF853657),
+    secondary = Color(0xFF852626),
     onPrimary = Color.White,
     background = BackgroundDark,
     onBackground = Color.White,
     surface = Gray,
-    tertiaryContainer = Color(0xFF857467),
     error = Color.Red.copy(alpha = .8f)
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = RaspberryLight,
     primaryContainer = Color(0xFFFFB6B8),
+    secondary = Color(0xFFF05454),
     background = Color.White,
     onBackground = Color.Black,
     onPrimary = Color.White,
     surface = LightGray,
-    // TODO: 07.11.2022 изменить цвет
-    tertiaryContainer = Color(0xFFF0DED1),
     error = Color.Red
 
     /* Other default colors to override

@@ -3,7 +3,7 @@
 
     <string name="main_subtitle">by CuteCat</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 5.5.0 от 10 января 2023</string>
+    <string name="app_version">Версия 5.6.1 от 22 января 2023</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="create_record">Создать новую запись</string>
     <string name="clipText">Скопировано в буфер обмена</string>
@@ -30,21 +30,25 @@
     <!--Вход-->
     <string name="authorization">Авторизация</string>
     <string name="registration">Регистрация</string>
+    <string name="go_next">Далее</string>
     <string name="action_sign_in">Войти</string>
     <string name="action_sign_up">Зарегестрироваться</string>
     <string name="enter_email">Введите адрес электронной почты</string>
     <string name="invalid_email">Введите корректный email адрес!</string>
     <string name="invalid_password">Длина пароля должна быть > 6 символов!</string>
     <string name="register_successful">Новый пользователь успешно добавлен!</string>
-    <string name="register_failed">Ошибка регистрации! Попробуйте, пожалуйста, ещё раз</string>
-    <string name="login_failed">Неверный пароль. Проверьте корректность введённых данных</string>
+    <string name="register_failed">Не получилось зарегестрироваться. Попробуйте, пожалуйста, ещё раз или напишите разработчикам. Название ошибки: %s</string>
+    <string name="login_failed">Не получилось войти в аккаунт. Проверьте корректность введённых данных. Название ошибки: %s</string>
     <string name="logout">Выйти из аккаунта</string>
     <string name="remember_password">Запомнить пароль</string>
     <string name="repeat_password">Введите пароль ещё раз</string>
     <string name="prompt_email">Email</string>
     <string name="required">Обязательно</string>
     <string name="main_image_view">Иконка приложения</string>
+    <string name="change_login">Войти в другой аккаунт</string>
     <string name="forgot_password">Забыли пароль?</string>
+    <string name="password_reset">Новый пароль отправлен вам на почту!</string>
+    <string name="password_not_reset">Не получилось сбросить пароль 😞. Проверьте <b>интернет-соединение</b> или обратитесь к разработчику, нажав кнопку в правом верхнем углу!</string>
 
 
     <!--Темы-->
@@ -124,8 +128,6 @@
     <string name="using_bottom_view_explain">На главном экране при нажатии на элемент с данными будет выдвигаться виджет, при нажатии на который можно будет перейти непосредственно к этому элементу</string>
 
     <!--Экран "Логин"-->
-    <string name="prompt_password">Password</string>
-    <string name="action_sign_in_short">Sign in</string>
     <string name="welcome">"Welcome!"</string>
     <string name="invalid_username">Not a valid username</string>
 
