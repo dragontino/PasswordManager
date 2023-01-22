@@ -4,10 +4,10 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.google.firebase.auth.FirebaseAuth
 import com.security.passwordmanager.PasswordManagerApplication
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.CryptoManager
-import com.security.passwordmanager.data.LoginDataSource
 import com.security.passwordmanager.data.repository.DataRepository
 import com.security.passwordmanager.data.repository.LoginRepository
 import com.security.passwordmanager.data.repository.SettingsRepository
@@ -22,7 +22,8 @@ class ViewModelFactory(private val application: Application) : ViewModelProvider
                     settingsRepository = SettingsRepository(
                         settingsDao = MainDatabase.getDatabase(application).settingsDao()
                     ),
-                    preferences = AppPreferences(application)
+                    preferences = AppPreferences(application),
+                    firebaseAuth = FirebaseAuth.getInstance()
                 ) as T
             }
             modelClass.isAssignableFrom(DataViewModel::class.java) -> {
@@ -36,9 +37,7 @@ class ViewModelFactory(private val application: Application) : ViewModelProvider
             }
             modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
                 return LoginViewModel(
-                    loginRepository = LoginRepository(
-                        dataSource = LoginDataSource()
-                    ),
+                    repository = LoginRepository(FirebaseAuth.getInstance()),
                     preferences = AppPreferences(application)
                 ) as T
             }

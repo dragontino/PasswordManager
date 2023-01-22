@@ -128,8 +128,9 @@ internal fun NavigationScreen(
                     viewModel = viewModel(factory = viewModel.factory),
                     fragmentManager = fragmentManager,
                     settingsLiveData = viewModel<SettingsViewModel>(factory = viewModel.factory).settings,
-                    navigateTo = { viewModel.navigateTo(navController, it, true) },
-                    popBackStack = navController::popBackStack
+                    navigateTo = { route ->
+                        viewModel.navigateTo(navController, route, true)
+                    }
                 )
             }
 
@@ -145,7 +146,7 @@ internal fun NavigationScreen(
                     }
                 )
             ) {
-                viewModel.isDarkStatusBarIcons = true
+                viewModel.isDarkStatusBarIcons = !isDarkTheme
 
                 NotesScreen(
                     title = it.arguments.getString(
@@ -159,6 +160,7 @@ internal fun NavigationScreen(
                     ),
                     dataViewModel = dataViewModel,
                     viewModel = notesViewModel,
+                    settingsViewModel = viewModel(factory = viewModel.factory),
                     fragmentManager = fragmentManager,
                     openDrawer = { openDrawer() },
                     navigateTo = { route -> viewModel.navigateTo(navController, route) },
@@ -193,7 +195,7 @@ internal fun NavigationScreen(
                     }
                 )
             ) {
-                viewModel.isDarkStatusBarIcons = true
+                viewModel.isDarkStatusBarIcons = !isDarkTheme
 
                 WebsiteScreen(
                     address = it.arguments.getString(Screen.Website.Args.DataKey.name),
