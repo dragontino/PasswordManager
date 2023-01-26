@@ -13,7 +13,7 @@ import com.security.passwordmanager.R
 import com.security.passwordmanager.presentation.model.DataUI
 import com.security.passwordmanager.presentation.model.enums.DataType
 
-sealed class Screen(
+sealed class AppScreens(
     val icon: ImageVector,
     @StringRes val titleRes: Int,
     val route: String
@@ -34,7 +34,7 @@ sealed class Screen(
 
 
 
-    object Login : Screen(
+    object Login : AppScreens(
         icon = Icons.Rounded.Login,
         titleRes = R.string.login,
         route = "login"
@@ -43,7 +43,7 @@ sealed class Screen(
     }
 
 
-    object Notes : Screen(
+    object Notes : AppScreens(
         icon = Icons.Outlined.ListAlt,
         titleRes = R.string.all_notes,
         route = "home"
@@ -58,7 +58,7 @@ sealed class Screen(
     }
 
 
-    object Website : Screen(
+    object Website : AppScreens(
         icon = Icons.Outlined.AccountCircle,
         titleRes = R.string.website_label,
         route = "website"
@@ -72,7 +72,7 @@ sealed class Screen(
     }
 
 
-    object BankCard : Screen(
+    object BankCard : AppScreens(
         icon = Icons.Outlined.CreditCard,
         titleRes = R.string.bank_label,
         route = "bankcard"
@@ -86,7 +86,7 @@ sealed class Screen(
     }
 
 
-    object Settings : Screen(
+    object Settings : AppScreens(
         icon = Icons.Outlined.Settings,
         titleRes = R.string.settings_label,
         route = "settings"
@@ -96,19 +96,19 @@ sealed class Screen(
 }
 
 
-fun createRouteToLoginScreen() = Screen.Login.route
+fun createRouteToLoginScreen() = AppScreens.Login.route
 
 fun createRouteToNotesScreen(dataType: DataType, title: String) =
-    "${Screen.Notes.route}/$dataType/$title"
+    "${AppScreens.Notes.route}/$dataType/$title"
 
 fun createRouteToWebsiteScreen(address: String, startPosition: Int = 0): String {
-    val route = "${Screen.Website.route}/${address.ifBlank { null }}/$startPosition"
+    val route = "${AppScreens.Website.route}/${address.ifBlank { null }}/$startPosition"
     Log.d("NotesScreen", "route = $route")
     return route
 }
 
-fun createRouteToSettingsScreen() = Screen.Settings.route
+fun createRouteToSettingsScreen() = AppScreens.Settings.route
 
 fun createRouteToBankCardScreen(dataUI: DataUI, startPosition: Int = 0): String {
-    return "${Screen.BankCard.route}/$dataUI/$startPosition"
+    return "${AppScreens.BankCard.route}/$dataUI/$startPosition"
 }

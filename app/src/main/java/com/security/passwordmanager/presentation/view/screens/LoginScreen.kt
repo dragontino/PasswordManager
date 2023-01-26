@@ -1,4 +1,4 @@
-package com.security.passwordmanager.presentation.view.login
+package com.security.passwordmanager.presentation.view.screens
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
@@ -19,7 +19,6 @@ import androidx.compose.material.icons.rounded.Login
 import androidx.compose.material.icons.rounded.Start
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -52,18 +51,16 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.LiveData
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.Result
 import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
+import com.security.passwordmanager.presentation.view.navigation.AppScreens
 import com.security.passwordmanager.presentation.view.navigation.FeedbackSheet
-import com.security.passwordmanager.presentation.view.navigation.Screen
 import com.security.passwordmanager.presentation.view.navigation.createRouteToNotesScreen
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
-import com.security.passwordmanager.presentation.view.theme.RaspberryLight
 import com.security.passwordmanager.presentation.viewmodel.LoginViewModel
 import com.security.passwordmanager.presentation.viewmodel.LoginViewModel.EntryState
 import com.security.passwordmanager.presentation.viewmodel.LoginViewModel.ViewModelState
@@ -73,16 +70,15 @@ import kotlinx.coroutines.launch
 @ExperimentalAnimationApi
 @ExperimentalMaterial3Api
 @Composable
-internal fun AnimatedVisibilityScope.LoginPasswordScreen(
+internal fun AnimatedVisibilityScope.LoginScreen(
     viewModel: LoginViewModel,
-    settingsLiveData: LiveData<Settings>,
+    settings: Settings,
     fragmentManager: FragmentManager,
     navigateTo: (route: String) -> Unit
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val settings by settingsLiveData.observeAsState(initial = Settings())
 
     val bottomSheetFragment = BottomSheetFragment { fragment ->
         FeedbackSheet(context = context, beautifulDesign = settings.isUsingBeautifulFont) {
@@ -105,11 +101,13 @@ internal fun AnimatedVisibilityScope.LoginPasswordScreen(
     Crossfade(
         targetState = viewModel.viewModelState,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background.animate())
+            .fillMaxSize()
     ) {
         when (it) {
             ViewModelState.PreLoading -> Loading(progress = viewModel.loadingProgress)
-            else -> LoginPasswordScreen(
+            else -> LoginScreen(
                 viewModel = viewModel,
                 context = context,
                 showBottomFragment = { bottomSheetFragment.show(fragmentManager) },
@@ -126,7 +124,7 @@ internal fun AnimatedVisibilityScope.LoginPasswordScreen(
 @ExperimentalAnimationApi
 @ExperimentalMaterial3Api
 @Composable
-private fun AnimatedVisibilityScope.LoginPasswordScreen(
+private fun AnimatedVisibilityScope.LoginScreen(
     viewModel: LoginViewModel,
     context: Context,
     showBottomFragment: () -> Unit,
@@ -181,7 +179,7 @@ private fun AnimatedVisibilityScope.LoginPasswordScreen(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent,
                     scrolledContainerColor = Color.Transparent,
-                    actionIconContentColor = RaspberryLight,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary.animate(),
                     titleContentColor = MaterialTheme.colorScheme.onBackground.animate()
                 ),
                 modifier = Modifier.fillMaxWidth()
@@ -235,16 +233,23 @@ private fun AnimatedVisibilityScope.LoginPasswordScreen(
                         }
                         else -> {
                             viewModel.signWithEmail(context) { result, entryState ->
-                                showSnackbar(entryState.message)
-
                                 when (result) {
                                     is Result.Success -> navigateTo(
                                         createRouteToNotesScreen(
                                             dataType = DataType.All,
-                                            title = context.getString(Screen.Notes.titleRes),
+                                            title = context.getString(AppScreens.Notes.titleRes),
                                         )
                                     )
-                                    else -> viewModel.passwordErrorMessage = entryState.message
+                                    is Result.Error -> {
+                                        val exceptionMessage =
+                                            result.exception.localizedMessage ?: ""
+
+                                        if (exceptionMessage.isNotBlank()) {
+                                            showSnackbar(exceptionMessage)
+                                        }
+                                        viewModel.passwordErrorMessage = entryState.message
+                                    }
+                                    else -> {}
                                 }
                             }
                         }
@@ -357,6 +362,18 @@ private fun AnimatedVisibilityScope.LoginPasswordScreen(
             ) {
                 Column {
                     Spacer(Modifier.height(16.dp))
+
+
+                    if (viewModel.entryState == EntryState.Registration) {
+                        LoginPasswordTextField(
+                            text = viewModel.username,
+                            onTextChange = viewModel::username::set,
+                            label = stringResource(R.string.username_placeholder)
+                        )
+                    }
+
+
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     LoginPasswordTextField(
                         text = viewModel.password,
@@ -693,7 +710,7 @@ private fun TextButton(
         onClick = onClick,
         colors = ButtonDefaults.textButtonColors(
             containerColor = Color.Transparent,
-            contentColor = RaspberryLight
+            contentColor = MaterialTheme.colorScheme.secondary.animate()
         ),
         shape = MaterialTheme.shapes.small,
         modifier = modifier,

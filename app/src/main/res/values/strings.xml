@@ -1,13 +1,12 @@
 <resources>
     <string name="app_name">Password Manager</string>
-
     <string name="main_subtitle">by CuteCat</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="app_version">Версия 5.6.1 от 22 января 2023</string>
+    <string name="app_version">Версия 5.7.0 от 27 января 2023</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="create_record">Создать новую запись</string>
+
     <string name="clipText">Скопировано в буфер обмена</string>
-    <string name="search_no_results">Поиск не дал результатов</string>
+    <string name="close">Закрыть</string>
+
 
 
     <!--Лейблы-->
@@ -33,25 +32,42 @@
     <string name="go_next">Далее</string>
     <string name="action_sign_in">Войти</string>
     <string name="action_sign_up">Зарегестрироваться</string>
+
     <string name="enter_email">Введите адрес электронной почты</string>
     <string name="invalid_email">Введите корректный email адрес!</string>
+    <string name="username_placeholder">Имя пользователя (необязательно)</string>
     <string name="invalid_password">Длина пароля должна быть > 6 символов!</string>
     <string name="register_successful">Новый пользователь успешно добавлен!</string>
     <string name="register_failed">Не получилось зарегестрироваться. Попробуйте, пожалуйста, ещё раз или напишите разработчикам. Название ошибки: %s</string>
     <string name="login_failed">Не получилось войти в аккаунт. Проверьте корректность введённых данных. Название ошибки: %s</string>
     <string name="logout">Выйти из аккаунта</string>
-    <string name="remember_password">Запомнить пароль</string>
     <string name="repeat_password">Введите пароль ещё раз</string>
-    <string name="prompt_email">Email</string>
-    <string name="required">Обязательно</string>
-    <string name="main_image_view">Иконка приложения</string>
+
     <string name="change_login">Войти в другой аккаунт</string>
     <string name="forgot_password">Забыли пароль?</string>
     <string name="password_reset">Новый пароль отправлен вам на почту!</string>
-    <string name="password_not_reset">Не получилось сбросить пароль 😞. Проверьте <b>интернет-соединение</b> или обратитесь к разработчику, нажав кнопку в правом верхнем углу!</string>
+
+    <string name="password_not_reset">Не получилось сбросить пароль 😞. Проверьте <b>интернет-соединение</b> или напишите к разработчикам, нажав кнопку в правом верхнем углу</string>
+    <string name="passwords_is_not_equals">Пароли не совпадают!</string>
+    <string name="check_internet_connection">Проверьте интернет соединение</string>
+
+    <string name="incorrect_email">Неверный email адрес</string>
+    <string name="incorrect_password">Неверный пароль</string>
+    <string name="user_disabled_exception">Действие данной учетной записи приостановлено. За дополнительными разъяснениями, обратитесь к разработчикам!</string>
+    <string name="too_many_requests_exception">Мы заблокировали все запросы с этого устройства из-за необычной активности. Попробуйте еще раз позже. [ Доступ к этой учетной записи был временно отключен из-за множества неудачных попыток входа в систему. Вы можете немедленно восстановить его, сбросив свой пароль, или повторить попытку позже. ]</string>
+    <string name="change_username_successful">Имя пользователя успешно изменено!</string>
+    <string name="change_username_exception">Не получилось сменить имя пользователя. Проверьте, что вы вошли в аккаунт</string>
 
 
-    <!--Темы-->
+    <!--  Notes Screen  -->
+    <string name="create_record">Создать новую запись</string>
+    <string name="search_no_results">Поиск не дал результатов</string>
+    <string name="empty_query">Начните вводить запрос</string>
+    <string name="empty_data_list">Нажмите на «+» для добавления новых записей</string>
+    <string name="new_note">Новая запись</string>
+
+
+    <!--  Темы  -->
     <string name="dark_theme">Тёмное</string>
     <string name="light_theme">Светлое</string>
     <string name="system_theme">Как на устройстве</string>
@@ -64,9 +80,6 @@
     <string name="end_time">Время заката</string>
     <string name="changing_theme_time">Время перемен</string>
 
-    <string name="button_save">Сохранить</string>
-    <string name="button_cancel">Отменить</string>
-
 
 <!--  Website Screen  -->
     <string name="url_address">Адрес сайта</string>
@@ -78,6 +91,7 @@
     <string name="password">Пароль</string>
     <string name="comment">Комментарий</string>
     <string name="add_account">Добавить аккаунт</string>
+    <string name="autofill_name_website">Автозаполнение</string>
 
     <string name="empty_url">Введите URL адрес сайта</string>
     <string name="empty_website_name">Введите название сайта</string>
@@ -93,10 +107,8 @@
     <string name="rename_data">Переименовать</string>
     <string name="cancel_renaming_data">Сохранить новое название</string>
     <string name="copy_info">Копировать</string>
-    <string name="delete_password">Удалить</string>
+    <string name="delete">Удалить</string>
     <string name="delete_account">Удалить аккаунт</string>
-
-
     <string name="more_info">Больше информации</string>
 
 
@@ -110,37 +122,33 @@
     <string name="card_cvv">CVC2/CVV2</string>
     <string name="pin_code">PIN</string>
     <string name="add_more_cards">Добавить карту</string>
-
-
-    <!--Экран "О приложении"-->
-    <string name="vk">Вконтакте</string>
-    <string name="telegram">Telegram</string>
-    <string name="email">Почта</string>
-    <string name="feedback">Обратная связь</string>
-
-
-    <!--Экран "Настройки"-->
-    <string name="beautiful_font">Использовать красивый шрифт</string>
-    <string name="beautiful_font_explain">Отображать на некоторых элементах красивый шрифт</string>
-    <string name="data_hints_description">Заполнении поля «Название сайта» при редактировании раздела «Сайт» будет происходить автоматически, если заполнено поле «адрес»</string>
-    <string name="data_hints">Включить подсказки</string>
-    <string name="using_bottom_view">Включить выдвигающийся виджет на главном экране</string>
-    <string name="using_bottom_view_explain">На главном экране при нажатии на элемент с данными будет выдвигаться виджет, при нажатии на который можно будет перейти непосредственно к этому элементу</string>
-
-    <!--Экран "Логин"-->
-    <string name="welcome">"Welcome!"</string>
-    <string name="invalid_username">Not a valid username</string>
-
-
-    <string name="website_image">Иконка сайта</string>
     <string name="open">Открыть</string>
     <string name="optionally">Дополнительно</string>
     <string name="wrong_month">Неправильный номер месяца!</string>
     <string name="payment_system">Платёжная система</string>
-    <string name="empty_data_list">Нажмите на «+» для добавления новых записей</string>
-    <string name="new_note">Новая запись</string>
-    <string name="passwords_is_not_equals">Пароли не совпадают!</string>
-    <string name="check_internet_connection">Проверьте интернет соединение</string>
 
+
+<!-- Экран "Настройки" -->
+    <string name="beautiful_font">Использовать в оформлении красивый шрифт</string>
+    <string name="dynamic_color">Использовать динамические цвета</string>
+
+    <string name="vk">Вконтакте</string>
+    <string name="telegram">Telegram</string>
+    <string name="email">Почта</string>
+    <string name="feedback">Обратная связь</string>
+    <string name="current_user">Вы вошли под именем</string>
+    <string name="edit_username">Редактировать имя пользователя</string>
+    <string name="change_theme_exception">Не удалось сменить оформление</string>
+
+
+<!--  Диалоговые окна  -->
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отменить</string>
+    <string name="do_not_save">Не сохранять</string>
+    <string name="unsaved_data">У вас есть несохранённые данные. Сохранить?</string>
+    <string name="confirm_delete">Подтверждение удаления</string>
+    <string name="changing_username_placeholder">Введите новое имя пользователя</string>
+    <string name="username">Имя пользователя</string>
+    <string name="dynamic_color_description">Цветовая палитра приложения автоматически адаптируется и интегрируется с пользовательскими настройками</string>
 
 </resources>

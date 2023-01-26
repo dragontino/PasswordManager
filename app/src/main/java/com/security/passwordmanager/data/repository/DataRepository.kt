@@ -2,8 +2,6 @@ package com.security.passwordmanager.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.map
 import com.security.passwordmanager.data.model.BankCard
 import com.security.passwordmanager.data.model.Data
 import com.security.passwordmanager.data.model.Website
@@ -11,9 +9,10 @@ import com.security.passwordmanager.data.room.DataDao
 import com.security.passwordmanager.presentation.model.DataUI
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.slice
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.mapLatest
 import kotlin.math.min
 
 class DataRepository(private val dataDao: DataDao) {
@@ -30,16 +29,18 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
 
-    fun getDataUIList(email: String, dataType: DataType? = null): LiveData<List<DataUI>> =
+    @ExperimentalCoroutinesApi
+    fun getDataList(email: String, dataType: DataType = DataType.All): Flow<List<DataUI>> =
         when (dataType) {
-            DataType.Website -> dataDao.getWebsiteList(email).asLiveData(Dispatchers.IO)
-            DataType.BankCard -> dataDao.getBankCardList(email).asLiveData(Dispatchers.IO)
-            DataType.All, null -> dataDao
-                .getWebsiteList(email)
-                .asLiveData(Dispatchers.IO)
-                .merge(dataDao.getBankCardList(email).asLiveData(Dispatchers.IO))
-                { websites, bankCards -> sortedConcatenation(websites, bankCards) }
-        }.toDataUIList()
+            DataType.All ->
+                dataDao
+                    .getWebsiteList(email)
+                    .combine(dataDao.getBankCardList(email)) { w, b -> w + b }
+            DataType.Website -> dataDao.getWebsiteList(email)
+            DataType.BankCard -> dataDao.getBankCardList(email)
+        }.mapLatest {
+            it.toDataUIList()
+        }
 
 
     suspend fun getAccountList(
@@ -47,7 +48,7 @@ class DataRepository(private val dataDao: DataDao) {
         key: String,
         dataType: DataType,
     ): MutableList<out Data> {
-        println(dataDao.getCountRows())
+        println("countRows = ${dataDao.getCountRows()}")
         return when (dataType) {
             DataType.Website, DataType.All -> dataDao.getWebsiteAccountList(email, key)
             DataType.BankCard -> dataDao.getBankAccountList(email, key)
@@ -55,49 +56,47 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
 
-    fun searchData(email: String, query: String?, type: DataType? = null) : LiveData<List<DataUI>> {
-        if (query == null || query.isBlank())
-            return getDataUIList(email, type)
+    /** Поиск **/
+    suspend fun searchData(
+        email: String,
+        query: String,
+        dataType: DataType = DataType.All
+    ): List<DataUI> {
+        if (query.isBlank()) return emptyList()
 
-        return when (type) {
-            DataType.Website -> dataDao.searchWebsite(email, query).asLiveData(Dispatchers.IO)
-            DataType.BankCard -> dataDao.searchBankCard(email, query).asLiveData(Dispatchers.IO)
-            DataType.All, null -> dataDao.run {
-                searchWebsite(email, query)
-                .asLiveData(Dispatchers.IO)
-                .merge(searchBankCard(email, query).asLiveData(Dispatchers.IO))
-                { websites, bankCards -> sortedConcatenation(websites, bankCards) }
+        return when (dataType) {
+            DataType.All -> {
+                dataDao.searchWebsite(email, query) +
+                        dataDao.searchBankCard(email, query)
             }
-
+            DataType.Website -> dataDao.searchWebsite(email, query)
+            DataType.BankCard -> dataDao.searchBankCard(email, query)
         }.toDataUIList()
     }
 
-    //удаляет только 1 запись в бд
+
+    /** Удаляет только 1 запись в бд **/
     suspend fun deleteData(data: Data) = when (data) {
         is Website -> dataDao.deleteWebsite(data)
         else -> dataDao.deleteBankCard(data as BankCard)
     }
 
-    //удаляет несколько записей в бд
+    /** Удаляет несколько записей в бд **/
     suspend fun deleteRecords(data: Data) = when (data) {
         is Website -> dataDao.deleteWebsite(data.email, data.key)
         else -> dataDao.deleteBankCard(data.email, data.key)
     }
 
 
-
-
     private fun sortedConcatenation(
-        websiteList: MutableList<Website>?,
-        bankCardList: MutableList<BankCard>?
+        websiteList: MutableList<Website>,
+        bankCardList: MutableList<BankCard>
     ): List<Data> {
-        when {
-            bankCardList == null || bankCardList.isEmpty() -> return websiteList ?: emptyList()
-            websiteList == null || websiteList.isEmpty() -> return bankCardList
-        }
 
-        websiteList ?: return emptyList()
-        bankCardList ?: return emptyList()
+        when {
+            bankCardList.isEmpty() -> return websiteList
+            websiteList.isEmpty() -> return bankCardList
+        }
 
         val resultList = ArrayList<Data>()
         val minLength = min(websiteList.size, bankCardList.size)
@@ -126,6 +125,13 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
 
+
+    private operator fun MutableList<Website>.plus(bankCardList: MutableList<BankCard>): List<Data> {
+        return sortedConcatenation(this, bankCardList)
+    }
+
+
+
     private fun <T, K, R> LiveData<T>.merge(liveData: LiveData<K>, block: (T?, K?) -> R): LiveData<R> {
         val result = MediatorLiveData<R>()
         result.addSource(this) {
@@ -140,14 +146,12 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
 
-    private fun LiveData<out List<Data>>.toDataUIList() = map { dataList ->
-        dataList
-            .groupBy { it.key }
-            .map {
-                DataUI(
-                    title = it.value[0],
-                    accountList = it.value.toMutableList()
-                )
-            }
-    }
+    private fun List<Data>.toDataUIList() =
+        groupBy { it.key }
+        .map {
+            DataUI(
+                title = it.value[0],
+                accountList = it.value.toMutableList()
+            )
+        }
 }

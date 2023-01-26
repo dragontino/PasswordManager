@@ -11,14 +11,25 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animationTimeMillis
 import com.security.passwordmanager.buildString
 import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.deleteFromLast
 import com.security.passwordmanager.presentation.model.ObservableWebsite
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class WebsiteViewModel : ViewModel() {
+
+
+    enum class ViewModelState {
+        Loading,
+        Ready
+    }
+
+
 
     val enterFabAnimation = slideInHorizontally(
         animationSpec = tween(
@@ -36,6 +47,10 @@ class WebsiteViewModel : ViewModel() {
     ) { it / 2 }
 
 
+
+    var viewModelState by mutableStateOf(ViewModelState.Loading)
+
+
     val accountList = mutableStateListOf(ObservableWebsite())
     val itemsToDelete = mutableStateListOf<Website>()
 
@@ -44,7 +59,6 @@ class WebsiteViewModel : ViewModel() {
 
     var showDialog by mutableStateOf(false)
         private set
-    var isLoading by mutableStateOf(false)
 
     var dialogContent: @Composable () -> Unit by mutableStateOf({})
         private set
@@ -65,6 +79,14 @@ class WebsiteViewModel : ViewModel() {
         private set
 
     val currentWebsite get() = accountList.getOrElse(currentWebsitePosition) { ObservableWebsite() }
+
+
+    init {
+        viewModelScope.launch {
+            delay(5000)
+            viewModelState = ViewModelState.Ready
+        }
+    }
 
 
     @Composable

@@ -9,14 +9,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.Divider
-import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,10 +20,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,7 +38,6 @@ import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.ScreenTypeItem
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
-import com.security.passwordmanager.presentation.view.theme.RaspberryLight
 import com.security.passwordmanager.presentation.view.theme.bottomSheetBorderThickness
 
 @ExperimentalMaterial3Api
@@ -71,6 +70,7 @@ internal fun ModalNavigationDrawerContent(items: @Composable ColumnScope.() -> U
                 .asPaddingValues()
                 .calculateTopPadding()
         )
+        Spacer(modifier = Modifier.size(16.dp))
         items()
     }
 }
@@ -117,14 +117,6 @@ private fun NavHeader(topPadding: Dp = 0.dp) {
 
 
 
-data class Header(
-    val title: String = "",
-    val subtitle: String = "",
-    val beautifulDesign: Boolean = false
-)
-
-
-
 @Composable
 fun BottomSheetContent(
     modifier: Modifier = Modifier,
@@ -143,7 +135,22 @@ fun BottomSheetContent(
 @Composable
 fun BottomSheetContent(
     modifier: Modifier = Modifier,
-    header: Header = Header(),
+    title: AnnotatedString = AnnotatedString(""),
+    subtitle: AnnotatedString = AnnotatedString(""),
+    beautifulDesign: Boolean = false,
+    bodyContent: @Composable (ColumnScope.() -> Unit)
+) = BottomSheetContent(
+    header = AnnotatedHeader(title, subtitle, beautifulDesign),
+    bodyContent = bodyContent,
+    modifier = modifier
+)
+
+
+
+@Composable
+fun BottomSheetContent(
+    modifier: Modifier = Modifier,
+    header: HeadingInterface = Header(),
     bodyContent: @Composable (ColumnScope.() -> Unit),
 ) {
     Column(
@@ -169,13 +176,15 @@ fun BottomSheetContent(
             .fillMaxWidth()
     ) {
         BottomSheetHeader(header)
+        Spacer(modifier = Modifier.size(8.dp))
         bodyContent()
+        Spacer(modifier = Modifier.size(8.dp))
     }
 }
 
 
 @Composable
-private fun ColumnScope.BottomSheetHeader(header: Header) {
+private fun ColumnScope.BottomSheetHeader(header: HeadingInterface) {
     if (header.title.isBlank()) return
 
     Column(
@@ -188,25 +197,12 @@ private fun ColumnScope.BottomSheetHeader(header: Header) {
             if (header.beautifulDesign) MaterialTheme.typography.titleLarge
             else MaterialTheme.typography.labelMedium
 
-        Text(
-            text = header.title,
-            style = titleTextStyle,
-            color = MaterialTheme.colorScheme.onBackground.animate(),
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .fillMaxWidth()
-        )
 
-        if (header.subtitle.isNotBlank()) {
-            Text(
-                text = header.subtitle,
-                color = DarkerGray,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier
-                    .padding(start = 16.dp, bottom = 4.dp)
-                    .fillMaxWidth()
-            )
+        when (header) {
+            is AnnotatedHeader -> TitleWithSubtitle(header, titleTextStyle)
+            is Header -> TitleWithSubtitle(header, titleTextStyle)
         }
+
 
         Divider(
             color = DarkerGray,
@@ -214,6 +210,57 @@ private fun ColumnScope.BottomSheetHeader(header: Header) {
         )
     }
 }
+
+
+@Composable
+private fun TitleWithSubtitle(header: Header, titleTextStyle: TextStyle) {
+    Text(
+        text = header.title,
+        style = titleTextStyle,
+        color = MaterialTheme.colorScheme.onBackground.animate(),
+        modifier = Modifier
+            .padding(start = 16.dp)
+            .fillMaxWidth()
+    )
+
+    if (header.subtitle.isNotBlank()) {
+        Text(
+            text = header.subtitle,
+            color = DarkerGray,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier
+                .padding(start = 16.dp, bottom = 4.dp)
+                .fillMaxWidth()
+        )
+    }
+}
+
+
+@Composable
+private fun TitleWithSubtitle(header: AnnotatedHeader, titleTextStyle: TextStyle) {
+    Text(
+        text = header.title,
+        style = titleTextStyle,
+        color = MaterialTheme.colorScheme.onBackground.animate(),
+        modifier = Modifier
+            .padding(start = 16.dp)
+            .fillMaxWidth()
+    )
+
+    if (header.subtitle.isNotBlank()) {
+        Text(
+            text = header.subtitle,
+            color = DarkerGray,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier
+                .padding(start = 16.dp, bottom = 4.dp)
+                .fillMaxWidth()
+        )
+    }
+}
+
+
+
 
 
 
@@ -224,14 +271,18 @@ object ModalSheetItems {
         @DrawableRes image: Int?,
         modifier: Modifier = Modifier,
         imageModifier: Modifier = Modifier,
+        imageTintColor: Color? = null,
+        selected: Boolean = false,
         imageAlignment: Alignment.Horizontal = Alignment.Start,
         padding: Dp = 16.dp,
         onClick: (text: String) -> Unit
-    ) = BottomSheetItem(text, imageAlignment, onClick, modifier, padding) { horizontalPadding ->
+    ) = BottomSheetItem(text, imageAlignment, onClick, modifier, selected, padding) { horizontalPadding ->
         if (image != null) {
             Image(
                 painter = painterResource(image),
                 contentDescription = text,
+                colorFilter = if (imageTintColor != null) ColorFilter.tint(imageTintColor) else null,
+                contentScale = ContentScale.FillBounds,
                 modifier = imageModifier
                     .padding(horizontal = horizontalPadding)
                     .scale(1.17f)
@@ -247,10 +298,11 @@ object ModalSheetItems {
         iconTintColor: Color,
         modifier: Modifier = Modifier,
         iconModifier: Modifier = Modifier,
+        selected: Boolean = false,
         iconAlignment: Alignment.Horizontal = Alignment.Start,
         padding: Dp = 16.dp,
         onClick: (text: String) -> Unit
-    ) = BottomSheetItem(text, iconAlignment, onClick, modifier, padding) { horizontalPadding ->
+    ) = BottomSheetItem(text, iconAlignment, onClick, modifier, selected, padding) { horizontalPadding ->
         if (icon != null) {
             Icon(
                 imageVector = icon,
@@ -264,38 +316,58 @@ object ModalSheetItems {
     }
 
     @Composable
-    fun ColumnScope.ScreenTypeItem(screen: Screen, onClick: (text: String) -> Unit) = IconTextItem(
+    fun ColumnScope.ScreenTypeItem(
+        screen: AppScreens,
+        selected: Boolean = false,
+        onClick: (text: String) -> Unit
+    ) = IconTextItem(
         text = stringResource(screen.titleRes),
         icon = screen.icon,
-        iconTintColor = RaspberryLight,
+        iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
         iconModifier = Modifier.scale(1.17f),
+        selected = selected,
         onClick = onClick
     )
 
     @Composable
-    fun ColumnScope.EditItem(text: String, onClick: (text: String) -> Unit) = IconTextItem(
+    fun ColumnScope.EditItem(
+        text: String,
+        selected: Boolean = false,
+        onClick: (text: String) -> Unit
+    ) = IconTextItem(
         text = text,
         icon = Icons.Outlined.Edit,
-        iconTintColor = RaspberryLight,
+        iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
         iconModifier = Modifier.scale(1.17f),
+        selected = selected,
         onClick = onClick
     )
 
     @Composable
-    fun ColumnScope.CopyItem(text: String, onClick: (text: String) -> Unit) = IconTextItem(
+    fun ColumnScope.CopyItem(
+        text: String,
+        selected: Boolean = false,
+        onClick: (text: String) -> Unit
+    ) = IconTextItem(
         text = text,
         icon = Icons.Outlined.ContentCopy,
-        iconTintColor = RaspberryLight,
+        iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
         iconModifier = Modifier.scale(1.17f),
+        selected = selected,
         onClick = onClick
     )
 
     @Composable
-    fun ColumnScope.DeleteItem(text: String, onClick: (text: String) -> Unit) = IconTextItem(
+    fun ColumnScope.DeleteItem(
+        text: String,
+        selected: Boolean = false,
+        onClick: (text: String) -> Unit
+    ) = IconTextItem(
         text = text,
         icon = Icons.Outlined.Delete,
-        iconTintColor = RaspberryLight,
+        iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
         iconModifier = Modifier.scale(1.17f),
+        selected = selected,
         onClick = onClick
     )
 
@@ -306,12 +378,25 @@ object ModalSheetItems {
         imageAlignment: Alignment.Horizontal,
         onClick: (text: String) -> Unit,
         modifier: Modifier = Modifier,
-        padding: Dp = 16.dp,
+        selected: Boolean = false,
+        padding: Dp = 8.dp,
         image: @Composable (horizontalPadding: Dp) -> Unit
     ) {
         Row(
-            modifier = modifier
+            modifier = Modifier
+                .padding(horizontal = 4.dp)
+                .clip(MaterialTheme.shapes.small)
                 .clickable { onClick(text) }
+                .background(
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                            .copy(alpha = 0.3f)
+                            .animate()
+                    } else {
+                        Color.Transparent
+                    }
+                )
+                .then(modifier)
                 .align(Alignment.Start)
                 .padding(vertical = padding)
                 .fillMaxWidth(),
@@ -329,6 +414,32 @@ object ModalSheetItems {
 
             if (imageAlignment == Alignment.End) image(padding)
         }
+    }
+}
+
+
+
+
+@Composable
+fun RowScope.ToolbarAction(
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    contentDescription: String = "",
+    onClick: () -> Unit
+) {
+    FilledIconButton(
+        onClick = onClick,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onPrimary.animate()
+        ),
+        shape = CircleShape,
+        modifier = modifier.align(Alignment.CenterVertically)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription
+        )
     }
 }
 
@@ -356,14 +467,17 @@ internal fun FeedbackSheet(
         ImageTextItem(
             text = stringResource(R.string.telegram),
             image = R.drawable.telegram_icon,
-            imageModifier = Modifier.scale(2f)
+            imageTintColor = MaterialTheme.colorScheme.secondary.animate(),
+            imageModifier = Modifier.scale(1.7f)
         ) {
             openAddress("https://t.me/cepetroff")
         }
 
         ImageTextItem(
             text = stringResource(R.string.vk),
-            image = R.drawable.vk_icon
+            image = R.drawable.vk_icon,
+            imageTintColor = MaterialTheme.colorScheme.secondary.animate(),
+            imageModifier = Modifier.scale(1.4f)
         ) {
             openAddress("https://vk.com/cepetroff")
         }
@@ -371,7 +485,7 @@ internal fun FeedbackSheet(
         IconTextItem(
             text = stringResource(R.string.email),
             icon = Icons.Default.AlternateEmail,
-            iconTintColor = RaspberryLight,
+            iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
             iconModifier = Modifier.scale(0.9f)
         ) {
             openAddress("mailto:petrovsd2002@gmail.com")
@@ -390,8 +504,8 @@ private fun ModalNavigationContentPreview() {
         isDarkTheme = false
     ) {
         ModalNavigationDrawerContent {
-            ScreenTypeItem(Screen.Notes) {}
-            ScreenTypeItem(Screen.Settings) {}
+            ScreenTypeItem(AppScreens.Notes, selected = true) {}
+            ScreenTypeItem(AppScreens.Settings) {}
         }
     }
 }
@@ -410,14 +524,15 @@ private fun BottomSheetContentPreview() {
             IconTextItem(
                 text = "Добавить аккаунт",
                 icon = Icons.Outlined.AccountCircle,
-                iconTintColor = RaspberryLight,
+                iconTintColor = MaterialTheme.colorScheme.primary.animate(),
             ) {}
 
             IconTextItem(
                 text = "Bank Account",
                 icon = Icons.Outlined.CreditCard,
-                iconTintColor = RaspberryLight,
-                iconAlignment = Alignment.End
+                iconTintColor = MaterialTheme.colorScheme.primary.animate(),
+                iconAlignment = Alignment.End,
+                selected = true
             ) {}
         }
     }

@@ -1,18 +1,16 @@
-package com.security.passwordmanager.presentation.view
+package com.security.passwordmanager.presentation.view.screens
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,7 +26,6 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,21 +43,26 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
-import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.presentation.model.ObservableWebsite
 import com.security.passwordmanager.presentation.model.enums.DataType
-import com.security.passwordmanager.presentation.view.composablelements.*
+import com.security.passwordmanager.presentation.view.composablelements.DeleteDialog
+import com.security.passwordmanager.presentation.view.composablelements.EditableDataTextField
+import com.security.passwordmanager.presentation.view.composablelements.ExitDialog
+import com.security.passwordmanager.presentation.view.composablelements.TopBar
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.CopyItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.DeleteItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.EditItem
+import com.security.passwordmanager.presentation.view.navigation.ToolbarAction
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
+import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
@@ -97,7 +99,6 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scaffoldState = rememberCollapsingToolbarScaffoldState()
-    val settings by settingsViewModel.settings.observeAsState(initial = Settings())
 
 
     val isInEditing by rememberSaveable { mutableStateOf(false) }
@@ -147,8 +148,9 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 //    }
 
 
+
     LaunchedEffect(key1 = Unit) {
-        viewModel.isLoading = true
+        viewModel.viewModelState = WebsiteViewModel.ViewModelState.Loading
         delay(200)
         val newList = dataViewModel
             .getAccountList(key = address, dataType = DataType.Website)
@@ -162,7 +164,7 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                 .map { it.observe() }
                 .filterIsInstance<ObservableWebsite>()
         )
-        viewModel.isLoading = false
+        viewModel.viewModelState = WebsiteViewModel.ViewModelState.Ready
     }
 
 
@@ -249,10 +251,10 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 //                        exit = ExitTopBarAnimation
 //                    )
                 ) {
-                    TopBarAction(
+                    ToolbarAction(
                         icon = Icons.Rounded.Delete,
-                        contentDescription = stringResource(R.string.delete_password),
-                        modifier = Modifier.scale(1.2f)
+                        modifier = Modifier.scale(1.2f),
+                        contentDescription = stringResource(R.string.delete)
                     ) {
                         if (address.isNotEmpty()) {
                             viewModel.openDialog {
@@ -276,10 +278,10 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                         }
                     }
                     Spacer(modifier = Modifier.width(4.dp))
-                    TopBarAction(
+                    ToolbarAction(
                         icon = Icons.Rounded.Save,
-                        contentDescription = stringResource(R.string.button_save),
                         modifier = Modifier.scale(1.2f),
+                        contentDescription = stringResource(R.string.save),
                         onClick = ::saveInfo
                     )
 
@@ -335,54 +337,9 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                 .fillMaxSize()
         ) {
 
-            Loading(
-                isLoading = viewModel.isLoading,
-                modifier = Modifier
-                    .animateEnterExit(
-                        enter = EnterContentAnimation,
-                        exit = ExitContentAnimation,
-                    )
-                    .clip(viewModel.screenShape())
-                    .background(
-                        color = MaterialTheme.colorScheme.background.animate(),
-                        shape = viewModel.screenShape(),
-                    )
-                    .border(
-                        width = screenBorderThickness,
-                        shape = viewModel.screenShape(),
-                        brush = Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.background,
-                            ).map { it.animate() },
-                        ),
-                    )
-                    .fillMaxSize(),
-            )
-
-            if (viewModel.isLoading) return@ToolbarWithFabScaffold
-
-
-
-
-
-
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            ) {
-                Snackbar(
-                    snackbarData = it,
-                    shape = RoundedCornerShape(11.dp)
-                )
-            }
-
-
-
-            LazyColumn(
-                state = listState,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 16.dp),
+            Crossfade(
+                targetState = viewModel.viewModelState,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
                 modifier = Modifier
                     .animateEnterExit(
                         enter = EnterContentAnimation,
@@ -396,118 +353,38 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                     .border(
                         width = screenBorderThickness,
                         shape = viewModel.screenShape(),
-                        brush = Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.background,
-                            ).map { it.animate() }
+                        brush = Brush.verticalGradient(
+                            0.1f to MaterialTheme.colorScheme.primary.animate(),
+                            0.6f to MaterialTheme.colorScheme.background.animate()
                         )
                     )
                     .fillMaxSize()
-            ) {
-                item {
-                    FirstTwoItems(
-                        firstItem = { modifier ->
-                            EditableDataTextField(
-                                text = viewModel.accountList.firstOrNull()?.address ?: "",
-                                onTextChange = { address ->
-                                    viewModel.accountList.forEach {
-                                        it.address = address
-                                        it.errorAddressMessage = if (address.isEmpty())
-                                            context.getString(R.string.empty_url)
-                                        else ""
-                                    }
-                                },
-                                hint = stringResource(R.string.url_address),
-                                keyboardType = KeyboardType.Uri,
-                                isError = viewModel.showErrors &&
-                                        viewModel
-                                            .accountList
-                                            .firstOrNull()
-                                            ?.errorAddressMessage
-                                            ?.isNotBlank() == true,
-                                errorMessage = viewModel
-                                    .accountList.firstOrNull()
-                                    ?.errorAddressMessage
-                                    ?: "",
-//                                textIsChanged = { isInEditing = it },
-                                modifier = modifier
-                            )
-                        },
-                        secondItem = { modifier ->
-                            EditableDataTextField(
-                                text = viewModel.accountList.firstOrNull()?.nameWebsite ?: "",
-                                onTextChange = { nameWebsite ->
-                                    viewModel.accountList.forEach {
-                                        it.nameWebsite = nameWebsite
-                                        it.errorNameWebsiteMessage = if (nameWebsite.isEmpty())
-                                            context.getString(R.string.empty_website_name)
-                                        else ""
-                                    }
-                                },
-                                hint = stringResource(R.string.name_website),
-                                isError = viewModel.showErrors &&
-                                        viewModel
-                                            .accountList.firstOrNull()
-                                            ?.errorNameWebsiteMessage
-                                            ?.isNotBlank() == true,
-                                errorMessage = context.getString(R.string.empty_website_name),
-                                whenFocused = {
-                                    if (
-                                        settings.isShowingDataHints &&
-                                        viewModel
-                                            .accountList
-                                            .firstOrNull()
-                                            ?.nameWebsite
-                                            ?.isEmpty() == true
-                                        &&
-                                        viewModel
-                                            .accountList.firstOrNull()
-                                            ?.address
-                                            ?.isNotEmpty() == true
-                                    ) {
-                                        viewModel.accountList.map {
-                                            it.nameWebsite = viewModel.generateNameWebsite()
-                                        }
-                                    }
-                                },
-//                                textIsChanged = { isInEditing = it },
-                                modifier = modifier
+            ) { state ->
+                when (state) {
+                    WebsiteViewModel.ViewModelState.Loading -> Loading(
+                        modifier = Modifier.verticalScroll(rememberScrollState())
+                    )
+                    WebsiteViewModel.ViewModelState.Ready -> {
+                        WebsiteContentScreen(
+                            viewModel = viewModel,
+                            settingsViewModel = settingsViewModel,
+                            listState = listState,
+                            copyText = { dataViewModel.copyText(context, it) },
+                            openBottomSheet = {
+                                scope.launch { viewModel.openBottomSheet(bottomState, it) }
+                            }
+                        )
+
+                        SnackbarHost(
+                            hostState = snackbarHostState,
+                            modifier = Modifier.align(Alignment.BottomCenter)
+                        ) {
+                            Snackbar(
+                                snackbarData = it,
+                                shape = RoundedCornerShape(11.dp)
                             )
                         }
-                    )
-                }
-
-
-                itemsIndexed(viewModel.accountList) { index, website ->
-                    Website(
-                        website = website,
-                        position = index,
-                        viewModel = viewModel,
-                        copyText = { dataViewModel.copyText(context, it) },
-                        openBottomSheet = {
-                            scope.launch { viewModel.openBottomSheet(bottomState, index) }
-                        },
-                        isLast = index == viewModel.accountList.lastIndex,
-//                        isChanged = { isInEditing = it },
-                        modifier = Modifier
-                            .animateContentSize(
-                                tween(
-                                    durationMillis = 200,
-                                    easing = LinearOutSlowInEasing
-                                )
-                            )
-                            .animateItemPlacement(
-                                tween(
-                                    durationMillis = 200,
-                                    easing = FastOutSlowInEasing
-                                )
-                            )
-                    )
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
+                    }
                 }
             }
         }
@@ -539,33 +416,233 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 
 
 
+
+
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
+private fun WebsiteContentScreen(
+    listState: LazyListState,
+    viewModel: WebsiteViewModel,
+    settingsViewModel: SettingsViewModel,
+    copyText: (String) -> Unit,
+    openBottomSheet: (index: Int) -> Unit
+) {
+    val context = LocalContext.current
+
+
+    LazyColumn(
+        state = listState,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 16.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        item {
+            FirstTwoItems(
+                firstItem = {
+                    EditableDataTextField(
+                        text = viewModel.accountList.firstOrNull()?.address ?: "",
+                        onTextChange = { address ->
+                            viewModel.accountList.forEach {
+                                it.address = address
+                                it.errorAddressMessage = if (address.isEmpty())
+                                    context.getString(R.string.empty_url)
+                                else ""
+                            }
+                        },
+                        hint = stringResource(R.string.url_address),
+                        keyboardType = KeyboardType.Uri,
+                        isError = viewModel.showErrors &&
+                                viewModel
+                                    .accountList
+                                    .firstOrNull()
+                                    ?.errorAddressMessage
+                                    ?.isNotBlank() == true,
+                        errorMessage = viewModel
+                            .accountList.firstOrNull()
+                            ?.errorAddressMessage
+                            ?: "",
+//                                textIsChanged = { isInEditing = it },
+                    )
+                },
+                secondItem = {
+                    Column {
+                        EditableDataTextField(
+                            text = viewModel.accountList.firstOrNull()?.nameWebsite ?: "",
+                            onTextChange = { nameWebsite ->
+                                viewModel.accountList.forEach {
+                                    it.nameWebsite = nameWebsite
+                                    it.errorNameWebsiteMessage = if (nameWebsite.isEmpty())
+                                        context.getString(R.string.empty_website_name)
+                                    else ""
+                                }
+                            },
+                            hint = stringResource(R.string.name_website),
+                            isError = viewModel.showErrors &&
+                                    viewModel
+                                        .accountList.firstOrNull()
+                                        ?.errorNameWebsiteMessage
+                                        ?.isNotBlank() == true,
+                            errorMessage = context.getString(R.string.empty_website_name),
+                            whenFocused = {
+                                if (
+                                    settingsViewModel.settings.isUsingAutofill
+                                    &&
+                                    viewModel
+                                        .accountList
+                                        .firstOrNull()
+                                        ?.nameWebsite
+                                        ?.isEmpty() == true
+                                    &&
+                                    viewModel
+                                        .accountList.firstOrNull()
+                                        ?.address
+                                        ?.isNotEmpty() == true
+                                ) {
+                                    viewModel.accountList.map {
+                                        it.nameWebsite = viewModel.generateNameWebsite()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.padding(bottom = 0.dp)
+//                                textIsChanged = { isInEditing = it },
+                        )
+
+                        Spacer(Modifier.size(4.dp))
+
+                        CheckboxWithText(
+                            text = stringResource(R.string.autofill_name_website),
+                            isChecked = settingsViewModel.settings.isUsingAutofill,
+                            onCheckedChange = settingsViewModel::updateAutofill,
+                            modifier = Modifier
+                                .padding(top = 0.dp)
+                                .padding(horizontal = 8.dp)
+                        )
+                    }
+                }
+            )
+        }
+
+        itemsIndexed(viewModel.accountList) { index, website ->
+            Website(
+                website = website,
+                position = index,
+                viewModel = viewModel,
+                copyText = copyText,
+                openBottomSheet = { openBottomSheet(index) },
+                isLast = index == viewModel.accountList.lastIndex,
+//                        isChanged = { isInEditing = it },
+                modifier = Modifier
+                    .animateContentSize(
+                        tween(
+                            durationMillis = 200,
+                            easing = LinearOutSlowInEasing
+                        )
+                    )
+                    .animateItemPlacement(
+                        tween(
+                            durationMillis = 200,
+                            easing = FastOutSlowInEasing
+                        )
+                    )
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+}
+
+
+
+
+@Composable
 private fun FirstTwoItems(
-    firstItem: @Composable (Modifier) -> Unit,
-    secondItem: @Composable (Modifier) -> Unit
+    firstItem: @Composable (() -> Unit),
+    secondItem: @Composable (() -> Unit)
 ) {
     val orientation = LocalConfiguration.current.orientation
 
     Column {
         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                firstItem(Modifier.weight(1f))
+                Box(
+                    contentAlignment = Alignment.TopCenter,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    firstItem()
+                }
                 Spacer(modifier = Modifier.width(12.dp))
-                secondItem(Modifier.weight(1f))
+                Box(
+                    contentAlignment = Alignment.TopCenter,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    secondItem()
+                }
             }
         } else {
-            firstItem(Modifier.fillMaxWidth())
+            Box(
+                contentAlignment = Alignment.TopCenter,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                firstItem()
+            }
             Spacer(modifier = Modifier.height(12.dp))
-            secondItem(Modifier.fillMaxWidth())
+            Box(
+                contentAlignment = Alignment.TopCenter,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                secondItem()
+            }
         }
 
         Divider(
             color = DarkerGray,
             modifier = Modifier.padding(top = 20.dp, bottom = 16.dp)
+        )
+    }
+}
+
+
+
+
+@Composable
+private fun CheckboxWithText(
+    text: String,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
+            .clickable { onCheckedChange(!isChecked) }
+            .background(MaterialTheme.colorScheme.background.animate())
+            .fillMaxWidth()
+    ) {
+        Checkbox(
+            checked = isChecked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = MaterialTheme.colorScheme.primary.animate(),
+                checkmarkColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                uncheckedColor = MaterialTheme.colorScheme.primary.animate()
+            )
+        )
+
+        Spacer(modifier = Modifier.size(8.dp))
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.animate(),
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
@@ -600,7 +677,7 @@ private fun Website(
                 if (viewModel.isNameRenaming) "" else defaultNameAccount
             },
             updateHeading = website::nameAccount::set,
-            enabled = viewModel.run { position == currentWebsitePosition && isNameRenaming },
+            enabled = with(viewModel) { position == currentWebsitePosition && isNameRenaming },
             openBottomSheet = openBottomSheet,
             keyboardAction = {
                 focusManager.moveFocus(FocusDirection.Down)
@@ -742,5 +819,64 @@ private fun WebsiteHeader(
                 modifier = Modifier.scale(1.3f)
             )
         }
+    }
+}
+
+
+
+
+@Preview
+@Composable
+private fun CheckboxWithTextPreview() {
+    var isChecked by remember { mutableStateOf(true) }
+
+    PasswordManagerTheme(isDarkTheme = false) {
+        CheckboxWithText(
+            text = "Imagine Dragons",
+            isChecked = isChecked,
+            onCheckedChange = { isChecked = it }
+        )
+    }
+}
+
+
+
+@ExperimentalMaterial3Api
+@Preview
+@Composable
+private fun FirstThreeItemsPreview() {
+    PasswordManagerTheme(isDarkTheme = true) {
+        FirstTwoItems(
+            firstItem = {
+                Text(
+                    text = "Адрес",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onBackground.animate(),
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .fillMaxWidth()
+                )
+            },
+            secondItem = {
+                Column {
+                    Text(
+                        text = "Название сайта",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground.animate(),
+                        modifier = Modifier
+                            .padding(start = 16.dp)
+                            .fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.size(4.dp))
+
+                    CheckboxWithText(
+                        text = "Автозаполнение",
+                        isChecked = true,
+                        onCheckedChange = {},
+                    )
+                }
+            }
+        )
     }
 }

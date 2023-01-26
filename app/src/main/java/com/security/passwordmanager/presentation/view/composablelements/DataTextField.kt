@@ -36,7 +36,6 @@ import com.security.passwordmanager.animate
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
-import com.security.passwordmanager.presentation.view.theme.RaspberryLight
 
 @ExperimentalMaterial3Api
 @Composable
@@ -175,14 +174,14 @@ fun EditableDataTextField(
             } else {
                 MaterialTheme.colorScheme.background.animate()
             },
-            focusedBorderColor = RaspberryLight,
-            unfocusedBorderColor = RaspberryLight.copy(alpha = 0.6f),
-            focusedLabelColor = RaspberryLight,
+            focusedBorderColor = MaterialTheme.colorScheme.primary.animate(),
+            unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f).animate(),
+            focusedLabelColor = MaterialTheme.colorScheme.secondary.animate(),
             unfocusedLabelColor = if (text.isNotEmpty()) {
-                RaspberryLight.copy(alpha = 0.7f)
+                MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant.animate()
-            },
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }.animate(),
             errorLabelColor = if (text.isNotEmpty()) {
                 MaterialTheme.colorScheme.error.animate()
             } else {
@@ -257,7 +256,7 @@ object TrailingActions {
 @Composable
 private fun DataTextFieldPreview() {
     var visible by remember { mutableStateOf(false) }
-    PasswordManagerTheme(isDarkTheme = true) {
+    PasswordManagerTheme(isDarkTheme = false, dynamicColor = false) {
         Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface.animate())) {
             DataTextField(
                 text = "Wrecked",
@@ -276,7 +275,7 @@ private fun DataTextFieldPreview() {
                 text = "Wrecked",
                 onTextChange = {},
                 hint = "Imagine Dragons",
-                isError = true,
+                isError = false,
                 errorMessage = "Error Message",
                 trailingActions = {
                     VisibilityIconButton(visible) { visible = it }

@@ -37,7 +37,10 @@ class ViewModelFactory(private val application: Application) : ViewModelProvider
             }
             modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
                 return LoginViewModel(
-                    repository = LoginRepository(FirebaseAuth.getInstance()),
+                    repository = LoginRepository(
+                        auth = FirebaseAuth.getInstance(),
+                        context = application
+                    ),
                     preferences = AppPreferences(application)
                 ) as T
             }
