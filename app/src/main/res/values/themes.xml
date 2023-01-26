@@ -6,10 +6,20 @@
         <item name="colorPrimaryDark">@color/raspberry</item>
         <item name="colorAccent">@color/teal_200</item>
         <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:fontFamily">@font/roboto</item>
         <item name="bottomSheetDialogTheme">@style/Theme.MaterialComponents.BottomSheetDialog</item>
         <!-- Customize your theme here. -->
-<!--        <item name="android:windowTranslucentStatus">true</item>-->
-<!--        <item name="android:windowTranslucentNavigation">true</item>-->
+        <!--        <item name="android:windowTranslucentStatus">true</item>-->
+        <!--        <item name="android:windowTranslucentNavigation">true</item>-->
+    </style>
+
+    <style name="Theme.PasswordManager.Dark" parent="Theme.AppCompat.DayNight">
+        <item name="colorPrimary">@color/header_dark</item>
+        <item name="colorPrimaryDark">@color/header_dark</item>
+        <item name="colorAccent">@color/teal_200</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:fontFamily">@font/roboto</item>
+        <item name="bottomSheetDialogTheme">@style/Theme.MaterialComponents.BottomSheetDialog</item>
     </style>
 
     <style name="Theme.PasswordManager.NoActionBar">
@@ -18,14 +28,19 @@
     </style>
 
     <style name="Theme.PasswordManager.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
     <style name="Theme.PasswordManager.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="AccountTextViewTheme">
+    <style name="AccountTextViewThemeWithoutMargin">
         <item name="android:padding">8dp</item>
         <item name="android:textSize">@dimen/text_view_normal_size</item>
         <item name="android:textColorHint">@android:color/darker_gray</item>
-        <item name="android:layout_margin">@dimen/activity_vertical_margin</item>
+        <item name="android:minHeight">48dp</item>
         <item name="android:background">@drawable/text_view_style</item>
+    </style>
+
+    <style name="AccountTextViewTheme" parent="AccountTextViewThemeWithoutMargin">
+        <item name="android:layout_margin">@dimen/activity_vertical_margin</item>
     </style>
 
     <style name="MainTextViewTheme">
@@ -36,6 +51,11 @@
         <item name="android:layout_margin">8dp</item>
     </style>
 
+    <style name="card_view_background">
+        <item name="cardCornerRadius">@dimen/data_element_corner</item>
+        <item name="cardBackgroundColor">@color/data_background_color</item>
+    </style>
+
     <style name="NormalTextViewTheme">
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
@@ -43,28 +63,35 @@
         <item name="android:layout_margin">@dimen/activity_horizontal_margin</item>
     </style>
 
+
     <style name="UtilityButtons">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_margin">4dp</item>
-        <item name="android:background">@color/white</item>
+        <item name="android:background">@android:color/transparent</item>
     </style>
+
+
+    <style name="UtilityButtons.WithMargins">
+        <item name="android:layout_margin">4dp</item>
+    </style>
+
 
     <style name="AccountHeadingTheme">
         <item name="android:textColor">@android:color/darker_gray</item>
         <item name="android:textColorHint">@android:color/darker_gray</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:gravity">center</item>
-        <item name="android:hint">@string/account_hint</item>
+        <item name="android:hint">@string/account_name_placeholder</item>
         <item name="android:textIsSelectable">true</item>
         <item name="android:cursorVisible">false</item>
         <item name="android:enabled">false</item>
         <item name="android:layout_marginTop">10dp</item>
-        <item name="android:autofillHints">@string/account_hint</item>
+        <item name="android:autofillHints">@string/account_name_placeholder</item>
+        <item name="android:minHeight">48dp</item>
     </style>
 
     <style name="Widget.MaterialComponents.TimePicker.Light" parent="Widget.MaterialComponents.TimePicker">
-        <item name="android:numbersInnerTextColor">@color/black</item>
+        <item name="android:numbersInnerTextColor">@color/white</item>
         <item name="android:numbersTextColor">@color/black</item>
         <item name="android:numbersBackgroundColor">@color/light_gray</item>
     </style>
@@ -81,6 +108,7 @@
 
     <style name="AppModalStyle" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:background">@drawable/bottom_sheet_background</item>
+        <item name="android:backgroundTint">@android:color/transparent</item>
     </style>
 
     <style name="AboutButtons" parent="Widget.AppCompat.Button.Borderless.Colored">
@@ -90,7 +118,7 @@
         <item name="android:textSize">17sp</item>
         <item name="android:textAllCaps">false</item>
     </style>
-    
+
     <style name="SwitchTheme" parent="Theme.MaterialComponents.Light">
         <item name="colorControlActivated">@color/raspberry</item>
         <item name="colorSwitchThumbNormal">@color/light_gray</item>
@@ -101,11 +129,5 @@
         <item name="colorControlActivated">@color/header_dark</item>
         <item name="colorSwitchThumbNormal">@color/light_gray</item>
         <item name="android:colorForeground">@color/white</item>
-    </style>
-
-    <style name="DialogTheme" parent="Theme.AppCompat.DayNight.Dialog">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <item name="dialogCornerRadius">6dp</item>
     </style>
 </resources>
