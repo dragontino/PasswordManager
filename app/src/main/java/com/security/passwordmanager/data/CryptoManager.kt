@@ -11,8 +11,10 @@ import javax.crypto.Cipher
 
 class CryptoManager {
 
+    // FIXME: 27.01.2023 сделать шифрование
     fun encrypt(defaultString: String) = defaultString //crypt(defaultString, true)
 
+    // FIXME: 27.01.2023 сделать шифрование
     fun decrypt(defaultString: String) = defaultString //crypt(defaultString, false)
 
 

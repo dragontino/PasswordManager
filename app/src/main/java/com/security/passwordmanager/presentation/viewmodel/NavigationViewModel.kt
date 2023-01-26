@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.security.passwordmanager.PasswordManagerApplication
-import com.security.passwordmanager.presentation.view.navigation.Screen
+import com.security.passwordmanager.presentation.view.navigation.AppScreens
 
 class NavigationViewModel(private val application: PasswordManagerApplication) : ViewModel() {
 
@@ -25,7 +25,7 @@ class NavigationViewModel(private val application: PasswordManagerApplication) :
                     inclusive = true
                 }
             } else {
-                popUpTo(Screen.Notes.fullRoute)
+                popUpTo(AppScreens.Notes.fullRoute)
             }
             launchSingleTop = true
         }

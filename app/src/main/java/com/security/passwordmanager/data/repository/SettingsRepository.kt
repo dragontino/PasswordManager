@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.map
 
 class SettingsRepository(private val settingsDao: SettingsDao) {
 
-    suspend fun addSettings(settings: Settings) {
+    private suspend fun addSettings(settings: Settings) {
         settingsDao.addSettings(settings)
     }
 
@@ -17,12 +17,11 @@ class SettingsRepository(private val settingsDao: SettingsDao) {
     suspend fun updateUsingBeautifulFont(email: String, usingBeautifulFont: Boolean) =
         settingsDao.updateUsingBeautifulFont(email, usingBeautifulFont)
 
-    suspend fun updateDataHints(email: String, usingDataHints: Boolean) =
-        settingsDao.updateDataHints(email, usingDataHints)
+    suspend fun updateAutofill(email: String, autofill: Boolean) =
+        settingsDao.updateAutofill(email, autofill)
 
-    suspend fun updateUsingBottomView(email: String, usingBottomView: Boolean) =
-        settingsDao.updateUsingBottomView(email, usingBottomView)
-
+    suspend fun updateUsingDynamicColor(email: String, dynamicColor: Boolean) =
+        settingsDao.updateUsingDynamicColor(email, dynamicColor)
 
 
     fun getSettings(email: String): Flow<Settings> =

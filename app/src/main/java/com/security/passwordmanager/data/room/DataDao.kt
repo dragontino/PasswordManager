@@ -57,18 +57,19 @@ abstract class DataDao {
             "address LIKE '%' || :query || '%' OR " +
             "nameAccount LIKE '%' || :query || '%') " +
             "ORDER BY nameWebsite ASC")
-    abstract fun searchWebsite(email: String, query: String): Flow<MutableList<Website>>
+    abstract suspend fun searchWebsite(email: String, query: String): MutableList<Website>
 
     @Query("SELECT * FROM BankTable " +
             "WHERE email = :email AND (" +
             "bankName LIKE '%' || :query || '%' OR " +
             "bankCardName LIKE '%' || :query || '%') " +
             "ORDER BY bankName")
-    abstract fun searchBankCard(email: String, query: String): Flow<MutableList<BankCard>>
+    abstract suspend fun searchBankCard(email: String, query: String): MutableList<BankCard>
 
 
     /**
      * Удаление одного элемента
+     * @param website – объект, который будет удалён
      */
     @Delete(entity = Website::class)
     abstract suspend fun deleteWebsite(website: Website)

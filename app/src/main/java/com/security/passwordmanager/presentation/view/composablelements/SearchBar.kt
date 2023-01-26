@@ -1,5 +1,6 @@
 package com.security.passwordmanager.presentation.view.composablelements
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,7 +8,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -19,28 +22,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
+import com.security.passwordmanager.presentation.view.navigation.ToolbarAction
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import kotlinx.coroutines.delay
 
 
+@ExperimentalAnimationApi
 @ExperimentalMaterial3Api
 @Composable
 internal fun SearchBar(
+    query: String,
     onQueryChange: (query: String) -> Unit,
     onCloseSearchBar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var query by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(Unit) {
-        delay(200)
+        delay(50)
         focusRequester.requestFocus()
     }
 
-    CenterAlignedTopAppBar(
+    TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary.animate(),
             scrolledContainerColor = Color.Transparent,
@@ -52,26 +57,31 @@ internal fun SearchBar(
             Icon(
                 imageVector = Icons.Rounded.Search,
                 contentDescription = "search",
-                modifier = Modifier.padding(start = 10.dp),
+                modifier = Modifier
+//                    .animateEnterExit(
+//                        enter = slideInHorizontally(
+//                            animationSpec = tween(durationMillis = 400)
+//                        ) { it / 2 },
+//                        exit = slideOutHorizontally(
+//                            animationSpec = tween(durationMillis = 400)
+//                        ) { it / 2 }
+//                    )
+                    .padding(start = 10.dp),
             )
         },
         actions = {
-            IconButton(
-                onClick = {
-                    focusManager.clearFocus()
-                    onCloseSearchBar()
-                },
+            ToolbarAction(
+                icon = Icons.Rounded.Close,
+                contentDescription = "close search bar"
             ) {
-                Icon(Icons.Rounded.Close, contentDescription = "close search bar")
+                focusManager.clearFocus()
+                onCloseSearchBar()
             }
         },
         title = {
             TextField(
                 value = query,
-                onValueChange = {
-                    query = it
-                    onQueryChange(it)
-                },
+                onValueChange = onQueryChange,
                 singleLine = true,
                 placeholder = {
                     Text(
@@ -102,11 +112,16 @@ internal fun SearchBar(
 }
 
 
+@ExperimentalAnimationApi
 @ExperimentalMaterial3Api
 @Preview
 @Composable
-fun SearchBarPreview() {
+private fun SearchBarPreview() {
     PasswordManagerTheme(isDarkTheme = false) {
-        SearchBar(onQueryChange = {}, onCloseSearchBar = {})
+        SearchBar(
+            query = "Imagine Dragons",
+            onQueryChange = {},
+            onCloseSearchBar = {}
+        )
     }
 }

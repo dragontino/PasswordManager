@@ -2,6 +2,7 @@ package com.security.passwordmanager
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
@@ -92,6 +93,17 @@ fun String.isValidUrl() = URLUtil.isValidUrl(this)
 fun <T> MutableList<T>.swapList(newList: List<T>) {
     clear()
     addAll(newList)
+}
+
+
+fun Context.checkNetworkConnection(): Boolean {
+    val connectivityManager =
+        getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    val capabilities = connectivityManager
+        .getNetworkCapabilities(connectivityManager.activeNetwork)
+
+    return capabilities != null
 }
 
 
@@ -207,7 +219,6 @@ fun keyboardAsState(): State<Boolean> {
 }
 
 
-// TODO: 22.01.2022 интегрировать progress
 @Composable
 fun Loading(modifier: Modifier = Modifier, progress: Float? = null) {
     Box(
@@ -231,38 +242,6 @@ fun Loading(modifier: Modifier = Modifier, progress: Float? = null) {
                 strokeCap = StrokeCap.Round,
                 color = MaterialTheme.colorScheme.primary.animate(),
                 modifier = Modifier
-                    .scale(1.4f)
-                    .align(Alignment.Center)
-            )
-        }
-    }
-}
-
-
-
-@ExperimentalAnimationApi
-@Composable
-fun Loading(isLoading: Boolean, modifier: Modifier = Modifier) {
-    AnimatedVisibility(
-        visible = isLoading,
-        enter = fadeIn(spring(stiffness = Spring.StiffnessLow)),
-        exit = fadeOut(spring(stiffness = Spring.StiffnessLow)),
-        modifier = modifier.fillMaxSize()
-    ) {
-        Box(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background.animate())
-                .fillMaxSize(),
-        ) {
-            CircularProgressIndicator(
-                progress = 0.8f,
-                strokeWidth = 3.5.dp,
-                color = MaterialTheme.colorScheme.primary.animate(),
-                modifier = Modifier
-                    .animateEnterExit(
-                        enter = slideInVertically(),
-                        exit = slideOutVertically()
-                    )
                     .scale(1.4f)
                     .align(Alignment.Center)
             )

@@ -1,7 +1,6 @@
 package com.security.passwordmanager.presentation.viewmodel
 
 import android.content.Context
-import android.net.ConnectivityManager
 import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import com.security.passwordmanager.R
+import com.security.passwordmanager.checkNetworkConnection
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.Result
 import com.security.passwordmanager.data.Result.Loading
@@ -17,7 +17,7 @@ import com.security.passwordmanager.data.Result.Success
 import com.security.passwordmanager.data.repository.LoginRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.internal.http2.ConnectionShutdownException
+import java.net.ConnectException
 
 class LoginViewModel(
     private val repository: LoginRepository,
@@ -56,6 +56,9 @@ class LoginViewModel(
 
     var password by mutableStateOf("")
     var repeatedPassword by mutableStateOf(password)
+
+    var username by mutableStateOf("")
+
 
     var isPasswordVisible by mutableStateOf(false)
     var isRepeatedPasswordVisible by mutableStateOf(false)
@@ -106,59 +109,68 @@ class LoginViewModel(
         context: Context,
         afterBlock: (result: Result<FirebaseUser>, state: EntryState) -> Unit = { _, _ -> }
     ) {
-        if (!checkNetworkConnection(context)) {
-            entryState.message = context.getString(R.string.check_internet_connection)
-            afterBlock(Result.Error(ConnectionShutdownException()), entryState)
-            return
+        when {
+            !context.checkNetworkConnection() -> {
+                entryState.message = ""
+                afterBlock(
+                    Result.Error(ConnectException(context.getString(R.string.check_internet_connection))),
+                    entryState
+                )
+                return
+            }
+            password.isBlank() -> {
+                entryState.message = context.getString(R.string.empty_password)
+                afterBlock(Result.Error(Exception()), entryState)
+                return
+            }
         }
+
 
         when (entryState) {
             EntryState.SignIn -> {
                 repository.login(email, password) { result ->
-                    if (result is Loading) {
-                        viewModelState = ViewModelState.Loading
-                    } else {
-                        viewModelState = ViewModelState.Ready
-                        entryState.message = when {
-                            result is Success -> {
-                                saveCredentials(email, username = result.data.displayName ?: "")
-                                ""
-                            }
-                            password.isBlank() -> context.getString(R.string.empty_password)
-                            else -> context.getString(
-                                R.string.login_failed,
-                                (result as Result.Error).exception
-                            )
+                    when (result) {
+                        Loading -> viewModelState = ViewModelState.Loading
+                        is Result.Error -> {
+                            viewModelState = ViewModelState.Ready
+                            entryState.message = ""
+                            afterBlock(result, entryState)
                         }
-
-                        afterBlock(result, entryState)
+                        is Success -> {
+                            viewModelState = ViewModelState.Ready
+                            saveCredentials(
+                                email = email,
+                                username = result.data.displayName ?: ""
+                            )
+                            entryState.message = ""
+                            afterBlock(result, entryState)
+                        }
                     }
                 }
             }
-
             EntryState.Registration -> {
                 if (!isPasswordValid()) {
                     entryState.message = context.getString(R.string.invalid_password)
-                    afterBlock(Result.Error(ConnectionShutdownException()), entryState)
+                    afterBlock(Result.Error(Exception()), entryState)
                     return
                 }
 
-                repository.register(email, password) { result ->
-                    if (result is Loading) viewModelState = ViewModelState.Loading
-                    else {
-                        viewModelState = ViewModelState.Ready
-                        entryState.message = when (result) {
-                            is Success -> {
-                                saveCredentials(email, username = result.data.displayName ?: "")
-                                context.getString(R.string.register_successful)
-                            }
-                            else -> context.getString(
-                                R.string.register_failed,
-                                (result as Result.Error).exception
-                            )
+                repository.register(email, password, username) { result ->
+                    when (result) {
+                        Loading -> viewModelState = ViewModelState.Loading
+                        is Result.Error -> {
+                            entryState.message = ""
+                            afterBlock(result, entryState)
                         }
+                        is Success -> {
+                            saveCredentials(
+                                email = email,
+                                username = result.data.displayName ?: ""
+                            )
+                            entryState.message = ""
 
-                        afterBlock(result, entryState)
+                            afterBlock(result, entryState)
+                        }
                     }
                 }
             }
@@ -202,18 +214,6 @@ class LoginViewModel(
 
     private fun restoreLogin() {
         preferences.email = ""
-    }
-
-
-    private fun checkNetworkConnection(context: Context): Boolean {
-        val connectivityManager = context
-            .getSystemService(Context.CONNECTIVITY_SERVICE)
-                as ConnectivityManager
-
-        val capabilities = connectivityManager
-            .getNetworkCapabilities(connectivityManager.activeNetwork)
-
-        return capabilities != null
     }
 
 

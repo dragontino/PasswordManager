@@ -1,13 +1,10 @@
-package com.security.passwordmanager.presentation.view
+package com.security.passwordmanager.presentation.view.screens
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,15 +13,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DataArray
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,11 +30,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -47,30 +45,23 @@ import com.security.passwordmanager.*
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.model.BankCard
 import com.security.passwordmanager.data.model.Data
-import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.presentation.model.DataUI
 import com.security.passwordmanager.presentation.model.enums.DataType
+import com.security.passwordmanager.presentation.view.BottomSheetFragment
 import com.security.passwordmanager.presentation.view.composablelements.DataTextField
 import com.security.passwordmanager.presentation.view.composablelements.SearchBar
-import com.security.passwordmanager.presentation.view.composablelements.TopBar
-import com.security.passwordmanager.presentation.view.composablelements.TopBarAction
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
-import com.security.passwordmanager.presentation.view.navigation.Header
+import com.security.passwordmanager.presentation.view.navigation.*
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.CopyItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.DeleteItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.EditItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.ScreenTypeItem
-import com.security.passwordmanager.presentation.view.navigation.Screen
-import com.security.passwordmanager.presentation.view.navigation.createRouteToBankCardScreen
-import com.security.passwordmanager.presentation.view.navigation.createRouteToWebsiteScreen
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
-import com.security.passwordmanager.presentation.viewmodel.NotesViewModel
-import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 import me.onebone.toolbar.*
 
@@ -83,36 +74,29 @@ internal fun AnimatedVisibilityScope.NotesScreen(
     title: String,
     isDarkTheme: Boolean,
     dataType: DataType,
-    viewModel: NotesViewModel,
-    dataViewModel: DataViewModel,
-    settingsViewModel: SettingsViewModel,
+    viewModel: DataViewModel,
     fragmentManager: FragmentManager,
     openDrawer: () -> Unit,
     navigateTo: (route: String) -> Unit,
     isDarkStatusBarIcons: (Boolean) -> Unit
 ) {
-    val settings by settingsViewModel.settings.observeAsState(initial = Settings())
+    viewModel.dataType = dataType
 
-    viewModel.isLoading = true
-    viewModel.dataList = when {
-        viewModel.isSearching -> dataViewModel.searchData(viewModel.query, dataType)
-        else -> dataViewModel.getDataUIList(dataType)
-    }.observeAsState(listOf(DataUI.DefaultWebsite)).value
-    viewModel.isLoading = false
-
-    val toolbarState = rememberCollapsingToolbarState(0)
+    val toolbarState = rememberCollapsingToolbarState()
     val scaffoldState = rememberCollapsingToolbarScaffoldState(toolbarState)
 
     isDarkStatusBarIcons(toolbarState.progress() < 0.5f && !isDarkTheme)
 
-    viewModel.showTopBar = scaffoldState.toolbarState.progress() != 0f
+//    if (scaffoldState.toolbarState.progress() == 0f)
+//        viewModel.topBarState = DataViewModel.TopBarState.Hidden
+//    else viewModel.topBarState = DataViewModel.TopBarState.Navigate
 
 
     val bottomFragment = BottomSheetFragment(
         title = stringResource(R.string.new_note),
         beautifulDesign = true
     ) { fragment ->
-        ScreenTypeItem(Screen.Website) {
+        ScreenTypeItem(AppScreens.Website) {
             navigateTo(createRouteToWebsiteScreen(address = ""))
             fragment.dismiss()
         }
@@ -122,14 +106,6 @@ internal fun AnimatedVisibilityScope.NotesScreen(
 //            fragment.dismiss()
 //        }
     }
-
-
-    Loading(
-        isLoading = viewModel.isLoading ||
-                viewModel.dataList.isEmpty() ||
-                viewModel.dataList.any { it.title.isEmpty() },
-    )
-    if (viewModel.isLoading || viewModel.dataList.any { it.title.isEmpty() }) return
 
 
 
@@ -193,7 +169,9 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                 .background(MaterialTheme.colorScheme.primary.animate())
                 .fillMaxSize()
         ) {
-            Column(
+            Crossfade(
+                targetState = viewModel.viewModelState,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
                 modifier = Modifier
                     .animateEnterExit(
                         enter = EnterContentAnimation,
@@ -205,7 +183,10 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                         shape = viewModel.screenShape()
                     )
                     .border(
-                        width = if (viewModel.showTopBar) screenBorderThickness else 0.dp,
+                        width = when (viewModel.topBarState) {
+                            DataViewModel.TopBarState.Hidden -> 0.dp
+                            else -> screenBorderThickness
+                        },
                         brush = Brush.verticalGradient(
                             0.1f to MaterialTheme.colorScheme.primary.animate(),
                             0.6f to MaterialTheme.colorScheme.background.animate()
@@ -214,44 +195,70 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                     )
                     .fillMaxSize()
             ) {
-                when {
-                    viewModel.dataList.isEmpty() -> EmptyList(
-                        text = stringResource(
-                            if (viewModel.isSearching) R.string.search_no_results else R.string.empty_data_list
-                        ),
-                        icon = {
-                            if (viewModel.isSearching) {
-                                Text(
-                                    "\\(o_o)/",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontSize = 70.sp,
-                                    color = MaterialTheme.colorScheme.onBackground.animate(),
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Rounded.DataArray,
-                                    contentDescription = "empty list",
-                                    tint = MaterialTheme.colorScheme.onBackground.animate(),
-                                    modifier = Modifier.scale(2.5f)
-                                )
-                            }
+                when (it) {
+                    DataViewModel.DataViewModelState.Loading -> {
+                        Box(
+                            contentAlignment = Alignment.TopCenter,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Loading(Modifier.padding(top = 64.dp))
                         }
-                    )
-                    else -> PasswordList(
-                        dataList = viewModel.dataList,
-                        dataViewModel = dataViewModel,
-                        notesViewModel = viewModel,
-                        settings = settings,
-                        fragmentManager = fragmentManager,
-                        isScrolling = { _, scrollUp ->
-                            LaunchedEffect(key1 = scrollUp) {
-                                delay(100)
-                                viewModel.showFab = scrollUp
+                    }
+                    DataViewModel.DataViewModelState.EmptyList -> {
+                        EmptyList(
+                            text = when (viewModel.topBarState) {
+                                DataViewModel.TopBarState.Search -> {
+                                    stringResource(
+                                        if (viewModel.query.isBlank()) {
+                                            R.string.empty_query
+                                        } else {
+                                            R.string.search_no_results
+                                        }
+                                    )
+                                }
+                                else -> stringResource(R.string.empty_data_list)
+                            },
+                            icon = {
+                                when (viewModel.topBarState) {
+                                    DataViewModel.TopBarState.Search -> {
+                                        if (viewModel.query.isNotBlank()) {
+                                            Text(
+                                                "\\(o_o)/",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontSize = 70.sp,
+                                                color = MaterialTheme.colorScheme.onBackground.animate(),
+                                            )
+                                        }
+                                    }
+                                    else -> {
+                                        Icon(
+                                            imageVector = Icons.Rounded.DataArray,
+                                            contentDescription = "empty list",
+                                            tint = MaterialTheme.colorScheme.onBackground.animate(),
+                                            modifier = Modifier.scale(2.5f)
+                                        )
+                                    }
+                                }
                             }
-                        },
-                        navigateTo = navigateTo,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                        )
+                    }
+                    DataViewModel.DataViewModelState.Ready -> {
+                        PasswordList(
+                            dataList = viewModel.currentList,
+                            viewModel = viewModel,
+                            fragmentManager = fragmentManager,
+                            isScrolling = { _, scrollUp ->
+                                LaunchedEffect(key1 = scrollUp) {
+                                    delay(100)
+                                    viewModel.showFab = scrollUp
+                                }
+                            },
+                            navigateTo = navigateTo,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         }
@@ -260,40 +267,73 @@ internal fun AnimatedVisibilityScope.NotesScreen(
 
 
 
+
+@ExperimentalAnimationApi
 @ExperimentalMaterial3Api
 @Composable
 private fun Toolbar(
-    viewModel: NotesViewModel,
+    viewModel: DataViewModel,
     title: String,
     modifier: Modifier = Modifier,
     onNavigate: () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = viewModel.isSearching,
-        enter = fadeIn(tween(durationMillis = 600)),
-        exit = fadeOut(tween(durationMillis = 600))
-    ) {
-        SearchBar(
-            onQueryChange = viewModel::query::set,
-            onCloseSearchBar = { viewModel.isSearching = false },
-            modifier = modifier
-        )
-    }
 
-    AnimatedVisibility(
-        visible = !viewModel.isSearching,
-        enter = fadeIn(tween(durationMillis = 600)),
-        exit = fadeOut(tween(durationMillis = 600)),
-    ) {
-        TopBar(
-            title = title,
-            navigationIcon = Icons.Rounded.Menu,
-            onNavigate = onNavigate,
-            modifier = modifier
-        ) {
-            TopBarAction(icon = Icons.Filled.Search) {
-                viewModel.isSearching = true
+    AnimatedContent(
+        targetState = viewModel.topBarState,
+        transitionSpec = {
+            val anim = tween<IntOffset>(durationMillis = 600)
+            val offsetSign = when (initialState) {
+                DataViewModel.TopBarState.Navigate -> 1
+                else -> -1
             }
+            slideInHorizontally(anim) { offsetSign * it / 2 } with
+                    slideOutHorizontally(anim) { -offsetSign * it / 2 }
+        }
+    ) { state ->
+        if (state == DataViewModel.TopBarState.Search) {
+            SearchBar(
+                query = viewModel.query,
+                onQueryChange = viewModel::query::set,
+                onCloseSearchBar = viewModel::closeSearchbar,
+                modifier = modifier
+            )
+        } else {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigate) {
+                        Icon(Icons.Rounded.Menu, contentDescription = title)
+                    }
+                },
+                actions = {
+                    ToolbarAction(
+                        icon = Icons.Rounded.Search,
+                        modifier = Modifier.animateEnterExit(
+                            enter = slideInHorizontally(
+                                tween(durationMillis = 400)
+                            ),
+                            exit = slideOutHorizontally(
+                                tween(durationMillis = 400)
+                            )
+                        ),
+                        onClick = viewModel::openSearchbar
+                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary.animate(),
+                    scrolledContainerColor = Color.Transparent,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary.animate()
+                ),
+                modifier = modifier
+            )
         }
     }
 }
@@ -309,15 +349,12 @@ private fun EmptyList(
 ) {
     Column(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.background.animate())
-            .fillMaxSize(),
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .padding(top = 30.dp, bottom = 20.dp)
-        ) {
+        Box(Modifier.padding(top = 30.dp, bottom = 20.dp)) {
             icon()
         }
 
@@ -338,9 +375,7 @@ private fun EmptyList(
 private fun PasswordList(
     dataList: List<DataUI>,
     fragmentManager: FragmentManager,
-    dataViewModel: DataViewModel,
-    notesViewModel: NotesViewModel,
-    settings: Settings,
+    viewModel: DataViewModel,
     navigateTo: (route: String) -> Unit,
     isScrolling: @Composable (isScrolling: Boolean, scrollUp: Boolean) -> Unit,
     modifier: Modifier = Modifier
@@ -367,16 +402,15 @@ private fun PasswordList(
                 dataUI = dataUI,
                 showAll = { openedItem == dataUI },
                 fragmentManager = fragmentManager,
-                copyText = { dataViewModel.copyText(context, it) },
-                copyAccountList = { dataViewModel.copyAccountList(context, it) },
-                useBottomView = settings.isUsingBottomView,
-                deleteRecords = { dataViewModel.deleteRecords(it) },
+                copyText = { viewModel.copyText(context, it) },
+                copyAccountList = { viewModel.copyAccountList(context, it) },
+                deleteRecords = { viewModel.deleteRecords(it) },
                 onClick = {
                     openedItem = if (openedItem == dataUI) null else dataUI
                 },
                 navigateTo = navigateTo,
-                enterAnimation = notesViewModel.enterDataItemAnimation,
-                exitAnimation = notesViewModel.exitDataItemAnimation,
+                enterAnimation = viewModel.enterDataItemAnimation,
+                exitAnimation = viewModel.exitDataItemAnimation,
                 modifier = Modifier
                     .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
                     .animateItemPlacement(spring(stiffness = Spring.StiffnessMediumLow))
@@ -404,7 +438,6 @@ private fun DataListItem(
     showAll: () -> Boolean,
     copyText: (String) -> Unit,
     copyAccountList: (List<Data>) -> Unit,
-    useBottomView: Boolean,
     deleteRecords: (Data) -> Unit,
     navigateTo: (route: String) -> Unit,
     enterAnimation: EnterTransition,
@@ -450,7 +483,7 @@ private fun DataListItem(
             fragment.dismiss()
         }
 
-        DeleteItem(text = stringResource(R.string.delete_password)) {
+        DeleteItem(text = stringResource(R.string.delete)) {
             deleteRecords(dataUI.title)
             fragment.dismiss()
         }
@@ -494,19 +527,17 @@ private fun DataListItem(
                                 showToast(context, "Адрес $address — некорректный!")
                         },
                         onClick = { title ->
-                            if (useBottomView) {
-                                BottomSheetFragment(title = title, beautifulDesign = true) { fragment ->
-                                    EditItem(text = stringResource(R.string.edit)) {
-                                        navigateTo(
-                                            createRouteToWebsiteScreen(
-                                                address = (dataUI.title as Website).address,
-                                                startPosition = position
-                                            )
+                            BottomSheetFragment(title = title, beautifulDesign = true) { fragment ->
+                                EditItem(text = stringResource(R.string.edit)) {
+                                    navigateTo(
+                                        createRouteToWebsiteScreen(
+                                            address = (dataUI.title as Website).address,
+                                            startPosition = position
                                         )
-                                        fragment.dismiss()
-                                    }
-                                }.show(fragmentManager)
-                            }
+                                    )
+                                    fragment.dismiss()
+                                }
+                            }.show(fragmentManager)
                         }
                     )
                     is BankCard -> BankCard(
@@ -763,7 +794,6 @@ private fun DataListItemPreview() {
             navigateTo = {},
             deleteRecords = {},
             onClick = {},
-            useBottomView = true,
             enterAnimation = fadeIn(
                 animationSpec = tween(
                     durationMillis = 300,

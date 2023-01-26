@@ -4,19 +4,12 @@ import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.security.passwordmanager.PasswordManagerApplication
 import com.security.passwordmanager.data.model.Settings
-import com.security.passwordmanager.getActivity
 import com.security.passwordmanager.presentation.model.Times
 import com.security.passwordmanager.presentation.model.enums.Themes
 import com.security.passwordmanager.presentation.model.toCalendar
-import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
 import java.util.*
 
 private val DarkColorScheme = darkColorScheme(
@@ -24,6 +17,7 @@ private val DarkColorScheme = darkColorScheme(
     primaryContainer = Color(0xFF853657),
     secondary = Color(0xFF852626),
     onPrimary = Color.White,
+    onPrimaryContainer = Color(red = 44, green = 18, blue = 90),
     background = BackgroundDark,
     onBackground = Color.White,
     surface = Gray,
@@ -37,6 +31,7 @@ private val LightColorScheme = lightColorScheme(
     background = Color.White,
     onBackground = Color.Black,
     onPrimary = Color.White,
+    onPrimaryContainer = Color(red = 33, green = 0, blue = 93),
     surface = LightGray,
     error = Color.Red
 
@@ -53,31 +48,29 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun PasswordManagerTheme(
+    settings: Settings,
+    times: Times,
     content: @Composable (isDarkTheme: Boolean) -> Unit,
 ) {
-    val application = LocalContext.current.getActivity()?.application as PasswordManagerApplication?
-    val settingsViewModel = viewModel<SettingsViewModel>(factory = application?.viewModelFactory)
+    val startDate = times.startTime.toCalendar().time
+    val endDate = times.endTime.toCalendar().time
 
-    val settings by settingsViewModel.settings.observeAsState(initial = Settings())
-    val times by settingsViewModel.times.collectAsState(initial = Times.Undefined)
-
-    // TODO: 29.10.2022 сделать dynamicColor в settings
-    val dynamicColor = false
     val isDarkTheme = when (settings.theme) {
         Themes.Light -> false
         Themes.Dark -> true
         Themes.System -> isSystemInDarkTheme()
         Themes.Auto -> {
             val date = Date(System.currentTimeMillis())
-            date.before(times.startTime.toCalendar().time) ||
-                    date.after(times.endTime.toCalendar().time) ||
-                    date == times.endTime.toCalendar().time
+            when {
+                startDate <= endDate -> date !in startDate..endDate
+                else -> date in endDate..startDate
+            }
         }
     }
 
     PasswordManagerTheme(
         isDarkTheme = isDarkTheme,
-        dynamicColor = dynamicColor,
+        dynamicColor = settings.dynamicColor,
         content = { content(isDarkTheme) }
     )
 }

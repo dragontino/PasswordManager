@@ -4,22 +4,33 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Parcelable
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.R
+import com.security.passwordmanager.animationTimeMillis
 import com.security.passwordmanager.buildString
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.CryptoManager
 import com.security.passwordmanager.data.model.Data
 import com.security.passwordmanager.data.repository.DataRepository
 import com.security.passwordmanager.presentation.model.DataUI
+import com.security.passwordmanager.presentation.model.ObservableBankCard
+import com.security.passwordmanager.presentation.model.ObservableWebsite
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.showToast
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DataViewModel(
     private val dataRepository: DataRepository,
     private val preferences: AppPreferences,
@@ -29,6 +40,199 @@ class DataViewModel(
     companion object {
         private const val COPY_LABEL = "data copy"
     }
+
+
+    enum class DataViewModelState {
+        Loading,
+        EmptyList,
+        Ready
+    }
+
+
+    enum class TopBarState {
+        Search,
+        Navigate,
+        Hidden
+    }
+
+
+
+
+    internal var viewModelState by mutableStateOf(DataViewModelState.Loading)
+
+    internal var topBarState by mutableStateOf(TopBarState.Navigate)
+
+    var dataType by mutableStateOf(DataType.All)
+
+    var query by mutableStateOf("")
+
+    var showFab by mutableStateOf(true)
+
+    private var dataList by mutableStateOf(listOf<DataUI>())
+
+    private var searchList by mutableStateOf(listOf<DataUI>())
+
+    val currentList: List<DataUI> get() = when (topBarState) {
+        TopBarState.Search -> searchList
+        else -> dataList
+    }
+
+
+    var accountList = mutableStateListOf(
+        when (dataType) {
+            DataType.BankCard -> ObservableBankCard()
+            else -> ObservableWebsite()
+        }
+    )
+
+
+
+    init {
+        viewModelScope.launch {
+            delay(animationTimeMillis + 100L)
+        }
+
+        snapshotFlow { query to dataType }
+            .mapLatest {
+                dataRepository.searchData(
+                    preferences.email,
+                    query = it.first,
+                    dataType = it.second
+                ).decrypt()
+            }
+            .onEach {
+                viewModelState = DataViewModelState.Loading
+                delay(200)
+                searchList = it
+                viewModelState = if (currentList.isEmpty()) {
+                    DataViewModelState.EmptyList
+                } else {
+                    DataViewModelState.Ready
+                }
+            }
+            .launchIn(viewModelScope)
+
+
+        dataRepository
+            .getDataList(preferences.email, dataType)
+            .mapLatest { it.decrypt() }
+            .onEach {
+                dataList = it
+            }
+            .launchIn(viewModelScope)
+    }
+
+
+    fun openSearchbar() {
+        viewModelScope.launch {
+            viewModelState = DataViewModelState.Loading
+            delay(100)
+            topBarState = TopBarState.Search
+            viewModelState = DataViewModelState.EmptyList
+        }
+    }
+
+
+    fun closeSearchbar() {
+        viewModelScope.launch {
+            viewModelState = DataViewModelState.Loading
+            query = ""
+            delay(400)
+            topBarState = TopBarState.Navigate
+            viewModelState = if (currentList.isEmpty()) {
+                DataViewModelState.EmptyList
+            } else {
+                DataViewModelState.Ready
+            }
+        }
+    }
+
+
+
+
+    val enterFabAnimation = fadeIn(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis,
+            easing = LinearEasing
+        )
+    ) + slideInVertically(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis / 2,
+            easing = FastOutSlowInEasing
+        )
+    ) { it / 2 }
+
+    val exitFabAnimation = fadeOut(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis / 2,
+            easing = LinearEasing
+        )
+    ) + slideOutVertically(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis,
+            easing = FastOutSlowInEasing
+        )
+    ) { it / 2 }
+
+
+
+    val enterDataItemAnimation = fadeIn(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis / 4,
+            easing = LinearOutSlowInEasing,
+        ),
+    ) + expandVertically(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis / 2,
+            easing = LinearOutSlowInEasing,
+        ),
+    )
+
+    val exitDataItemAnimation = fadeOut(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis / 2,
+            easing = FastOutLinearInEasing
+        )
+    ) + shrinkVertically(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis / 2,
+            easing = FastOutLinearInEasing
+        )
+    )
+
+
+
+    val enterScreenFabAnimation = slideInHorizontally(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis,
+            easing = LinearEasing
+        )
+    )
+
+    val exitScreenFabAnimation = slideOutHorizontally(
+        animationSpec = tween(
+            durationMillis = animationTimeMillis,
+            easing = LinearEasing
+        )
+    )
+
+
+
+
+    @Composable
+    fun screenShape() = if (topBarState != TopBarState.Hidden) {
+        MaterialTheme.shapes.large.copy(
+            bottomStart = CornerSize(0),
+            bottomEnd = CornerSize(0)
+        )
+    } else {
+        RoundedCornerShape(0)
+    }
+
+
+
+
+
 
 
     fun addData(data: Data) {
@@ -43,20 +247,11 @@ class DataViewModel(
         dataRepository.updateData(data.encrypt(cryptoManager::encrypt))
     }
 
-    fun getDataUIList(dataType: DataType? = null) =
-        dataRepository
-            .getDataUIList(preferences.email, dataType)
-            .map { it.decrypt() }
-
 
     suspend fun getAccountList(key: String, dataType: DataType) =
         dataRepository
             .getAccountList(preferences.email, key, dataType)
             .decrypt()
-
-
-    fun searchData(query: String, type: DataType = DataType.All) =
-        dataRepository.searchData(preferences.email, query, type).map { it.decrypt() }
 
 
     fun deleteData(data: Data) {
@@ -75,7 +270,6 @@ class DataViewModel(
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(COPY_LABEL, text)
         clipboard.setPrimaryClip(clip)
-        // TODO: 29.04.2022 сделать очистку буфера
         showToast(context, R.string.clipText)
     }
 
@@ -97,16 +291,13 @@ class DataViewModel(
 
 
     private inline fun <reified T : Parcelable> List<T>.decrypt(): List<T> {
-        when (T::class.java) {
-            DataUI::class.java -> {
-                for (dataUI in this) {
-                    dataUI as DataUI
-                    dataUI.title.decrypt(cryptoManager::decrypt)
-                    dataUI.accountList.forEach { it.decrypt(cryptoManager::decrypt) }
+        forEach {
+            when (it) {
+                is DataUI -> {
+                    it.title.decrypt(cryptoManager::decrypt)
+                    it.accountList.forEach { data -> data.decrypt(cryptoManager::decrypt) }
                 }
-            }
-            Data::class.java -> {
-                forEach { (it as Data).decrypt(cryptoManager::decrypt) }
+                is Data -> it.decrypt(cryptoManager::decrypt)
             }
         }
 

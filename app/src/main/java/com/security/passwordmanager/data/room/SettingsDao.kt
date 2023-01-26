@@ -19,11 +19,11 @@ interface SettingsDao {
     @Query("UPDATE SettingsTable SET isUsingBeautifulFont = :usingBeautifulFont WHERE email = :email")
     suspend fun updateUsingBeautifulFont(email: String, usingBeautifulFont: Boolean)
 
-    @Query("UPDATE SettingsTable SET isShowingDataHints = :usingDataHints WHERE email = :email")
-    suspend fun updateDataHints(email: String, usingDataHints: Boolean)
+    @Query("UPDATE SettingsTable SET isUsingAutofill = :autofill WHERE email = :email")
+    suspend fun updateAutofill(email: String, autofill: Boolean)
 
-    @Query("UPDATE SettingsTable SET isUsingBottomView = :usingBottomView WHERE email = :email")
-    suspend fun updateUsingBottomView(email: String, usingBottomView: Boolean)
+    @Query("UPDATE SettingsTable SET usingDynamicColor = :useDynamicColor WHERE email = :email")
+    suspend fun updateUsingDynamicColor(email: String, useDynamicColor: Boolean)
 
     @Query("SELECT * FROM SettingsTable WHERE email = :email")
     fun getSettings(email: String): Flow<Settings?>

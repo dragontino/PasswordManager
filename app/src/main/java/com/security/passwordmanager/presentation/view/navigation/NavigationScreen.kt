@@ -23,13 +23,16 @@ import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.security.passwordmanager.*
 import com.security.passwordmanager.presentation.model.enums.DataType
-import com.security.passwordmanager.presentation.view.NotesScreen
-import com.security.passwordmanager.presentation.view.SettingsScreen
-import com.security.passwordmanager.presentation.view.WebsiteScreen
-import com.security.passwordmanager.presentation.view.login.LoginPasswordScreen
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.ScreenTypeItem
+import com.security.passwordmanager.presentation.view.screens.LoginScreen
+import com.security.passwordmanager.presentation.view.screens.NotesScreen
+import com.security.passwordmanager.presentation.view.screens.SettingsScreen
+import com.security.passwordmanager.presentation.view.screens.WebsiteScreen
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
-import com.security.passwordmanager.presentation.viewmodel.*
+import com.security.passwordmanager.presentation.viewmodel.DataViewModel
+import com.security.passwordmanager.presentation.viewmodel.NavigationViewModel
+import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
+import com.security.passwordmanager.presentation.viewmodel.WebsiteViewModel
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.ExperimentalToolbarApi
 
@@ -45,7 +48,6 @@ internal fun NavigationScreen(
 ) {
 
     val dataViewModel = viewModel<DataViewModel>(factory = viewModel.factory)
-    val notesViewModel = viewModel<NotesViewModel>(factory = viewModel.factory)
     val websiteViewModel = viewModel<WebsiteViewModel>(factory = viewModel.factory)
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -76,7 +78,10 @@ internal fun NavigationScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalNavigationDrawerContent {
-                ScreenTypeItem(Screen.Notes) { text ->
+                ScreenTypeItem(
+                    AppScreens.Notes,
+                    selected = navController.currentDestination?.route == AppScreens.Notes.fullRoute
+                ) { text ->
                     onDrawerItemClick(
                         createRouteToNotesScreen(DataType.All, title = text)
                     )
@@ -100,10 +105,10 @@ internal fun NavigationScreen(
 
                 Divider(
                     color = DarkerGray,
-                    modifier = Modifier.padding(top = 3.dp, bottom = 2.dp)
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
 
-                ScreenTypeItem(Screen.Settings) {
+                ScreenTypeItem(AppScreens.Settings) {
                     onDrawerItemClick(createRouteToSettingsScreen())
                 }
             }
@@ -112,7 +117,7 @@ internal fun NavigationScreen(
     ) {
         AnimatedNavHost(
             navController = navController,
-            startDestination = Screen.Login.fullRoute,
+            startDestination = AppScreens.Login.fullRoute,
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background.animate())
                 .fillMaxSize(),
@@ -120,14 +125,14 @@ internal fun NavigationScreen(
             exitTransition = { ExitScreenAnimation }
         ) {
             composable(
-                route = Screen.Login.fullRoute,
+                route = AppScreens.Login.fullRoute,
             ) {
                 viewModel.isDarkStatusBarIcons = !isDarkTheme
 
-                LoginPasswordScreen(
+                LoginScreen(
                     viewModel = viewModel(factory = viewModel.factory),
                     fragmentManager = fragmentManager,
-                    settingsLiveData = viewModel<SettingsViewModel>(factory = viewModel.factory).settings,
+                    settings = viewModel<SettingsViewModel>(factory = viewModel.factory).settings,
                     navigateTo = { route ->
                         viewModel.navigateTo(navController, route, true)
                     }
@@ -136,12 +141,12 @@ internal fun NavigationScreen(
 
 
             composable(
-                route = Screen.Notes.fullRoute,
+                route = AppScreens.Notes.fullRoute,
                 arguments = listOf(
-                    navArgument(Screen.Notes.Args.NotesScreenType.name) {
+                    navArgument(AppScreens.Notes.Args.NotesScreenType.name) {
                         type = NavType.EnumType(DataType::class.java)
                     },
-                    navArgument(Screen.Notes.Args.Title.name) {
+                    navArgument(AppScreens.Notes.Args.Title.name) {
                         type = NavType.StringType
                     }
                 )
@@ -150,17 +155,15 @@ internal fun NavigationScreen(
 
                 NotesScreen(
                     title = it.arguments.getString(
-                        key = Screen.Notes.Args.Title.name,
-                        defaultValue = stringResource(Screen.Notes.titleRes),
+                        key = AppScreens.Notes.Args.Title.name,
+                        defaultValue = stringResource(AppScreens.Notes.titleRes),
                     ),
                     isDarkTheme = isDarkTheme,
                     dataType = it.arguments.getEnum(
-                        Screen.Notes.Args.NotesScreenType.name,
+                        AppScreens.Notes.Args.NotesScreenType.name,
                         DataType.All
                     ),
-                    dataViewModel = dataViewModel,
-                    viewModel = notesViewModel,
-                    settingsViewModel = viewModel(factory = viewModel.factory),
+                    viewModel = dataViewModel,
                     fragmentManager = fragmentManager,
                     openDrawer = { openDrawer() },
                     navigateTo = { route -> viewModel.navigateTo(navController, route) },
@@ -170,11 +173,11 @@ internal fun NavigationScreen(
                 )
             }
 
-            composable(Screen.Settings.fullRoute) {
+            composable(AppScreens.Settings.fullRoute) {
                 viewModel.isDarkStatusBarIcons = !isDarkTheme
 
                 SettingsScreen(
-                    title = stringResource(Screen.Settings.titleRes),
+                    title = stringResource(AppScreens.Settings.titleRes),
                     viewModel = viewModel(factory = viewModel.factory),
                     fragmentManager = fragmentManager,
                     isDarkTheme = isDarkTheme,
@@ -184,13 +187,13 @@ internal fun NavigationScreen(
             }
 
             composable(
-                route = Screen.Website.fullRoute,
+                route = AppScreens.Website.fullRoute,
                 arguments = listOf(
-                    navArgument(Screen.Website.Args.DataKey.name) {
+                    navArgument(AppScreens.Website.Args.DataKey.name) {
                         type = NavType.StringType
                         nullable = true
                     },
-                    navArgument(Screen.Website.Args.StartPosition.name) {
+                    navArgument(AppScreens.Website.Args.StartPosition.name) {
                         type = NavType.IntType
                     }
                 )
@@ -198,12 +201,12 @@ internal fun NavigationScreen(
                 viewModel.isDarkStatusBarIcons = !isDarkTheme
 
                 WebsiteScreen(
-                    address = it.arguments.getString(Screen.Website.Args.DataKey.name),
+                    address = it.arguments.getString(AppScreens.Website.Args.DataKey.name),
                     viewModel = websiteViewModel,
                     dataViewModel = dataViewModel,
                     settingsViewModel = viewModel(factory = viewModel.factory),
                     startPosition = it.arguments.getInt(
-                        Screen.Website.Args.StartPosition.name,
+                        AppScreens.Website.Args.StartPosition.name,
                         defaultValue = 0,
                     ),
                     popBackStack = navController::popBackStack
@@ -211,12 +214,12 @@ internal fun NavigationScreen(
             }
 
             composable(
-                route = Screen.BankCard.fullRoute,
+                route = AppScreens.BankCard.fullRoute,
                 arguments = listOf(
-                    navArgument(Screen.BankCard.Args.DataKey.name) {
+                    navArgument(AppScreens.BankCard.Args.DataKey.name) {
                         type = NavType.StringType
                     },
-                    navArgument(Screen.BankCard.Args.StartPosition.name) {
+                    navArgument(AppScreens.BankCard.Args.StartPosition.name) {
                         type = NavType.IntType
                     }
                 )

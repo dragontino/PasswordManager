@@ -1,10 +1,11 @@
 package com.security.passwordmanager.data.repository
 
+import android.content.Context
 import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.SignInMethodQueryResult
+import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.auth.*
 import com.google.firebase.database.FirebaseDatabase
+import com.security.passwordmanager.R
 import com.security.passwordmanager.data.Result
 
 /**
@@ -12,18 +13,19 @@ import com.security.passwordmanager.data.Result
  * maintains an in-memory cache of login status and user credentials information.
  */
 
-class LoginRepository(private val auth: FirebaseAuth) {
+class LoginRepository(private val auth: FirebaseAuth, private val context: Context) {
 
     fun register(
         email: String,
         password: String,
+        displayName: String,
         result: (Result<FirebaseUser>) -> Unit
     ) {
         result(Result.Loading)
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
-                    result(Result.Error(task.exception ?: NullPointerException()))
+                    result(Result.Error(task.exception?.getRightMessages() ?: NullPointerException()))
                     return@addOnCompleteListener
                 }
 
@@ -36,17 +38,31 @@ class LoginRepository(private val auth: FirebaseAuth) {
                         .addOnCompleteListener { task1 ->
                             val currentUser = auth.currentUser
                             if (task1.isSuccessful && currentUser != null) {
-                                result(Result.Success(currentUser))
-                            } else {
-                                result(Result.Error(task1.exception ?: NullPointerException()))
+
+                                currentUser
+                                    .setDisplayName(displayName)
+                                    .addOnCompleteListener { task2 ->
+                                        if (task2.isSuccessful)
+                                            result(Result.Success(currentUser))
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        result(Result.Error(exception.getRightMessages()))
+                                    }
                             }
+                        }
+                        .addOnFailureListener { exception ->
+                            result(Result.Error(exception.getRightMessages()))
                         }
                 }
             }
             .addOnFailureListener {
-                result(Result.Error(it))
+                result(Result.Error(it.getRightMessages()))
             }
     }
+
+
+
+
 
 
     fun login(
@@ -55,17 +71,16 @@ class LoginRepository(private val auth: FirebaseAuth) {
         result: (Result<FirebaseUser>) -> Unit
     ) {
         result(Result.Loading)
-        auth.signInWithEmailAndPassword(email.trim(), password.trim())
+        auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful && auth.currentUser != null) {
                     result(Result.Success(auth.currentUser!!))
                 }
-                else {
-                    result(Result.Error(task.exception ?: NullPointerException()))
-                }
             }
             .addOnFailureListener {
-                result(Result.Error(it))
+                val exception = it.getRightMessages()
+                println("exception = $exception")
+                result(Result.Error(exception))
             }
     }
 
@@ -88,4 +103,34 @@ class LoginRepository(private val auth: FirebaseAuth) {
                 result(Result.Error(it))
             }
     }
+
+
+
+    private fun Exception.getRightMessages() = when (this) {
+        is FirebaseAuthInvalidCredentialsException ->
+            FirebaseAuthInvalidCredentialsException(
+                errorCode,
+                context.getString(R.string.incorrect_password)
+            )
+        is FirebaseAuthInvalidUserException -> {
+            val msg = if (errorCode == "ERROR_USER_DISABLED") {
+                context.getString(R.string.user_disabled_exception)
+            } else {
+                context.getString(R.string.incorrect_email)
+            }
+
+            FirebaseAuthInvalidUserException(errorCode, msg)
+        }
+        is FirebaseTooManyRequestsException ->
+            FirebaseTooManyRequestsException(context.getString(R.string.too_many_requests_exception))
+        else -> this
+    }
+
+
+
+    private fun FirebaseUser.setDisplayName(displayName: String) = updateProfile(
+        UserProfileChangeRequest.Builder()
+            .setDisplayName(displayName)
+            .build()
+    )
 }
