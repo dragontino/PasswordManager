@@ -207,8 +207,10 @@ object TrailingActions {
         changeVisibility: (visible: Boolean) -> Unit,
     ) {
         TrailingIconButton(
-            icon = if (visible) Icons.Outlined.VisibilityOff
-            else Icons.Outlined.Visibility,
+            icon = when {
+                visible -> Icons.Outlined.VisibilityOff
+                else -> Icons.Outlined.Visibility
+            },
             modifier = modifier,
             contentDescription = stringResource(R.string.show_password)
         ) {
@@ -217,7 +219,10 @@ object TrailingActions {
     }
 
     @Composable
-    fun RowScope.CopyIconButton(modifier: Modifier = Modifier, onClick: () -> Unit) =
+    fun RowScope.CopyIconButton(
+        modifier: Modifier = Modifier,
+        onClick: () -> Unit
+    ) =
         TrailingIconButton(
             icon = Icons.Outlined.ContentCopy,
             contentDescription = stringResource(R.string.copy_info),
@@ -256,7 +261,7 @@ object TrailingActions {
 @Composable
 private fun DataTextFieldPreview() {
     var visible by remember { mutableStateOf(false) }
-    PasswordManagerTheme(isDarkTheme = false, dynamicColor = false) {
+    PasswordManagerTheme(isDarkTheme = false, dynamicColor = true) {
         Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface.animate())) {
             DataTextField(
                 text = "Wrecked",

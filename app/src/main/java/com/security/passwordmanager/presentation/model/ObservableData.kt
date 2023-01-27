@@ -2,7 +2,10 @@ package com.security.passwordmanager.presentation.model
 
 import com.security.passwordmanager.data.model.Data
 
-sealed class ObservableData(private val id: Int, private val email: String) {
+sealed class ObservableData(
+    private val id: Int,
+    private val email: String
+) {
 
     fun toData() = toData(id, email)
 
@@ -12,4 +15,7 @@ sealed class ObservableData(private val id: Int, private val email: String) {
     protected abstract val errors: Array<String>
 
     protected abstract fun toData(id: Int, email: String): Data
+
+
+    abstract fun decrypt(decrypt: (String) -> String)
 }

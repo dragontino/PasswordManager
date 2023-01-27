@@ -28,7 +28,6 @@ import com.security.passwordmanager.presentation.view.screens.LoginScreen
 import com.security.passwordmanager.presentation.view.screens.NotesScreen
 import com.security.passwordmanager.presentation.view.screens.SettingsScreen
 import com.security.passwordmanager.presentation.view.screens.WebsiteScreen
-import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
 import com.security.passwordmanager.presentation.viewmodel.NavigationViewModel
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
@@ -103,10 +102,7 @@ internal fun NavigationScreen(
 //                    onDrawerItemClick(createRouteToNotesScreen(DataType.BankCard, title = it))
 //                }
 
-                Divider(
-                    color = DarkerGray,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
+                Divider(Modifier.padding(top = 8.dp, bottom = 4.dp))
 
                 ScreenTypeItem(AppScreens.Settings) {
                     onDrawerItemClick(createRouteToSettingsScreen())
@@ -200,13 +196,17 @@ internal fun NavigationScreen(
             ) {
                 viewModel.isDarkStatusBarIcons = !isDarkTheme
 
+                val address = it
+                    .arguments
+                    .getString(AppScreens.Website.Args.DataKey.name)
+
                 WebsiteScreen(
-                    address = it.arguments.getString(AppScreens.Website.Args.DataKey.name),
+                    address = AppScreens.Website.replaceCharsInAddress(address),
                     viewModel = websiteViewModel,
                     dataViewModel = dataViewModel,
                     settingsViewModel = viewModel(factory = viewModel.factory),
                     startPosition = it.arguments.getInt(
-                        AppScreens.Website.Args.StartPosition.name,
+                        key = AppScreens.Website.Args.StartPosition.name,
                         defaultValue = 0,
                     ),
                     popBackStack = navController::popBackStack

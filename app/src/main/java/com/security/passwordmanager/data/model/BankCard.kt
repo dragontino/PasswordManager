@@ -11,18 +11,17 @@ import com.security.passwordmanager.presentation.model.enums.DataType
 
 @Entity(tableName = "BankTable")
 class BankCard(
-        id : Int = 0,
-        email: String = "",
-        var bankName: String = "",
-        var bankCardName: String = "",
-        var cardNumber: String = "",
-        var cardHolder: String = "",
-        var validity: String = "",
-        var cvv: String = "",
-        var pin: String = "",
-        var comment: String = "") : Data(id, email) {
-
-    // TODO: 18.07.2022 сделать cvv и pin строками
+    id: Int = 0,
+    email: String = "",
+    var bankName: String = "",
+    var bankCardName: String = "",
+    var cardNumber: String = "",
+    var cardHolder: String = "",
+    var validity: String = "",
+    var cvv: String = "",
+    var pin: String = "",
+    var comment: String = "",
+) : Data(id, email) {
 
     override val key get() = bankName
     override val type get() = DataType.BankCard

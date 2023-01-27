@@ -8,8 +8,6 @@ import android.os.Bundle
 import android.os.Parcel
 import android.util.Log
 import android.webkit.URLUtil
-import android.widget.Toast
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -46,17 +44,6 @@ fun <D : Enum<*>> Bundle?.getEnum(key: String, defaultValue: D): D =
             this?.getSerializable(key) as D? ?: defaultValue
         }
     }
-
-
-
-fun showToast(context: Context?, text: String, duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(context, text, duration).show()
-
-
-
-fun showToast(context: Context?, @StringRes text: Int, duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(context, text, duration).show()
-
 
 
 inline fun buildString(initString: String = "", builderAction: StringBuilder.() -> Unit) =

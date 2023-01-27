@@ -39,32 +39,33 @@ class Website(
     override fun encrypt(encrypt: (String) -> String): Data {
         login = encrypt(login)
         password = encrypt(password)
+        comment = encrypt(comment)
         return this
     }
 
     override fun decrypt(decrypt: (String) -> String): Data {
         login = decrypt(login)
         password = decrypt(password)
+        comment = decrypt(comment)
         return this
     }
 
-    override fun toString(context: Context, needFirstLine: Boolean) =
-        buildString {
-            if (needFirstLine)
-                append(
-                    context.getString(R.string.website_label), ": ", nameWebsite, "\n",
-                    context.getString(R.string.url_address), ": ", address, "\n"
-                )
-
+    override fun toString(context: Context, needFirstLine: Boolean) = buildString {
+        if (needFirstLine)
             append(
-                context.getString(R.string.account), ": ", nameAccount, "\n",
-                context.getString(R.string.login), ": ", login, "\n",
-                context.getString(R.string.password), ": ", password, "\n"
+                context.getString(R.string.website_label), ": ", nameWebsite, "\n",
+                context.getString(R.string.url_address), ": ", address, "\n"
             )
 
-            if (comment.isNotEmpty())
-                append(context.getString(R.string.comment), ": ", comment, "\n")
-        }
+        append(
+            context.getString(R.string.account), ": ", nameAccount, "\n",
+            context.getString(R.string.login), ": ", login, "\n",
+            context.getString(R.string.password), ": ", password
+        )
+
+        if (comment.isNotEmpty())
+            append("\n", context.getString(R.string.comment), ": ", comment)
+    }
 
     override fun compareTo(other: Data) : Int {
         val anotherString = when (other) {

@@ -21,8 +21,8 @@ sealed class Data(
 
     abstract val key: String
     abstract val type: DataType
-    abstract fun encrypt(encrypt: (String) -> String) : Data
-    abstract fun decrypt(decrypt: (String) -> String) : Data
+    abstract fun encrypt(encrypt: (String) -> String): Data
+    abstract fun decrypt(decrypt: (String) -> String): Data
     abstract fun toString(context: Context, needFirstLine: Boolean = true) : String
     abstract override fun compareTo(other : Data) : Int
 
