@@ -3,19 +3,19 @@ package com.security.passwordmanager.presentation.view.composablelements
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material3.FabPosition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.security.passwordmanager.animate
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import me.onebone.toolbar.*
-import me.onebone.toolbar.FabPosition
 
 
-@OptIn(ExperimentalToolbarApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ToolbarScaffold(
     state: CollapsingToolbarScaffoldState,
@@ -25,44 +25,32 @@ fun ToolbarScaffold(
     topBar: @Composable CollapsingToolbarScope.() -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
-    floatingActionButtonPosition: FloatingActionButtonPosition = FloatingActionButtonPosition.End,
+    floatingActionButtonPosition: FabPosition = FabPosition.End,
+    containerColor: Color = MaterialTheme.colorScheme.background.animate(),
+    contentColor: Color = contentColorFor(containerColor),
     body: @Composable (CollapsingToolbarScaffoldScope.() -> Unit)
 ) {
-    ToolbarWithFabScaffold(
-        state = state,
-        scrollStrategy = scrollStrategy,
-        modifier = modifier,
-        toolbarModifier = topBarModifier,
-        toolbar = topBar,
-        fab = floatingActionButton,
-        fabPosition = floatingActionButtonPosition.toOneBoneFabPosition()
-    ) {
-        body()
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 1.dp)
-                .padding(
-                    WindowInsets
-                        .tappableElement
-                        .only(WindowInsetsSides.Vertical)
-                        .asPaddingValues()
-                )
-                .align(Alignment.BottomCenter)
+    Scaffold(
+        floatingActionButton = floatingActionButton,
+        floatingActionButtonPosition = floatingActionButtonPosition,
+        snackbarHost = snackbarHost,
+        contentWindowInsets = WindowInsets
+            .tappableElement
+            .only(WindowInsetsSides.Bottom),
+        containerColor = containerColor,
+        contentColor = contentColor,
+        modifier = modifier
+    ) { contentPadding ->
+
+        CollapsingToolbarScaffold(
+            state = state,
+            scrollStrategy = scrollStrategy,
+            modifier = Modifier.padding(contentPadding),
+            toolbarModifier = topBarModifier,
+            toolbar = topBar,
         ) {
-            snackbarHost()
+            body()
         }
-    }
-}
-
-
-enum class FloatingActionButtonPosition {
-    Center,
-    End;
-
-
-    fun toOneBoneFabPosition() = when (this) {
-        Center -> FabPosition.Center
-        End -> FabPosition.End
     }
 }
 

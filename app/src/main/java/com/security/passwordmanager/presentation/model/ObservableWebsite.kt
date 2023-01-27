@@ -47,6 +47,12 @@ class ObservableWebsite(
             errorPasswordMessage
         )
 
+    override fun decrypt(decrypt: (String) -> String) {
+        login = decrypt(login)
+        password = decrypt(password)
+        comment = decrypt(comment)
+    }
+
 
     override val haveErrors: Boolean
         get() = super.haveErrors ||

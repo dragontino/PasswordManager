@@ -1,7 +1,5 @@
 package com.security.passwordmanager.data.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import com.security.passwordmanager.data.model.BankCard
 import com.security.passwordmanager.data.model.Data
 import com.security.passwordmanager.data.model.Website
@@ -131,27 +129,12 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
 
-
-    private fun <T, K, R> LiveData<T>.merge(liveData: LiveData<K>, block: (T?, K?) -> R): LiveData<R> {
-        val result = MediatorLiveData<R>()
-        result.addSource(this) {
-            result.value = block(this.value, liveData.value)
-        }
-
-        result.addSource(liveData) {
-            result.value = block(this.value, liveData.value)
-        }
-
-        return result
-    }
-
-
     private fun List<Data>.toDataUIList() =
         groupBy { it.key }
-        .map {
+        .map { entry ->
             DataUI(
-                title = it.value[0],
-                accountList = it.value.toMutableList()
+                title = entry.value[0].observe(),
+                accountList = entry.value.map { it.observe() }.toMutableList()
             )
         }
 }

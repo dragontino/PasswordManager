@@ -23,7 +23,6 @@ import com.security.passwordmanager.presentation.model.DataUI
 import com.security.passwordmanager.presentation.model.ObservableBankCard
 import com.security.passwordmanager.presentation.model.ObservableWebsite
 import com.security.passwordmanager.presentation.model.enums.DataType
-import com.security.passwordmanager.showToast
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
@@ -266,27 +265,47 @@ class DataViewModel(
         }
     }
 
-    fun copyText(context: Context, text: String) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText(COPY_LABEL, text)
-        clipboard.setPrimaryClip(clip)
-        showToast(context, R.string.clipText)
+    fun copyText(context: Context, text: String, resultMessage: (resultMessage: String) -> Unit) {
+        viewModelState = DataViewModelState.Loading
+        viewModelScope.launch {
+            try {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText(COPY_LABEL, text)
+                clipboard.setPrimaryClip(clip)
+                viewModelState = DataViewModelState.Ready
+                resultMessage(
+                    context.getString(R.string.copy_text_successful)
+                )
+            } catch (exception: RuntimeException) {
+                viewModelState = DataViewModelState.Ready
+                resultMessage(
+                    context.getString(
+                        R.string.copy_text_exception,
+                        exception.localizedMessage
+                    )
+                )
+            }
+        }
     }
 
-    fun copyData(context: Context, data: Data) {
+    fun copyData(context: Context, data: Data, resultMessage: (resultMessage: String) -> Unit) {
         val dataString = data.toString(context)
-        copyText(context, dataString)
+        copyText(context, dataString, resultMessage)
     }
 
-    fun copyAccountList(context: Context, accountList: List<Data>) {
+    fun copyAccountList(
+        context: Context,
+        accountList: List<Data>,
+        resultMessage: (resultMessage: String) -> Unit
+    ) {
         val first = accountList[0].toString(context)
-        val result = buildString(first) {
+        val text = buildString(first) {
             for (index in 1 until accountList.size) {
                 val current = accountList[index].toString(context, false)
                 append("\n", current)
             }
         }
-        copyText(context, result)
+        copyText(context, text, resultMessage)
     }
 
 
@@ -295,7 +314,9 @@ class DataViewModel(
             when (it) {
                 is DataUI -> {
                     it.title.decrypt(cryptoManager::decrypt)
-                    it.accountList.forEach { data -> data.decrypt(cryptoManager::decrypt) }
+                    it.accountList.forEach { observableData ->
+                        observableData.decrypt(cryptoManager::decrypt)
+                    }
                 }
                 is Data -> it.decrypt(cryptoManager::decrypt)
             }

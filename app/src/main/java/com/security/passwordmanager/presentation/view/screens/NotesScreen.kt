@@ -1,9 +1,10 @@
 package com.security.passwordmanager.presentation.view.screens
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -11,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.MoreVert
@@ -43,14 +43,14 @@ import androidx.core.net.toUri
 import androidx.fragment.app.FragmentManager
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
-import com.security.passwordmanager.data.model.BankCard
-import com.security.passwordmanager.data.model.Data
-import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.presentation.model.DataUI
+import com.security.passwordmanager.presentation.model.ObservableBankCard
+import com.security.passwordmanager.presentation.model.ObservableWebsite
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
 import com.security.passwordmanager.presentation.view.composablelements.DataTextField
 import com.security.passwordmanager.presentation.view.composablelements.SearchBar
+import com.security.passwordmanager.presentation.view.composablelements.ToolbarScaffold
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.navigation.*
@@ -63,7 +63,11 @@ import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
 import kotlinx.coroutines.delay
-import me.onebone.toolbar.*
+import kotlinx.coroutines.launch
+import me.onebone.toolbar.ExperimentalToolbarApi
+import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
+import me.onebone.toolbar.rememberCollapsingToolbarState
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
@@ -82,10 +86,13 @@ internal fun AnimatedVisibilityScope.NotesScreen(
 ) {
     viewModel.dataType = dataType
 
+    val scope = rememberCoroutineScope()
+
     val toolbarState = rememberCollapsingToolbarState()
     val scaffoldState = rememberCollapsingToolbarScaffoldState(toolbarState)
+    val snackbarHostState = remember(::SnackbarHostState)
 
-    isDarkStatusBarIcons(toolbarState.progress() < 0.5f && !isDarkTheme)
+//    isDarkStatusBarIcons(toolbarState.progress() < 0.5f && !isDarkTheme)
 
 //    if (scaffoldState.toolbarState.progress() == 0f)
 //        viewModel.topBarState = DataViewModel.TopBarState.Hidden
@@ -97,7 +104,7 @@ internal fun AnimatedVisibilityScope.NotesScreen(
         beautifulDesign = true
     ) { fragment ->
         ScreenTypeItem(AppScreens.Website) {
-            navigateTo(createRouteToWebsiteScreen(address = ""))
+            navigateTo(createRouteToWebsiteScreen())
             fragment.dismiss()
         }
 
@@ -108,11 +115,16 @@ internal fun AnimatedVisibilityScope.NotesScreen(
     }
 
 
+    val showSnackbar = { message: String ->
+        scope.launch { snackbarHostState.showSnackbar(message) }
+    }
 
-    ToolbarWithFabScaffold(
+
+
+    ToolbarScaffold(
         state = scaffoldState,
         scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
-        toolbar = {
+        topBar = {
             Toolbar(
                 viewModel = viewModel,
                 title = title,
@@ -125,7 +137,7 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                     .pin()
             )
         },
-        fab = {
+        floatingActionButton = {
             AnimatedVisibility(
                 visible = viewModel.showFab,
                 enter = viewModel.enterFabAnimation,
@@ -140,7 +152,7 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                         when (dataType) {
                             DataType.All -> bottomFragment.show(fragmentManager)
                             DataType.Website ->
-                                navigateTo(createRouteToWebsiteScreen(address = ""))
+                                navigateTo(createRouteToWebsiteScreen())
                             DataType.BankCard ->
                                 TODO("Доделать")
                         }
@@ -160,6 +172,18 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                         contentDescription = "add new note"
                     )
                 }
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) {
+                Snackbar(
+                    snackbarData = it,
+                    actionOnNewLine = true,
+                    shape = MaterialTheme.shapes.medium,
+                    actionColor = MaterialTheme.colorScheme.primary.animate(),
+                    containerColor = MaterialTheme.colorScheme.onBackground.animate(),
+                    contentColor = MaterialTheme.colorScheme.background.animate()
+                )
             }
         },
         modifier = Modifier.fillMaxSize()
@@ -256,6 +280,7 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                                 }
                             },
                             navigateTo = navigateTo,
+                            showSnackbar = { msg -> showSnackbar(msg) },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -378,9 +403,9 @@ private fun PasswordList(
     viewModel: DataViewModel,
     navigateTo: (route: String) -> Unit,
     isScrolling: @Composable (isScrolling: Boolean, scrollUp: Boolean) -> Unit,
+    showSnackbar: (message: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val listState = rememberLazyListState()
     var openedItem: DataUI? by rememberSaveable { mutableStateOf(null) }
 
@@ -400,21 +425,17 @@ private fun PasswordList(
         items(dataList) { dataUI ->
             DataListItem(
                 dataUI = dataUI,
+                viewModel = viewModel,
                 showAll = { openedItem == dataUI },
-                fragmentManager = fragmentManager,
-                copyText = { viewModel.copyText(context, it) },
-                copyAccountList = { viewModel.copyAccountList(context, it) },
-                deleteRecords = { viewModel.deleteRecords(it) },
-                onClick = {
-                    openedItem = if (openedItem == dataUI) null else dataUI
-                },
+                showSnackbar = showSnackbar,
+                showBottomFragment = { it.show(fragmentManager) },
                 navigateTo = navigateTo,
-                enterAnimation = viewModel.enterDataItemAnimation,
-                exitAnimation = viewModel.exitDataItemAnimation,
                 modifier = Modifier
-                    .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
-                    .animateItemPlacement(spring(stiffness = Spring.StiffnessMediumLow))
-            )
+                    .animateContentSize(spring(stiffness = Spring.StiffnessMedium))
+                    .animateItemPlacement(spring(stiffness = Spring.StiffnessMedium)),
+            ) {
+                openedItem = if (openedItem == dataUI) null else dataUI
+            }
         }
 
         item {
@@ -434,25 +455,22 @@ private fun PasswordList(
 @Composable
 private fun DataListItem(
     dataUI: DataUI,
-    fragmentManager: FragmentManager,
+    viewModel: DataViewModel,
     showAll: () -> Boolean,
-    copyText: (String) -> Unit,
-    copyAccountList: (List<Data>) -> Unit,
-    deleteRecords: (Data) -> Unit,
     navigateTo: (route: String) -> Unit,
-    enterAnimation: EnterTransition,
-    exitAnimation: ExitTransition,
+    showSnackbar: (message: String) -> Unit,
+    showBottomFragment: (fragment: BottomSheetFragment) -> Unit,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
     val title: String
     val subtitle = when (dataUI.title) {
-        is Website -> {
+        is ObservableWebsite -> {
             title = dataUI.title.nameWebsite
             dataUI.title.address
         }
-        is BankCard -> {
+        is ObservableBankCard -> {
             title = dataUI.title.bankName
             dataUI.title.cardNumber
         }
@@ -465,26 +483,25 @@ private fun DataListItem(
         EditItem(text = stringResource(R.string.edit)) {
             navigateTo(
                 when (dataUI.title) {
-                    is Website -> createRouteToWebsiteScreen(dataUI.title.address)
-                    is BankCard -> createRouteToBankCardScreen(dataUI)
+                    is ObservableWebsite ->
+                        createRouteToWebsiteScreen(address = dataUI.title.address)
+                    is ObservableBankCard ->
+                        createRouteToBankCardScreen(bankName = dataUI.title.bankName)
                 }
             )
             fragment.dismiss()
-//            openScreen(dataUI.title.type)
-//            context.getActivity()?.startActivity(
-//                when (dataUI.title) {
-//                    is Website -> WebsiteActivity.getIntent(context, dataUI)
-//                    is BankCard -> BankCardActivity.getIntent(context, dataUI)
-//                }
-//            )
         }
         CopyItem(text = stringResource(R.string.copy_info)) {
-            copyAccountList(dataUI.accountList)
+            viewModel.copyAccountList(
+                context = context,
+                accountList = dataUI.accountList.map { it.toData() },
+                resultMessage = showSnackbar
+            )
             fragment.dismiss()
         }
 
         DeleteItem(text = stringResource(R.string.delete)) {
-            deleteRecords(dataUI.title)
+            viewModel.deleteRecords(dataUI.title.toData())
             fragment.dismiss()
         }
     }
@@ -499,20 +516,26 @@ private fun DataListItem(
             title = title,
             subtitle = subtitle,
             onClick = onClick,
-            openMoreContent = { bottomFragment.show(fragmentManager) }
+            openMoreContent = { showBottomFragment(bottomFragment) }
         )
 
-        dataUI.accountList.forEachIndexed { position, data ->
+        dataUI.accountList.forEachIndexed { position, observableData ->
             AnimatedVisibility(
                 visible = showAll(),
-                enter = enterAnimation,
-                exit = exitAnimation,
+                enter = viewModel.enterDataItemAnimation,
+                exit = viewModel.exitDataItemAnimation,
             ) {
                 // TODO: 07.09.2022 подумать над тем, как будут размещатся элементы bank Card
-                when (data) {
-                    is Website -> Website(
-                        website = data,
-                        copyText = copyText,
+                when (observableData) {
+                    is ObservableWebsite -> Website(
+                        website = observableData,
+                        copyText = {
+                            viewModel.copyText(
+                                context = context,
+                                text = it,
+                                resultMessage = showSnackbar
+                            )
+                        },
                         openUrl = { address ->
                             val urlString = when {
                                 "www." in address -> "https://$address"
@@ -523,31 +546,35 @@ private fun DataListItem(
                             if (urlString.isValidUrl()) {
                                 val intent = Intent(Intent.ACTION_VIEW, urlString.toUri())
                                 context.startActivity(intent)
-                            } else
-                                showToast(context, "Адрес $address — некорректный!")
+                            } else {
+                                showSnackbar(context.getString(R.string.invalid_address, address))
+                            }
                         },
                         onClick = { title ->
-                            BottomSheetFragment(title = title, beautifulDesign = true) { fragment ->
+                            BottomSheetFragment(
+                                title = title,
+                                beautifulDesign = true
+                            ) { fragment ->
                                 EditItem(text = stringResource(R.string.edit)) {
                                     navigateTo(
                                         createRouteToWebsiteScreen(
-                                            address = (dataUI.title as Website).address,
+                                            address = observableData.address,
                                             startPosition = position
                                         )
                                     )
                                     fragment.dismiss()
                                 }
-                            }.show(fragmentManager)
+                            }.also(showBottomFragment)
                         }
                     )
-                    is BankCard -> BankCard(
-                        bankCard = data
+                    is ObservableBankCard -> BankCard(
+                        bankCard = observableData
                     )
                 }
             }
         }
 
-        Divider(color = DarkerGray)
+        Divider()
     }
 }
 
@@ -641,7 +668,7 @@ private fun RowScope.Header(header: Header) {
 @ExperimentalMaterial3Api
 @Composable
 private fun Website(
-    website: Website,
+    website: ObservableWebsite,
     copyText: (String) -> Unit,
     openUrl: (address: String) -> Unit,
     onClick: (title: String) -> Unit
@@ -741,8 +768,8 @@ private fun Website(
 
 
 @Composable
-private fun BankCard(bankCard: BankCard) {
-
+private fun BankCard(bankCard: ObservableBankCard) {
+    bankCard.cardNumber
 }
 
 
@@ -755,67 +782,15 @@ private fun BankCard(bankCard: BankCard) {
 private fun WebsitePreview() {
     PasswordManagerTheme(isDarkTheme = true) {
         Website(
-            website = Website(
+            website = ObservableWebsite(
                 nameWebsite = "Wrecked",
                 address = "Imagine Dragons",
                 nameAccount = "Test",
                 login = "petrovsd2002@yandex.ru",
-                password = "qwertyuiop123",
-                comment = "Kaif",
+                password = "qwerty123",
+                comment = "Chill",
             ),
             {}, {}, {},
-        )
-    }
-}
-
-
-@ExperimentalMaterial3Api
-@ExperimentalAnimationApi
-@ExperimentalMaterialApi
-@Preview(showBackground = true)
-@Composable
-private fun DataListItemPreview() {
-    val website = Website(
-        nameWebsite = "Wrecked",
-        address = "Imagine Dragons",
-        login = "qwerevmlkkiekekxxkxiekdkd",
-        password = "12sskskxkxksmmsmsmssmms"
-    )
-    PasswordManagerTheme(isDarkTheme = false) {
-        DataListItem(
-            dataUI = DataUI(
-                title = website,
-                accountList = mutableListOf(website, Website(), Website())
-            ),
-            fragmentManager = AppCompatActivity().supportFragmentManager,
-            showAll = { true },
-            copyText = {},
-            copyAccountList = {},
-            navigateTo = {},
-            deleteRecords = {},
-            onClick = {},
-            enterAnimation = fadeIn(
-                animationSpec = tween(
-                    durationMillis = 300,
-                    easing = LinearOutSlowInEasing,
-                ),
-            ) + expandVertically(
-                animationSpec = tween(
-                    durationMillis = 300,
-                    easing = LinearOutSlowInEasing,
-                ),
-            ),
-            exitAnimation = fadeOut(
-                animationSpec = tween(
-                    durationMillis = 300,
-                    easing = FastOutLinearInEasing
-                )
-            ) + shrinkVertically(
-                animationSpec = tween(
-                    durationMillis = 300,
-                    easing = FastOutLinearInEasing,
-                ),
-            )
         )
     }
 }

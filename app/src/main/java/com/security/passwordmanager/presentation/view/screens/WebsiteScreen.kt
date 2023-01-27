@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,6 +37,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -53,7 +53,7 @@ import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.composablelements.DeleteDialog
 import com.security.passwordmanager.presentation.view.composablelements.EditableDataTextField
 import com.security.passwordmanager.presentation.view.composablelements.ExitDialog
-import com.security.passwordmanager.presentation.view.composablelements.TopBar
+import com.security.passwordmanager.presentation.view.composablelements.ToolbarScaffold
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
@@ -69,8 +69,9 @@ import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
 import com.security.passwordmanager.presentation.viewmodel.WebsiteViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.onebone.toolbar.*
-import me.onebone.toolbar.FabPosition
+import me.onebone.toolbar.ExperimentalToolbarApi
+import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalLayoutApi::class)
 @ExperimentalToolbarApi
@@ -104,6 +105,11 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
     val isInEditing by rememberSaveable { mutableStateOf(false) }
 
 
+    val showSnackbar = { message: String ->
+        scope.launch { snackbarHostState.showSnackbar(message) }
+    }
+
+
     if (!isKeyboardOpen) {
         focusManager.clearFocus()
     }
@@ -115,7 +121,7 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
         if (!checkWebsites()) {
             updateErrorMessages(context)
             scope.launch {
-                snackbarHostState.showSnackbar(message = "Введите корректные данные!")
+                showSnackbar("Введите корректные данные!")
             }
             return
         }
@@ -205,7 +211,11 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                 }
 
                 CopyItem(text = stringResource(R.string.copy_info)) {
-                    dataViewModel.copyData(context, viewModel.currentWebsite.toData())
+                    dataViewModel.copyData(
+                        context = context,
+                        data = viewModel.currentWebsite.toData(),
+                        resultMessage = { showSnackbar(it) }
+                    )
                     scope.launch { bottomState.hide() }
                 }
 
@@ -226,68 +236,85 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
         sheetShape = MaterialTheme.shapes.large,
         sheetBackgroundColor = MaterialTheme.colorScheme.background.animate()
     ) {
-        ToolbarWithFabScaffold(
+        ToolbarScaffold(
             state = scaffoldState,
             scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
-            toolbar = {
-                TopBar(
-                    title = stringResource(R.string.website_label),
-                    navigationIcon = if (isInEditing) Icons.Rounded.Close else Icons.Rounded.ArrowBackIos,
-                    onNavigate = {
-                        if (isInEditing) {
-                            viewModel.openDialog {
-                                ExitDialog(
-                                    onConfirm = ::saveInfo,
-                                    onDismiss = popBackStack,
-                                    onClose = viewModel::closeDialog
-                                )
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.website_label),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                if (isInEditing) {
+                                    viewModel.openDialog {
+                                        ExitDialog(
+                                            onConfirm = ::saveInfo,
+                                            onDismiss = popBackStack,
+                                            onClose = viewModel::closeDialog,
+                                        )
+                                    }
+                                } else {
+                                    popBackStack()
+                                }
                             }
-                        } else {
-                            popBackStack()
+                        ) {
+                            Icon(
+                                if (isInEditing) Icons.Rounded.Close else Icons.Rounded.ArrowBackIos,
+                                contentDescription = "close"
+                            )
                         }
                     },
-//                    modifier = Modifier.animateEnterExit(
-//                        enter = EnterTopBarAnimation,
-//                        exit = ExitTopBarAnimation
-//                    )
-                ) {
-                    ToolbarAction(
-                        icon = Icons.Rounded.Delete,
-                        modifier = Modifier.scale(1.2f),
-                        contentDescription = stringResource(R.string.delete)
-                    ) {
-                        if (address.isNotEmpty()) {
-                            viewModel.openDialog {
-                                DeleteDialog(
-                                    text = "Вы уверены, что хотите удалить данные?",
-                                    onConfirm = {
-                                        viewModel.closeDialog()
-                                        val itemToDelete = viewModel.accountList.firstOrNull()
-                                            ?: return@DeleteDialog
+                    actions = {
+                        ToolbarAction(
+                            icon = Icons.Rounded.Delete,
+                            contentDescription = stringResource(R.string.delete)
+                        ) {
+                            if (address.isNotEmpty()) {
+                                viewModel.openDialog {
+                                    DeleteDialog(
+                                        text = "Вы уверены, что хотите удалить данные?",
+                                        onConfirm = {
+                                            viewModel.closeDialog()
+                                            val itemToDelete = viewModel.accountList.firstOrNull()
+                                                ?: return@DeleteDialog
 
-                                        dataViewModel.deleteRecords(itemToDelete.toData())
-                                        popBackStack()
-                                    },
-                                    onDismiss = {
-                                        viewModel.closeDialog()
-                                    }
-                                )
+                                            dataViewModel.deleteRecords(itemToDelete.toData())
+                                            popBackStack()
+                                        },
+                                        onDismiss = {
+                                            viewModel.closeDialog()
+                                        }
+                                    )
+                                }
+                            } else {
+                                popBackStack()
                             }
-                        } else {
-                            popBackStack()
                         }
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    ToolbarAction(
-                        icon = Icons.Rounded.Save,
-                        modifier = Modifier.scale(1.2f),
-                        contentDescription = stringResource(R.string.save),
-                        onClick = ::saveInfo
-                    )
+                        Spacer(modifier = Modifier.width(4.dp))
 
-                }
+                        ToolbarAction(
+                            icon = Icons.Rounded.Save,
+                            contentDescription = stringResource(R.string.save),
+                            onClick = ::saveInfo
+                        )
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary.animate(),
+                        scrolledContainerColor = Color.Transparent,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary.animate()
+                    ),
+                    scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+                )
             },
-            fab = {
+            floatingActionButton = {
                 ExtendedFloatingActionButton(
                     text = {
                         Text(
@@ -331,10 +358,21 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                         )
                 )
             },
-            fabPosition = FabPosition.Center,
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primary.animate())
-                .fillMaxSize()
+            floatingActionButtonPosition = FabPosition.Center,
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) {
+                    Snackbar(
+                        snackbarData = it,
+                        actionOnNewLine = true,
+                        shape = MaterialTheme.shapes.medium,
+                        actionColor = MaterialTheme.colorScheme.primary.animate(),
+                        containerColor = MaterialTheme.colorScheme.onBackground.animate(),
+                        contentColor = MaterialTheme.colorScheme.background.animate()
+                    )
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.primary.animate(),
+            modifier = Modifier.fillMaxSize()
         ) {
 
             Crossfade(
@@ -362,28 +400,24 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
             ) { state ->
                 when (state) {
                     WebsiteViewModel.ViewModelState.Loading -> Loading(
-                        modifier = Modifier.verticalScroll(rememberScrollState())
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
                     )
                     WebsiteViewModel.ViewModelState.Ready -> {
                         WebsiteContentScreen(
                             viewModel = viewModel,
                             settingsViewModel = settingsViewModel,
                             listState = listState,
-                            copyText = { dataViewModel.copyText(context, it) },
+                            copyText = {
+                                dataViewModel.copyText(context, it) { msg ->
+                                    showSnackbar(msg)
+                                }
+                            },
                             openBottomSheet = {
                                 scope.launch { viewModel.openBottomSheet(bottomState, it) }
                             }
                         )
-
-                        SnackbarHost(
-                            hostState = snackbarHostState,
-                            modifier = Modifier.align(Alignment.BottomCenter)
-                        ) {
-                            Snackbar(
-                                snackbarData = it,
-                                shape = RoundedCornerShape(11.dp)
-                            )
-                        }
                     }
                 }
             }
@@ -600,10 +634,7 @@ private fun FirstTwoItems(
             }
         }
 
-        Divider(
-            color = DarkerGray,
-            modifier = Modifier.padding(top = 20.dp, bottom = 16.dp)
-        )
+        Divider(Modifier.padding(top = 20.dp, bottom = 16.dp))
     }
 }
 
@@ -698,8 +729,10 @@ private fun Website(
             isError = viewModel.showErrors && website.errorLoginMessage.isNotBlank(),
             errorMessage = website.errorLoginMessage,
             trailingActions = {
-                CopyIconButton {
-                    copyText(website.login)
+                if (website.login.isNotBlank()) {
+                    CopyIconButton {
+                        copyText(website.login)
+                    }
                 }
             }
         )
@@ -728,10 +761,12 @@ private fun Website(
                     website.passwordIsVisible = it
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                CopyIconButton {
-                    copyText(website.password)
+                if (website.password.isNotBlank()) {
+                    CopyIconButton {
+                        copyText(website.password)
+                    }
+                    Spacer(Modifier.width(8.dp))
                 }
-                Spacer(Modifier.width(8.dp))
             }
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -742,8 +777,10 @@ private fun Website(
             hint = stringResource(R.string.comment),
             imeAction = if (isLast) ImeAction.Done else ImeAction.Next,
             trailingActions = {
-                CopyIconButton {
-                    copyText(website.comment)
+                if (website.comment.isNotBlank()) {
+                    CopyIconButton {
+                        copyText(website.comment)
+                    }
                 }
             }
         )

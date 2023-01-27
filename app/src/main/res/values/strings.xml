@@ -1,10 +1,12 @@
 <resources>
     <string name="app_name">Password Manager</string>
     <string name="main_subtitle">by Dragontino</string>
-    <string name="app_version">Версия 5.7.0 от 27 января 2023</string>
+    <string name="app_version">Версия 5.7.1 от 27 января 2023</string>
     <string name="nav_header_desc">Navigation header</string>
 
-    <string name="clipText">Скопировано в буфер обмена</string>
+    <string name="copy_text_successful">Скопировано в буфер обмена</string>
+    <string name="copy_text_exception">Не удалось скопировать текст по причине: %s</string>
+    <string name="open">Открыть</string>
     <string name="close">Закрыть</string>
 
 
@@ -65,6 +67,7 @@
     <string name="empty_query">Начните вводить запрос</string>
     <string name="empty_data_list">Нажмите на «+» для добавления новых записей</string>
     <string name="new_note">Новая запись</string>
+    <string name="invalid_address">Адрес %s — некорректный!</string>
 
 
     <!--  Темы  -->
@@ -122,7 +125,6 @@
     <string name="card_cvv">CVC2/CVV2</string>
     <string name="pin_code">PIN</string>
     <string name="add_more_cards">Добавить карту</string>
-    <string name="open">Открыть</string>
     <string name="optionally">Дополнительно</string>
     <string name="wrong_month">Неправильный номер месяца!</string>
     <string name="payment_system">Платёжная система</string>

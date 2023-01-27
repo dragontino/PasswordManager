@@ -10,7 +10,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Login
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.security.passwordmanager.R
-import com.security.passwordmanager.presentation.model.DataUI
 import com.security.passwordmanager.presentation.model.enums.DataType
 
 sealed class AppScreens(
@@ -68,6 +67,13 @@ sealed class AppScreens(
             StartPosition
         }
 
+        fun replaceCharsInAddress(address: String?) = when {
+            address == null -> "null"
+            "/" in address -> address.replace("/", "___")
+            "___" in address -> address.replace("___", "/")
+            else -> address
+        }
+
         override val args: Array<String> = Args.values().toStringArray()
     }
 
@@ -101,14 +107,19 @@ fun createRouteToLoginScreen() = AppScreens.Login.route
 fun createRouteToNotesScreen(dataType: DataType, title: String) =
     "${AppScreens.Notes.route}/$dataType/$title"
 
-fun createRouteToWebsiteScreen(address: String, startPosition: Int = 0): String {
-    val route = "${AppScreens.Website.route}/${address.ifBlank { null }}/$startPosition"
+fun createRouteToWebsiteScreen(address: String? = null, startPosition: Int = 0): String {
+    val route = buildString {
+        append(AppScreens.Website.route, "/")
+        append(AppScreens.Website.replaceCharsInAddress(address), "/")
+        append(startPosition)
+    }
     Log.d("NotesScreen", "route = $route")
     return route
 }
 
 fun createRouteToSettingsScreen() = AppScreens.Settings.route
 
-fun createRouteToBankCardScreen(dataUI: DataUI, startPosition: Int = 0): String {
-    return "${AppScreens.BankCard.route}/$dataUI/$startPosition"
+fun createRouteToBankCardScreen(bankName: String? = null, startPosition: Int = 0): String {
+    val correctBankName = bankName?.replace("/", "___")
+    return "${AppScreens.BankCard.route}/$correctBankName/$startPosition"
 }
