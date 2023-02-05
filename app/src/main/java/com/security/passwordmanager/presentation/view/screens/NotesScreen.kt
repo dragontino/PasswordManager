@@ -386,13 +386,12 @@ private fun PasswordList(
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
-    var openedItem: DataUI? by rememberSaveable { mutableStateOf(null) }
 
-    if (openedItem != null) {
-        LaunchedEffect(key1 = openedItem) {
+    if (viewModel.openedItem != null) {
+        LaunchedEffect(key1 = viewModel.openedItem) {
             delay(50)
             listState.scrollToItem(
-                index = dataList.indexOf(openedItem).takeIf { it >= 0 } ?: 0
+                index = dataList.indexOf(viewModel.openedItem).takeIf { it >= 0 } ?: 0
             )
         }
     }
@@ -405,7 +404,7 @@ private fun PasswordList(
             DataListItem(
                 dataUI = dataUI,
                 viewModel = viewModel,
-                showAll = { openedItem == dataUI },
+                showAll = { viewModel.openedItem == dataUI },
                 showSnackbar = showSnackbar,
                 showBottomFragment = { it.show(fragmentManager) },
                 navigateTo = navigateTo,
@@ -414,7 +413,7 @@ private fun PasswordList(
                     .animateContentSize(spring(stiffness = Spring.StiffnessMedium))
                     .animateItemPlacement(spring(stiffness = Spring.StiffnessMedium)),
             ) {
-                openedItem = if (openedItem == dataUI) null else dataUI
+                viewModel.openedItem = if (viewModel.openedItem == dataUI) null else dataUI
             }
         }
 

@@ -52,23 +52,31 @@ abstract class DataDao {
     /**
      * Поиск
      */
-    @Query("""
-        SELECT * FROM WebsiteTable WHERE email = :email
+    @Query(
+        """
+        SELECT * FROM WebsiteTable 
+        WHERE email = :email
         AND (
             address LIKE '%' || :query || '%' 
-            OR nameAccount LIKE '%' || :query || '%' 
+            OR nameWebsite LIKE '%' || :query || '%' 
             OR nameAccount LIKE '%' || :query || '%'
         )
         ORDER BY nameWebsite ASC
-        """)
+        """
+    )
     abstract suspend fun searchWebsite(email: String, query: String): List<Website>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM BankTable
         WHERE email = :email
-        AND (bankName LIKE '%' || :query || '%' OR bankCardName LIKE '%' || :query || '%')
+        AND (
+            bankName LIKE '%' || :query || '%' 
+            OR bankCardName LIKE '%' || :query || '%'
+        )
         ORDER BY bankName
-        """)
+        """
+    )
     abstract suspend fun searchBankCard(email: String, query: String): List<BankCard>
 
 
