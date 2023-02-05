@@ -39,6 +39,8 @@ class NotesViewModel(
 
     var query by mutableStateOf("")
 
+    var openedItem: DataUI? by mutableStateOf(null)
+
 
     private var _dataList by mutableStateOf(listOf<DataUI>())
 
@@ -60,6 +62,8 @@ class NotesViewModel(
                 viewModelState = DataViewModelState.Loading
                 delay(200)
                 _searchList = it
+
+                openedItem = if (it.size == 1) it[0] else null
 
                 viewModelState = if (dataList.isEmpty()) {
                     DataViewModelState.EmptyList

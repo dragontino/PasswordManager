@@ -169,12 +169,11 @@ fun EditableDataTextField(
         shape = MaterialTheme.shapes.small,
         colors = TextFieldDefaults.outlinedTextFieldColors(
             textColor = MaterialTheme.colorScheme.onBackground.animate(),
-            containerColor = MaterialTheme.colorScheme.background.animate(),
-//            if (isFocused) {
-//                Color.Transparent
-//            } else {
-//                MaterialTheme.colorScheme.background.animate()
-//            },
+            containerColor = if (isFocused) {
+                MaterialTheme.colorScheme.surface.animate()
+            } else {
+                MaterialTheme.colorScheme.background.animate()
+            },
             focusedBorderColor = MaterialTheme.colorScheme.primary.animate(),
             unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f).animate(),
             focusedLabelColor = MaterialTheme.colorScheme.secondary.animate(),

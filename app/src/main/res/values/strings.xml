@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Password Manager</string>
     <string name="main_subtitle">by Dragontino</string>
-    <string name="app_version">Версия 5.8.0 от 5 февраля 2023</string>
+    <string name="app_version">Версия 5.8.1 от 06 февраля 2023</string>
     <string name="nav_header_desc">Navigation header</string>
 
     <string name="copy_text_successful">Скопировано в буфер обмена</string>
