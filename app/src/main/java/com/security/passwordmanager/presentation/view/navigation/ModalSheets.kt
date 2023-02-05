@@ -1,16 +1,13 @@
 package com.security.passwordmanager.presentation.view.navigation
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -34,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.IconTextItem
-import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.ImageTextItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.ScreenTypeItem
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
@@ -268,52 +264,65 @@ object ModalSheetItems {
     @Composable
     fun ColumnScope.ImageTextItem(
         text: String,
-        @DrawableRes image: Int?,
+        @DrawableRes image: Int,
         modifier: Modifier = Modifier,
         imageModifier: Modifier = Modifier,
         imageTintColor: Color? = null,
         selected: Boolean = false,
         imageAlignment: Alignment.Horizontal = Alignment.Start,
-        padding: Dp = 16.dp,
+        imageSpace: Dp = 8.dp,
         onClick: (text: String) -> Unit
-    ) = BottomSheetItem(text, imageAlignment, onClick, modifier, selected, padding) { horizontalPadding ->
-        if (image != null) {
-            Image(
-                painter = painterResource(image),
-                contentDescription = text,
-                colorFilter = if (imageTintColor != null) ColorFilter.tint(imageTintColor) else null,
-                contentScale = ContentScale.FillBounds,
-                modifier = imageModifier
-                    .padding(horizontal = horizontalPadding)
-                    .scale(1.17f)
-                    .clip(CircleShape.copy(CornerSize(40)))
-            )
-        }
+    ) = BottomSheetItem(text, imageAlignment, onClick, modifier, selected, imageSpace) { horizontalPadding ->
+        Image(
+            painter = painterResource(image),
+            contentDescription = text,
+            colorFilter = if (imageTintColor != null) ColorFilter.tint(imageTintColor) else null,
+            contentScale = ContentScale.Fit,
+            modifier = imageModifier
+                .padding(horizontal = horizontalPadding)
+                .clip(RoundedCornerShape(20))
+        )
     }
+
 
     @Composable
     fun ColumnScope.IconTextItem(
         text: String,
-        icon: ImageVector?,
+        icon: ImageVector,
         iconTintColor: Color,
         modifier: Modifier = Modifier,
         iconModifier: Modifier = Modifier,
         selected: Boolean = false,
         iconAlignment: Alignment.Horizontal = Alignment.Start,
-        padding: Dp = 16.dp,
+        iconSpace: Dp = 8.dp,
         onClick: (text: String) -> Unit
-    ) = BottomSheetItem(text, iconAlignment, onClick, modifier, selected, padding) { horizontalPadding ->
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                contentDescription = text,
-                tint = iconTintColor,
-                modifier = iconModifier
-                    .padding(horizontal = horizontalPadding)
-                    .clip(CircleShape.copy(CornerSize(40)))
-            )
-        }
+    ) = BottomSheetItem(text, iconAlignment, onClick, modifier, selected, iconSpace) { horizontalPadding ->
+        Icon(
+            imageVector = icon,
+            contentDescription = text,
+            tint = iconTintColor,
+            modifier = iconModifier
+                .padding(horizontal = horizontalPadding)
+                .clip(CircleShape.copy(CornerSize(40)))
+        )
     }
+
+
+    @Composable
+    fun ColumnScope.TextItem(
+        text: String,
+        modifier: Modifier = Modifier,
+        selected: Boolean = false,
+        onClick: (text: String) -> Unit
+    ) = BottomSheetItem(
+        text = text,
+        imageAlignment = Alignment.Start,
+        modifier = modifier,
+        selected = selected,
+        onClick = onClick,
+        image = { Spacer(modifier = Modifier.padding(horizontal = it + it)) }
+    )
+
 
     @Composable
     fun ColumnScope.ScreenTypeItem(
@@ -379,7 +388,7 @@ object ModalSheetItems {
         onClick: (text: String) -> Unit,
         modifier: Modifier = Modifier,
         selected: Boolean = false,
-        padding: Dp = 8.dp,
+        spaceAfterImage: Dp = 8.dp,
         image: @Composable (horizontalPadding: Dp) -> Unit
     ) {
         Row(
@@ -398,12 +407,12 @@ object ModalSheetItems {
                 )
                 .then(modifier)
                 .align(Alignment.Start)
-                .padding(vertical = padding)
+                .padding(vertical = 16.dp)
                 .fillMaxWidth(),
         ) {
 
-            if (imageAlignment != Alignment.End) image(padding)
-            else Spacer(modifier = Modifier.width(padding))
+            if (imageAlignment != Alignment.End) image(spaceAfterImage)
+            else Spacer(modifier = Modifier.width(spaceAfterImage))
 
             Text(
                 text = text,
@@ -412,83 +421,7 @@ object ModalSheetItems {
                 modifier = Modifier.weight(2f)
             )
 
-            if (imageAlignment == Alignment.End) image(padding)
-        }
-    }
-}
-
-
-
-
-@Composable
-fun RowScope.ToolbarAction(
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-    contentDescription: String = "",
-    onClick: () -> Unit
-) {
-    FilledIconButton(
-        onClick = onClick,
-        colors = IconButtonDefaults.filledIconButtonColors(
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onPrimary.animate()
-        ),
-        shape = CircleShape,
-        modifier = modifier.align(Alignment.CenterVertically)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription
-        )
-    }
-}
-
-
-
-
-@Composable
-internal fun FeedbackSheet(
-    context: Context,
-    beautifulDesign: Boolean,
-    closeBottomSheet: () -> Unit,
-) {
-    val openAddress = { address: String ->
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(address))
-        context.startActivity(intent)
-        closeBottomSheet()
-    }
-
-    BottomSheetContent(
-        header = Header(
-            title = stringResource(R.string.feedback),
-            beautifulDesign = beautifulDesign
-        )
-    ) {
-        ImageTextItem(
-            text = stringResource(R.string.telegram),
-            image = R.drawable.telegram_icon,
-            imageTintColor = MaterialTheme.colorScheme.secondary.animate(),
-            imageModifier = Modifier.scale(1.7f)
-        ) {
-            openAddress("https://t.me/cepetroff")
-        }
-
-        ImageTextItem(
-            text = stringResource(R.string.vk),
-            image = R.drawable.vk_icon,
-            imageTintColor = MaterialTheme.colorScheme.secondary.animate(),
-            imageModifier = Modifier.scale(1.4f)
-        ) {
-            openAddress("https://vk.com/cepetroff")
-        }
-
-        IconTextItem(
-            text = stringResource(R.string.email),
-            icon = Icons.Default.AlternateEmail,
-            iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
-            iconModifier = Modifier.scale(0.9f)
-        ) {
-            openAddress("mailto:petrovsd2002@gmail.com")
+            if (imageAlignment == Alignment.End) image(spaceAfterImage)
         }
     }
 }

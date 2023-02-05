@@ -1,17 +1,17 @@
 package com.security.passwordmanager.presentation.view.screens
 
 import android.os.Build
+import androidx.annotation.StringRes
 import androidx.compose.animation.*
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
+import androidx.compose.material.icons.outlined.ArrowCircleLeft
 import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shadow
@@ -35,17 +34,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentManager
-import com.security.passwordmanager.*
+import com.security.passwordmanager.LoadingInBox
 import com.security.passwordmanager.R
-import com.security.passwordmanager.data.Result
-import com.security.passwordmanager.presentation.model.Times
-import com.security.passwordmanager.presentation.model.enums.Themes
-import com.security.passwordmanager.presentation.view.BottomSheetFragment
-import com.security.passwordmanager.presentation.view.composablelements.RenameDialog
-import com.security.passwordmanager.presentation.view.composablelements.ToolbarScaffold
-import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
-import com.security.passwordmanager.presentation.view.navigation.FeedbackSheet
+import com.security.passwordmanager.animate
+import com.security.passwordmanager.presentation.model.Time
+import com.security.passwordmanager.presentation.model.enums.ColorDesign
+import com.security.passwordmanager.presentation.view.BottomSheetState
+import com.security.passwordmanager.presentation.view.composablelements.*
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.IconTextItem
+import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.TextItem
 import com.security.passwordmanager.presentation.view.navigation.createRouteToLoginScreen
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
@@ -74,21 +71,25 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
     val scaffoldState = rememberCollapsingToolbarScaffoldState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val screenShape = MaterialTheme.shapes.large.copy(
-        bottomStart = CornerSize(0.dp),
-        bottomEnd = CornerSize(0.dp)
-    )
-
-    val bottomSheetFragment = BottomSheetFragment {
-        viewModel.bottomSheetContent(this, it)
-    }
-
-
     val showSnackbar = { message: String ->
         scope.launch {
             snackbarHostState.showSnackbar(message)
         }
     }
+
+
+    val accountInfoSheetState = createAccountInfoSheet(
+        username = viewModel.currentUsername,
+        usingBeautifulHeading = viewModel.settings.isUsingBeautifulFont,
+        changeUsername = {
+            viewModel.showUsernameEditingDialog = true
+        },
+        signOut = {
+            viewModel.signOut()
+            viewModel.clearEmail()
+            navigateTo(createRouteToLoginScreen())
+        }
+    )
 
 
 
@@ -97,19 +98,8 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
             text = viewModel.usernameInDialog,
             onTextChange = viewModel::usernameInDialog::set,
             onSave = {
-                viewModel.saveUsernameFromDialog(context) { result ->
-                    when (result) {
-                        Result.Loading ->
-                            viewModel.viewModelState = SettingsViewModel.State.Loading
-                        is Result.Error -> {
-                            showSnackbar(context.getString(R.string.change_username_exception))
-                            viewModel.viewModelState = SettingsViewModel.State.Ready
-                        }
-                        is Result.Success -> {
-                            showSnackbar(context.getString(R.string.change_username_successful))
-                            viewModel.viewModelState = SettingsViewModel.State.Ready
-                        }
-                    }
+                viewModel.saveUsernameFromDialog(context) { message ->
+                    showSnackbar(message)
                 }
             },
             onDismiss = viewModel::dismissChangingUsernameInDialog
@@ -118,61 +108,32 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
 
 
 
-    ToolbarScaffold(
+    ScrollableTopBarScaffold(
         state = scaffoldState,
         scrollStrategy = ScrollStrategy.EnterAlways,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
+            ScrollableTopBar(
+                title = title,
+                navigationButton = {
+                    ToolbarButton(
+                        icon = Icons.Rounded.ArrowBackIosNew,
+                        contentDescription = "back screen",
+                        onClick = popBackStack
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = popBackStack) {
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowBackIosNew,
-                            contentDescription = "back",
-                        )
-                    }
-                },
                 actions = {
-                    IconButton(
+                    ToolbarButton(
+                        icon = Icons.Outlined.ManageAccounts,
+                        contentDescription = "manage accounts",
+                        iconModifier = Modifier.scale(1.2f),
                         onClick = {
-                            viewModel.bottomSheetContent = {
-                                AccountInfoSheet(
-                                    username = viewModel.currentUsername,
-                                    usingBeautifulHeading = viewModel.settings.isUsingBeautifulFont,
-                                    signOut = {
-                                        it.dismiss()
-                                        viewModel.signOut()
-                                        viewModel.clearEmail()
-                                        navigateTo(createRouteToLoginScreen())
-                                    },
-                                    changeUsername = {
-                                        viewModel.showUsernameEditingDialog = true
-                                        it.dismiss()
-                                    }
-                                )
-                            }
-                            bottomSheetFragment.show(fragmentManager)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.ManageAccounts,
-                            contentDescription = "manage accounts",
-                            modifier = Modifier.scale(1.3f)
-                        )
-                    }
+                            viewModel.showBottomSheet(
+                                fragmentManager = fragmentManager,
+                                bottomSheetState = accountInfoSheetState
+                            )
+                        }
+                    )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background.animate(durationMillis = 400),
-                    navigationIconContentColor = MaterialTheme.colorScheme.secondary.animate(),
-                    actionIconContentColor = MaterialTheme.colorScheme.secondary.animate(),
-                    titleContentColor = MaterialTheme.colorScheme.onBackground.animate(400),
-                ),
             )
         },
         snackbarHost = {
@@ -187,57 +148,57 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
                 )
             }
         },
-        modifier = Modifier.fillMaxSize()
+        contentBorder = BorderStroke(
+            width = screenBorderThickness,
+            brush = Brush.verticalGradient(
+                0.01f to MaterialTheme.colorScheme.onBackground.animate(),
+                0.08f to MaterialTheme.colorScheme.background.animate()
+            ),
+        ),
+        onRefresh = popBackStack,
+        isPullRefreshEnabled = !viewModel.settings.disablePullToRefresh,
+        pullRefreshIndicator = {
+            Icon(
+                imageVector = Icons.Outlined.ArrowCircleLeft,
+                contentDescription = "return",
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .padding(top = 32.dp)
+                    .scale(it)
+            )
+        },
+        colors = ScrollableTopBarScaffoldDefaults.colors(
+            topBarColor = MaterialTheme.colorScheme.background.animate(durationMillis = 400),
+            topBarTitleContentColor = MaterialTheme.colorScheme.onBackground.animate(400),
+            topBarNavigationIconContentColor = MaterialTheme.colorScheme.secondary.animate(400),
+            topBarActionIconContentColor = MaterialTheme.colorScheme.secondary.animate(400),
+            containerColor = MaterialTheme.colorScheme.background.animate()
+        ),
+        contentModifier = Modifier
+            .padding(horizontal = 1.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 1.dp)
-                .animateEnterExit(
-                    enter = EnterContentAnimation,
-                    exit = ExitContentAnimation
-                )
-                .clip(screenShape)
-                .background(
-                    color = MaterialTheme.colorScheme.background.animate(),
-                    shape = screenShape
-                )
-                .border(
-                    width = screenBorderThickness,
-                    brush = Brush.verticalGradient(
-                        0.01f to MaterialTheme.colorScheme.onBackground.animate(),
-                        0.08f to MaterialTheme.colorScheme.background.animate()
-                    ),
-                    shape = screenShape
-                )
+        Crossfade(
+            targetState = viewModel.viewModelState,
+            animationSpec = tween(durationMillis = 700)
         ) {
-            Crossfade(
-                targetState = viewModel.viewModelState,
-                animationSpec = tween(durationMillis = 700)
-            ) {
-                when (it) {
-                    SettingsViewModel.State.Loading -> {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .padding(64.dp)
-                                .fillMaxSize()
-                                .align(Alignment.Center)
-                        ) {
-                            Loading()
-                        }
-                    }
-                    SettingsViewModel.State.Ready -> {
-                        Column {
-                            SettingsContentScreen(
-                                viewModel = viewModel,
-                                isDarkTheme = isDarkTheme,
-                                showBottomFragment = { bottomSheetFragment.show(fragmentManager) },
-                                showSnackbar = { msg -> showSnackbar(msg) }
+            when (it) {
+                SettingsViewModel.State.Loading -> {
+                    LoadingInBox(Modifier.padding(32.dp))
+                }
+                SettingsViewModel.State.Ready -> {
+                    SettingsContentScreen(
+                        viewModel = viewModel,
+                        isDarkTheme = isDarkTheme,
+                        showFragment = {
+                            viewModel.showBottomSheet(
+                                fragmentManager,
+                                bottomSheetState = this
                             )
-                        }
-                    }
+                        },
+                        showSnackbar = { msg -> showSnackbar(msg) }
+                    )
                 }
             }
         }
@@ -249,125 +210,168 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
 
 
 @Composable
-private fun ColumnScope.SettingsContentScreen(
+private fun SettingsContentScreen(
     viewModel: SettingsViewModel,
     isDarkTheme: Boolean,
-    showBottomFragment: () -> Unit,
+    showFragment: BottomSheetState.() -> Unit,
     showSnackbar: (message: String) -> Unit
 ) {
     val context = LocalContext.current
 
-    Text(
-        text = buildAnnotatedString {
-            append(stringResource(R.string.switchThemeText) + " ")
-            if (viewModel.switchThemeTextLineCount > 1) append("\n")
+    fun showResult(
+        success: Boolean,
+        @StringRes messageRes: Int = R.string.change_setting_exception
+    ) {
+        if (!success) showSnackbar(context.getString(messageRes))
+    }
 
-            withStyle(
-                style = SpanStyle(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.7.sp,
-                    shadow = Shadow(color = MaterialTheme.colorScheme.secondary.animate()),
-                    fontSynthesis = FontSynthesis.Weight
-                ),
+
+    val themeSheet = createThemeSheet(
+        currentDesign = viewModel.settings.colorDesign,
+        updateDesign = {
+            viewModel.updateSettings(
+                contentToUpdate = { colorDesign = it },
+                result = {
+                    showResult(it, R.string.change_theme_exception)
+                }
+            )
+        },
+        showAdditionalContent = viewModel.settings.colorDesign == ColorDesign.Auto
+    ) {
+        Divider()
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Time(
+                time = viewModel.settings.sunriseTime,
+                title = stringResource(R.string.sunrise_time),
+                modifier = Modifier.weight(1f)
             ) {
-                append(
-                    text = viewModel.getThemeText(
-                        currentTheme = viewModel.settings.theme,
-                        isDark = isDarkTheme,
-                        context
-                    )
+                viewModel.updateSettings(
+                    contentToUpdate = { sunriseTime = it },
+                    result = {
+                        showResult(it, R.string.change_time_exception)
+                    },
                 )
             }
-        },
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onBackground.animate(),
-        textAlign = TextAlign.Start,
-        onTextLayout = {
-            println("lineCount = ${it.lineCount}")
-            viewModel.switchThemeTextLineCount = it.lineCount
-        },
-        modifier = Modifier
-            .clickable {
-                viewModel.bottomSheetContent = { fragment ->
-                    ThemeSheet(
-                        currentTheme = viewModel.settings.theme,
-                        updateTheme = {
-                            viewModel.updateTheme(it) { result ->
-                                when (result) {
-                                    Result.Loading ->
-                                        viewModel.viewModelState = SettingsViewModel.State.Loading
-                                    is Result.Error -> {
-                                        showSnackbar(
-                                            context.getString(R.string.change_theme_exception)
-                                        )
-                                        viewModel.viewModelState = SettingsViewModel.State.Ready
-                                    }
-                                    is Result.Success -> {
-                                        viewModel.viewModelState = SettingsViewModel.State.Ready
-                                        if (result.data != Themes.Auto)
-                                            fragment.dismiss()
-                                    }
-                                }
-                            }
-                            if (it != Themes.Auto) fragment.dismiss()
-                        },
-                        showAdditionalContent = viewModel.settings.theme == Themes.Auto
-                    ) {
-                        Times(times = viewModel.times) {
-                            viewModel.updateTimes(it)
-                        }
+
+            Time(
+                time = viewModel.settings.sunsetTime,
+                title = stringResource(R.string.sunset_time),
+                modifier = Modifier.weight(1f)
+            ) {
+                viewModel.updateSettings(
+                    contentToUpdate = { sunsetTime = it },
+                    result = {
+                        showResult(it, R.string.change_time_exception)
                     }
-                }
-                showBottomFragment()
+                )
             }
-            .padding(horizontal = 16.dp, vertical = 20.dp)
-            .align(Alignment.CenterHorizontally)
-            .fillMaxWidth()
+        }
+    }
+
+
+    val feedbackSheet = feedbackBottomState(
+        beautifulDesign = viewModel.settings.isUsingBeautifulFont
     )
 
-    Divider()
 
-    SwitchItem(
-        isChecked = viewModel.settings.isUsingBeautifulFont,
-        title = stringResource(R.string.beautiful_font),
-        onClick = viewModel::updateUsingBeautifulFont,
-    )
 
-    Divider()
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        SwitchItem(
-            isChecked = viewModel.settings.dynamicColor,
-            title = stringResource(R.string.dynamic_color),
-            subtitle = stringResource(R.string.dynamic_color_description),
-            onClick = viewModel::updateDynamicColor
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text(
+            text = buildAnnotatedString {
+                append(stringResource(R.string.switchThemeText) + " ")
+//                if (viewModel.switchThemeTextLineCount > 1) append("\n")
+
+                withStyle(
+                    style = SpanStyle(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.7.sp,
+                        shadow = Shadow(color = MaterialTheme.colorScheme.secondary.animate()),
+                        fontSynthesis = FontSynthesis.Weight
+                    ),
+                ) {
+                    append(
+                        text = viewModel.getThemeText(
+                            currentTheme = viewModel.settings.colorDesign,
+                            isDark = isDarkTheme,
+                            context
+                        )
+                    )
+                }
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.animate(),
+            textAlign = TextAlign.Start,
+            onTextLayout = {
+//                println("lineCount = ${it.lineCount}")
+                viewModel.switchThemeTextLineCount = it.lineCount
+            },
+            modifier = Modifier
+                .clickable { themeSheet.showFragment() }
+                .padding(horizontal = 16.dp, vertical = 20.dp)
+                .fillMaxWidth()
         )
 
         Divider()
-    }
 
-    Text(
-        text = stringResource(R.string.feedback),
-        color = MaterialTheme.colorScheme.onBackground.animate(),
-        style = MaterialTheme.typography.bodyMedium,
-        textAlign = TextAlign.Start,
-        modifier = Modifier
-            .clickable {
-                viewModel.bottomSheetContent = { fragment ->
-                    FeedbackSheet(
-                        context = context,
-                        beautifulDesign = viewModel.settings.isUsingBeautifulFont
-                    ) {
-                        fragment.dismiss()
-                    }
-                }
-                showBottomFragment()
+        SwitchItem(
+            isChecked = viewModel.settings.isUsingBeautifulFont,
+            title = stringResource(R.string.beautiful_font),
+        ) {
+            viewModel.updateSettings(
+                contentToUpdate = { isUsingBeautifulFont = it },
+                result = ::showResult
+            )
+        }
+
+        Divider()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SwitchItem(
+                isChecked = viewModel.settings.dynamicColor,
+                title = stringResource(R.string.dynamic_color),
+                subtitle = stringResource(R.string.dynamic_color_desc)
+            ) {
+                viewModel.updateSettings(
+                    contentToUpdate = { dynamicColor = it },
+                    result = ::showResult
+                )
             }
-            .align(Alignment.CenterHorizontally)
-            .padding(16.dp)
-            .fillMaxWidth()
-    )
+
+            Divider()
+        }
+
+        SwitchItem(
+            isChecked = viewModel.settings.disablePullToRefresh,
+            title = stringResource(R.string.disable_pull_to_refresh),
+            subtitle = stringResource(R.string.disable_pull_to_refresh_desc)
+        ) {
+            viewModel.updateSettings(
+                contentToUpdate = { disablePullToRefresh = it },
+                result = ::showResult
+            )
+        }
+
+        Divider()
+
+        Text(
+            text = stringResource(R.string.feedback),
+            color = MaterialTheme.colorScheme.onBackground.animate(),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .clickable { feedbackSheet.showFragment() }
+                .padding(16.dp)
+                .fillMaxWidth()
+        )
+    }
 }
+
+
 
 
 
@@ -420,61 +424,57 @@ private fun SwitchItem(
 
 
 @Composable
-private fun ThemeSheet(
-    currentTheme: Themes,
-    updateTheme: (newTheme: Themes) -> Unit,
+private fun createThemeSheet(
+    currentDesign: ColorDesign,
+    updateDesign: (newDesign: ColorDesign) -> Unit,
     showAdditionalContent: Boolean,
-    additionalContent: @Composable ColumnScope.() -> Unit,
-) {
-    val horizontalPadding = 16.dp
+    additionalContent: @Composable (ColumnScope.() -> Unit),
+) = BottomSheetState { fragment ->
 
-    BottomSheetContent {
-        Themes.values().forEach { theme ->
-            IconTextItem(
-                text = stringResource(theme.titleRes),
-                icon = if (theme == currentTheme) Icons.Rounded.CheckCircle else null,
-                selected = theme == currentTheme,
-                iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
-                iconAlignment = Alignment.End,
-                padding = horizontalPadding
-            ) {
-                updateTheme(theme)
+    ColorDesign.values().forEach { design ->
+        TextItem(
+            text = stringResource(design.titleRes),
+            selected = design == currentDesign,
+            onClick = {
+                if (design != ColorDesign.Auto) fragment.dismiss()
+                updateDesign(design)
             }
-        }
+        )
+    }
 
-        AnimatedVisibility(
-            visible = showAdditionalContent,
-            enter = expandVertically(
-                animationSpec = tween(
-                    durationMillis = 500,
-                    easing = LinearOutSlowInEasing
-                )
-            ),
-            exit = shrinkVertically(
-                animationSpec = tween(
-                    durationMillis = 500,
-                    easing = LinearOutSlowInEasing
-                )
-            ) { it / 2 }
-        ) {
-            Column {
-                Spacer(modifier = Modifier.size(8.dp))
-                additionalContent()
-            }
+    AnimatedVisibility(
+        visible = showAdditionalContent,
+        enter = expandVertically(
+            animationSpec = tween(
+                durationMillis = 500,
+                easing = LinearOutSlowInEasing
+            )
+        ),
+        exit = shrinkVertically(
+            animationSpec = tween(
+                durationMillis = 500,
+                easing = LinearOutSlowInEasing
+            )
+        ) { it / 2 }
+    ) {
+        Column {
+            Spacer(modifier = Modifier.size(8.dp))
+            additionalContent()
         }
     }
 }
 
 
 
+
 @Composable
-private fun AccountInfoSheet(
+private fun createAccountInfoSheet(
     username: String,
     usingBeautifulHeading: Boolean,
     changeUsername: () -> Unit,
     signOut: () -> Unit
-) {
-    BottomSheetContent(
+) =
+    BottomSheetState(
         title = buildAnnotatedString {
             if (username.isBlank()) return@buildAnnotatedString
 
@@ -485,20 +485,23 @@ private fun AccountInfoSheet(
                 SpanStyle(
                     fontWeight = FontWeight.Bold,
                     shadow = Shadow(color = MaterialTheme.colorScheme.secondary.animate()),
-                    letterSpacing = 3.sp
-                )
+                    letterSpacing = 3.sp,
+                ),
             ) {
                 append(username)
             }
         },
-        beautifulDesign = usingBeautifulHeading
-    ) {
+        beautifulDesign = usingBeautifulHeading,
+    ) { fragment ->
         IconTextItem(
             text = stringResource(R.string.edit_username),
             icon = Icons.Filled.DriveFileRenameOutline,
             iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
-            onClick = { changeUsername() },
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = 16.dp),
+            onClick = {
+                fragment.dismiss()
+                changeUsername()
+            }
         )
 
         IconTextItem(
@@ -506,10 +509,12 @@ private fun AccountInfoSheet(
             icon = Icons.Rounded.Logout,
             iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
             modifier = Modifier.padding(vertical = 16.dp),
-            onClick = { signOut() }
+            onClick = {
+                fragment.dismiss()
+                signOut()
+            }
         )
     }
-}
 
 
 

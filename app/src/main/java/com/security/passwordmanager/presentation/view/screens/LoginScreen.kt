@@ -57,8 +57,8 @@ import com.security.passwordmanager.data.Result
 import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
+import com.security.passwordmanager.presentation.view.composablelements.feedbackBottomState
 import com.security.passwordmanager.presentation.view.navigation.AppScreens
-import com.security.passwordmanager.presentation.view.navigation.FeedbackSheet
 import com.security.passwordmanager.presentation.view.navigation.createRouteToNotesScreen
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.viewmodel.LoginViewModel
@@ -80,11 +80,12 @@ internal fun AnimatedVisibilityScope.LoginScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val bottomSheetFragment = BottomSheetFragment { fragment ->
-        FeedbackSheet(context = context, beautifulDesign = settings.isUsingBeautifulFont) {
-            fragment.dismiss()
-        }
-    }
+    val bottomSheetFragment =
+        BottomSheetFragment(
+            state = feedbackBottomState(
+                beautifulDesign = settings.isUsingBeautifulFont
+            )
+        )
 
 
     BackHandler {
@@ -106,7 +107,7 @@ internal fun AnimatedVisibilityScope.LoginScreen(
             .fillMaxSize()
     ) {
         when (it) {
-            ViewModelState.PreLoading -> Loading(progress = viewModel.loadingProgress)
+            ViewModelState.PreLoading -> LoadingInBox(progress = viewModel.loadingProgress)
             else -> LoginScreen(
                 viewModel = viewModel,
                 context = context,
@@ -311,7 +312,7 @@ private fun AnimatedVisibilityScope.LoginScreen(
                     withStyle(
                         MaterialTheme.typography.titleLarge.toSpanStyle()
                     ) {
-                        append("by CuteCat")
+                        append(stringResource(R.string.main_subtitle))
                     }
                 },
                 color = MaterialTheme.colorScheme.onBackground.animate(),

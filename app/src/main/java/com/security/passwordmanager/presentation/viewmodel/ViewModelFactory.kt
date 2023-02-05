@@ -20,19 +20,10 @@ class ViewModelFactory(private val application: Application) : ViewModelProvider
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
                 return SettingsViewModel(
                     settingsRepository = SettingsRepository(
-                        settingsDao = MainDatabase.getDatabase(application).settingsDao()
+                        settingsDao = MainDatabase.getDatabase(application).settingsDao(),
+                        firebaseAuth = FirebaseAuth.getInstance()
                     ),
-                    preferences = AppPreferences(application),
-                    firebaseAuth = FirebaseAuth.getInstance()
-                ) as T
-            }
-            modelClass.isAssignableFrom(DataViewModel::class.java) -> {
-                return DataViewModel(
-                    dataRepository = DataRepository(
-                        dataDao = MainDatabase.getDatabase(application).dataDao()
-                    ),
-                    preferences = AppPreferences(application),
-                    cryptoManager = CryptoManager()
+                    preferences = AppPreferences(application)
                 ) as T
             }
             modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
@@ -45,10 +36,22 @@ class ViewModelFactory(private val application: Application) : ViewModelProvider
                 ) as T
             }
             modelClass.isAssignableFrom(WebsiteViewModel::class.java) -> {
-                return WebsiteViewModel() as T
+                return WebsiteViewModel(
+                    repository = DataRepository(
+                        dataDao = MainDatabase.getDatabase(application).dataDao()
+                    ),
+                    preferences = AppPreferences(application),
+                    cryptoManager = CryptoManager()
+                ) as T
             }
             modelClass.isAssignableFrom(NotesViewModel::class.java) -> {
-                return NotesViewModel() as T
+                return NotesViewModel(
+                    dataRepository = DataRepository(
+                        dataDao = MainDatabase.getDatabase(application).dataDao()
+                    ),
+                    preferences = AppPreferences(application),
+                    cryptoManager = CryptoManager()
+                ) as T
             }
             modelClass.isAssignableFrom(NavigationViewModel::class.java) -> {
                 return NavigationViewModel(application as PasswordManagerApplication) as T

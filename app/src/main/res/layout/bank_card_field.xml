@@ -16,20 +16,22 @@
 
     <ImageButton
         android:id="@+id/button_visibility"
-        style="@style/UtilityButtons.WithMargins"
         android:layout_margin="8dp"
         android:contentDescription="@string/show_password"
         android:src="@drawable/visibility_on"
         android:background="@color/data_background_color"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"/>
 
     <ImageButton
         android:id="@+id/field_item_button_copy"
-        style="@style/UtilityButtons.WithMargins"
         android:layout_margin="8dp"
         android:contentDescription="@string/copy_info"
         android:src="@drawable/file_copy"
         android:padding="5dp"
-        android:backgroundTint="@color/data_background_color"/>
+        android:backgroundTint="@color/data_background_color"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"/>
 
 </LinearLayout>

@@ -2,6 +2,7 @@ package com.security.passwordmanager.data.room
 
 import androidx.room.*
 import com.security.passwordmanager.data.model.BankCard
+import com.security.passwordmanager.data.model.Data
 import com.security.passwordmanager.data.model.Website
 import kotlinx.coroutines.flow.Flow
 
@@ -32,10 +33,10 @@ abstract class DataDao {
      * Получение всех элементов
      */
     @Query("SELECT * FROM WebsiteTable WHERE email = :email ORDER BY nameWebsite ASC")
-    abstract fun getWebsiteList(email: String): Flow<MutableList<Website>>
+    abstract fun getWebsiteList(email: String): Flow<List<Website>>
 
     @Query("SELECT * FROM BankTable WHERE email = :email ORDER BY bankName ASC")
-    abstract fun getBankCardList(email: String): Flow<MutableList<BankCard>>
+    abstract fun getBankCardList(email: String): Flow<List<BankCard>>
 
 
     /**
@@ -51,20 +52,33 @@ abstract class DataDao {
     /**
      * Поиск
      */
-    @Query("SELECT * FROM WebsiteTable " +
-            "WHERE email = :email AND (" +
-            "nameWebsite LIKE '%' || :query || '%' OR " +
-            "address LIKE '%' || :query || '%' OR " +
-            "nameAccount LIKE '%' || :query || '%') " +
-            "ORDER BY nameWebsite ASC")
-    abstract suspend fun searchWebsite(email: String, query: String): MutableList<Website>
+    @Query("""
+        SELECT * FROM WebsiteTable WHERE email = :email
+        AND (
+            address LIKE '%' || :query || '%' 
+            OR nameAccount LIKE '%' || :query || '%' 
+            OR nameAccount LIKE '%' || :query || '%'
+        )
+        ORDER BY nameWebsite ASC
+        """)
+    abstract suspend fun searchWebsite(email: String, query: String): List<Website>
 
-    @Query("SELECT * FROM BankTable " +
-            "WHERE email = :email AND (" +
-            "bankName LIKE '%' || :query || '%' OR " +
-            "bankCardName LIKE '%' || :query || '%') " +
-            "ORDER BY bankName")
-    abstract suspend fun searchBankCard(email: String, query: String): MutableList<BankCard>
+    @Query("""
+        SELECT * FROM BankTable
+        WHERE email = :email
+        AND (bankName LIKE '%' || :query || '%' OR bankCardName LIKE '%' || :query || '%')
+        ORDER BY bankName
+        """)
+    abstract suspend fun searchBankCard(email: String, query: String): List<BankCard>
+
+
+    @Transaction
+    open suspend fun searchData(email: String, query: String): Array<List<Data>> {
+        return arrayOf(
+            searchWebsite(email, query),
+            searchBankCard(email, query)
+        )
+    }
 
 
     /**

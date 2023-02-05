@@ -1,17 +1,22 @@
 package com.security.passwordmanager.data.model
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.security.passwordmanager.presentation.model.enums.Themes
+import androidx.room.TypeConverters
+import com.security.passwordmanager.presentation.model.Time
+import com.security.passwordmanager.presentation.model.TimeConverter
+import com.security.passwordmanager.presentation.model.enums.ColorDesign
 
+@TypeConverters(TimeConverter::class)
 @Entity(tableName = "SettingsTable")
 data class Settings(
-    @PrimaryKey var id: Int = 0,
-    var email: String = "",
-    var theme: Themes = Themes.System,
+    @PrimaryKey(autoGenerate = true) var id: Int = 0,
+    val email: String = "",
+    var colorDesign: ColorDesign = ColorDesign.System,
+    var sunriseTime: Time = Time.defaultSunriseTime,
+    var sunsetTime: Time = Time.defaultSunsetTime,
     var isUsingBeautifulFont: Boolean = true,
     var isUsingAutofill: Boolean = true,
-    @ColumnInfo(name = "usingDynamicColor")
     var dynamicColor: Boolean = false,
+    var disablePullToRefresh: Boolean = false,
 )

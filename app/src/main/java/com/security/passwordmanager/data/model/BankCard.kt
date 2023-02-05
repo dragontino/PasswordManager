@@ -25,6 +25,7 @@ class BankCard(
 
     override val key get() = bankName
     override val type get() = DataType.BankCard
+    override val stringToCompare get() = bankName
 
     constructor(parcel: Parcel) : this(
         id = parcel.readInt(),
@@ -70,18 +71,6 @@ class BankCard(
                 context.getString(R.string.pin_code), ": ", pin, "\n"
             )
         }
-
-    //сравнение 2 объектов BankCard по bankName
-    //или объекта BankCard с Website
-    override fun compareTo(other: Data) : Int {
-
-        val anotherString = when (other) {
-            is BankCard -> other.bankName
-            is Website -> other.nameWebsite
-        }
-
-        return bankName.compareTo(anotherString)
-    }
 
     override fun observe() =
         ObservableBankCard(id, email)

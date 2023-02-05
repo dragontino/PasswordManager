@@ -21,6 +21,7 @@ import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.ArrowCircleLeft
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.*
@@ -37,7 +38,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -47,31 +47,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
+import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.presentation.model.ObservableWebsite
-import com.security.passwordmanager.presentation.model.enums.DataType
-import com.security.passwordmanager.presentation.view.composablelements.DeleteDialog
-import com.security.passwordmanager.presentation.view.composablelements.EditableDataTextField
-import com.security.passwordmanager.presentation.view.composablelements.ExitDialog
-import com.security.passwordmanager.presentation.view.composablelements.ToolbarScaffold
+import com.security.passwordmanager.presentation.view.composablelements.*
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.CopyItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.DeleteItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.EditItem
-import com.security.passwordmanager.presentation.view.navigation.ToolbarAction
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
-import com.security.passwordmanager.presentation.viewmodel.DataViewModel
+import com.security.passwordmanager.presentation.viewmodel.DataViewModel.DataViewModelState
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
 import com.security.passwordmanager.presentation.viewmodel.WebsiteViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.ExperimentalToolbarApi
-import me.onebone.toolbar.ScrollStrategy
-import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalLayoutApi::class)
 @ExperimentalToolbarApi
@@ -82,11 +76,12 @@ import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 internal fun AnimatedVisibilityScope.WebsiteScreen(
     address: String,
     viewModel: WebsiteViewModel,
-    dataViewModel: DataViewModel,
     settingsViewModel: SettingsViewModel,
     popBackStack: () -> Unit,
     startPosition: Int = 0,
 ) {
+    viewModel.address = address
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -99,7 +94,6 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
     )
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scaffoldState = rememberCollapsingToolbarScaffoldState()
 
 
     val isInEditing by rememberSaveable { mutableStateOf(false) }
@@ -107,6 +101,10 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 
     val showSnackbar = { message: String ->
         scope.launch { snackbarHostState.showSnackbar(message) }
+    }
+
+    val hideBottomSheet = {
+        scope.launch { bottomState.hide() }
     }
 
 
@@ -127,16 +125,16 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
         }
 
         itemsToDelete.forEach {
-            dataViewModel.deleteData(it)
+            viewModel.deleteData(it)
         }
 
         accountList.forEachIndexed { index, website ->
             if (website.toData() !in itemsToDelete) {
                 when {
                     index < accountList.size - newWebsites ->
-                        dataViewModel.updateData(website.toData())
+                        viewModel.updateData(website.toData())
                     else ->
-                        dataViewModel.addData(website.toData())
+                        viewModel.addData(website.toData())
                 }
             }
         }
@@ -155,23 +153,23 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 
 
 
-    LaunchedEffect(key1 = Unit) {
-        viewModel.viewModelState = WebsiteViewModel.ViewModelState.Loading
-        delay(200)
-        val newList = dataViewModel
-            .getAccountList(key = address, dataType = DataType.Website)
-            .ifEmpty {
-                viewModel.newWebsites = 1
-                listOf(Website())
-            }
-
-        viewModel.accountList.swapList(
-            newList
-                .map { it.observe() }
-                .filterIsInstance<ObservableWebsite>()
-        )
-        viewModel.viewModelState = WebsiteViewModel.ViewModelState.Ready
-    }
+//    LaunchedEffect(key1 = Unit) {
+//        viewModel.viewModelState = DataViewModelState.Loading
+//        delay(200)
+//        val newList = viewModel
+//            .getAccountList(key = address, dataType = DataType.Website)
+//            .ifEmpty {
+//                viewModel.newWebsites = 1
+//                listOf(Website())
+//            }
+//
+//        viewModel.accountList.swapList(
+//            newList
+//                .map { it.observe() }
+//                .filterIsInstance<ObservableWebsite>()
+//        )
+//        viewModel.viewModelState = DataViewModelState.Ready
+//    }
 
 
     LaunchedEffect(key1 = startPosition) {
@@ -204,19 +202,22 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
     ModalBottomSheetLayout(
         sheetState = bottomState,
         sheetContent = {
-            BottomSheetContent(title = viewModel.currentWebsite.nameAccount, beautifulDesign = true) {
+            BottomSheetContent(
+                title = viewModel.currentWebsite.nameAccount,
+                beautifulDesign = true
+            ) {
                 EditItem(text = viewModel.getEditItemName(context)) {
                     viewModel.isNameRenaming = !viewModel.isNameRenaming
-                    scope.launch { bottomState.hide() }
+                    hideBottomSheet()
                 }
 
                 CopyItem(text = stringResource(R.string.copy_info)) {
-                    dataViewModel.copyData(
+                    viewModel.copyData(
                         context = context,
                         data = viewModel.currentWebsite.toData(),
                         resultMessage = { showSnackbar(it) }
                     )
-                    scope.launch { bottomState.hide() }
+                    hideBottomSheet()
                 }
 
                 DeleteItem(text = stringResource(R.string.delete_account)) {
@@ -228,7 +229,7 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                         }
                         accountList.remove(currentWebsite)
                         if (accountList.isEmpty()) saveInfo()
-                        scope.launch { bottomState.hide() }
+                        hideBottomSheet()
                     }
                 }
             }
@@ -236,55 +237,50 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
         sheetShape = MaterialTheme.shapes.large,
         sheetBackgroundColor = MaterialTheme.colorScheme.background.animate()
     ) {
-        ToolbarScaffold(
-            state = scaffoldState,
-            scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
+        ScrollableTopBarScaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.website_label),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                if (isInEditing) {
-                                    viewModel.openDialog {
-                                        ExitDialog(
-                                            onConfirm = ::saveInfo,
-                                            onDismiss = popBackStack,
-                                            onClose = viewModel::closeDialog,
-                                        )
-                                    }
-                                } else {
-                                    popBackStack()
-                                }
-                            }
+                ScrollableTopBar(
+                    title = stringResource(R.string.website_label),
+                    navigationButton = {
+                        ToolbarButton(
+                            icon = when {
+                                isInEditing -> Icons.Rounded.Close
+                                else -> Icons.Rounded.ArrowBackIos
+                            },
+                            contentDescription = "close screen"
                         ) {
-                            Icon(
-                                if (isInEditing) Icons.Rounded.Close else Icons.Rounded.ArrowBackIos,
-                                contentDescription = "close"
-                            )
+                            if (isInEditing) {
+                                viewModel.openDialog {
+                                    ExitDialog(
+                                        onConfirm = ::saveInfo,
+                                        onDismiss = popBackStack,
+                                        onClose = viewModel::closeDialog,
+                                    )
+                                }
+                            } else {
+                                popBackStack()
+                            }
                         }
                     },
                     actions = {
-                        ToolbarAction(
+                        ToolbarButton(
                             icon = Icons.Rounded.Delete,
-                            contentDescription = stringResource(R.string.delete)
+                            contentDescription = stringResource(R.string.delete),
+                            colors = ToolbarButtonDefaults.colors(
+                                borderColor = MaterialTheme.colorScheme.secondary.animate()
+                            ),
+                            iconModifier = Modifier.scale(1.1f)
                         ) {
                             if (address.isNotEmpty()) {
                                 viewModel.openDialog {
                                     DeleteDialog(
-                                        text = "Вы уверены, что хотите удалить данные?",
+                                        text = stringResource(R.string.deletion_data_confirmation),
                                         onConfirm = {
                                             viewModel.closeDialog()
                                             val itemToDelete = viewModel.accountList.firstOrNull()
                                                 ?: return@DeleteDialog
 
-                                            dataViewModel.deleteRecords(itemToDelete.toData())
+                                            viewModel.deleteRecords(itemToDelete.toData())
                                             popBackStack()
                                         },
                                         onDismiss = {
@@ -298,20 +294,17 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                         }
                         Spacer(modifier = Modifier.width(4.dp))
 
-                        ToolbarAction(
+                        ToolbarButton(
                             icon = Icons.Rounded.Save,
                             contentDescription = stringResource(R.string.save),
+                            iconModifier = Modifier.scale(1.1f),
+                            colors = ToolbarButtonDefaults.colors(
+                                borderColor = MaterialTheme.colorScheme.secondary.animate()
+                            ),
                             onClick = ::saveInfo
                         )
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary.animate(),
-                        scrolledContainerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary.animate(),
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary.animate(),
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary.animate()
-                    ),
-                    scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+                    modifier = Modifier.pin()
                 )
             },
             floatingActionButton = {
@@ -346,16 +339,10 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                     expanded = listState.isScrollingUp(),
                     containerColor = MaterialTheme.colorScheme.primary.animate(),
                     contentColor = MaterialTheme.colorScheme.onPrimary.animate(),
-                    modifier = Modifier
-                        .animateEnterExit(
-                            enter = viewModel.enterFabAnimation,
-                            exit = viewModel.exitFabAnimation,
-                        )
-                        .padding(
-                            WindowInsets.tappableElement
-                                .only(WindowInsetsSides.Vertical)
-                                .asPaddingValues()
-                        )
+                    modifier = Modifier.animateEnterExit(
+                        enter = viewModel.enterScreenFabAnimation,
+                        exit = viewModel.exitScreenFabAnimation,
+                    )
                 )
             },
             floatingActionButtonPosition = FabPosition.Center,
@@ -371,47 +358,60 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                     )
                 }
             },
-            containerColor = MaterialTheme.colorScheme.primary.animate(),
-            modifier = Modifier.fillMaxSize()
+            contentBorder = BorderStroke(
+                width = screenBorderThickness,
+                brush = Brush.verticalGradient(
+                    0.1f to MaterialTheme.colorScheme.primary.animate(),
+                    0.6f to MaterialTheme.colorScheme.background.animate()
+                )
+            ),
+            contentShape = viewModel.screenShape(),
+            onRefresh = popBackStack,
+            isPullRefreshEnabled = !settingsViewModel.settings.disablePullToRefresh,
+            pullRefreshIndicator = {
+                Icon(
+                    imageVector = Icons.Outlined.ArrowCircleLeft,
+                    contentDescription = "return",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(top = 32.dp)
+                        .scale(it)
+                )
+            },
+            contentModifier = Modifier.fillMaxSize()
         ) {
 
             Crossfade(
                 targetState = viewModel.viewModelState,
-                animationSpec = spring(stiffness = Spring.StiffnessLow),
-                modifier = Modifier
-                    .animateEnterExit(
-                        enter = EnterContentAnimation,
-                        exit = ExitContentAnimation
-                    )
-                    .clip(viewModel.screenShape())
-                    .background(
-                        color = MaterialTheme.colorScheme.background.animate(),
-                        shape = viewModel.screenShape()
-                    )
-                    .border(
-                        width = screenBorderThickness,
-                        shape = viewModel.screenShape(),
-                        brush = Brush.verticalGradient(
-                            0.1f to MaterialTheme.colorScheme.primary.animate(),
-                            0.6f to MaterialTheme.colorScheme.background.animate()
-                        )
-                    )
-                    .fillMaxSize()
+                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+                modifier = Modifier.fillMaxSize()
             ) { state ->
                 when (state) {
-                    WebsiteViewModel.ViewModelState.Loading -> Loading(
-                        modifier = Modifier
-                            .fillMaxSize()
+                    DataViewModelState.Loading -> LoadingInBox(
+                        color = MaterialTheme.colorScheme.onBackground,
+                        loadingModifier = Modifier
+                            .scale(2.4f)
                             .verticalScroll(rememberScrollState())
                     )
-                    WebsiteViewModel.ViewModelState.Ready -> {
+                    else -> {
                         WebsiteContentScreen(
                             viewModel = viewModel,
-                            settingsViewModel = settingsViewModel,
+                            settings = settingsViewModel.settings,
                             listState = listState,
                             copyText = {
-                                dataViewModel.copyText(context, it) { msg ->
+                                viewModel.copyText(context, it) { msg ->
                                     showSnackbar(msg)
+                                }
+                            },
+                            updateSettings = {
+                                settingsViewModel.updateSettings(
+                                    contentToUpdate = it
+                                ) { success ->
+                                    if (!success) {
+                                        showSnackbar(
+                                            context.getString(R.string.change_setting_exception)
+                                        )
+                                    }
                                 }
                             },
                             openBottomSheet = {
@@ -426,29 +426,6 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 }
 
 
-//@Composable
-//private fun loadWebsiteList(
-//    address: String,
-//    dataViewModel: DataViewModel,
-//): State<Result<List<Website>>> {
-//    return produceState(
-//        initialValue = Result.loading(),
-//        key1 = address,
-//        key2 = dataViewModel
-//    ) {
-//        delay(100)
-//        val websiteList = withContext(Dispatchers.IO) {
-//            dataViewModel
-//                .getAccountList(address, DataType.Website)
-//                .filterIsInstance<Website>()
-//                .ifEmpty { listOf(Website()) }
-//        }
-//        delay(100)
-//        value = Result.Success(websiteList)
-//    }
-//}
-
-
 
 
 
@@ -458,7 +435,8 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 private fun WebsiteContentScreen(
     listState: LazyListState,
     viewModel: WebsiteViewModel,
-    settingsViewModel: SettingsViewModel,
+    settings: Settings,
+    updateSettings: (Settings.() -> Unit) -> Unit,
     copyText: (String) -> Unit,
     openBottomSheet: (index: Int) -> Unit
 ) {
@@ -520,7 +498,7 @@ private fun WebsiteContentScreen(
                             errorMessage = context.getString(R.string.empty_website_name),
                             whenFocused = {
                                 if (
-                                    settingsViewModel.settings.isUsingAutofill
+                                    settings.isUsingAutofill
                                     &&
                                     viewModel
                                         .accountList
@@ -546,8 +524,10 @@ private fun WebsiteContentScreen(
 
                         CheckboxWithText(
                             text = stringResource(R.string.autofill_name_website),
-                            isChecked = settingsViewModel.settings.isUsingAutofill,
-                            onCheckedChange = settingsViewModel::updateAutofill,
+                            isChecked = settings.isUsingAutofill,
+                            onCheckedChange = {
+                                updateSettings { isUsingAutofill = it }
+                            },
                             modifier = Modifier
                                 .padding(top = 0.dp)
                                 .padding(horizontal = 8.dp)
@@ -879,9 +859,9 @@ private fun CheckboxWithTextPreview() {
 
 
 @ExperimentalMaterial3Api
-@Preview
+@Preview(device = "spec:parent=pixel_5,orientation=landscape")
 @Composable
-private fun FirstThreeItemsPreview() {
+private fun FirstTwoItemsPreview() {
     PasswordManagerTheme(isDarkTheme = true) {
         FirstTwoItems(
             firstItem = {

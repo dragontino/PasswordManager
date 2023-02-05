@@ -22,7 +22,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
-import com.security.passwordmanager.presentation.view.navigation.ToolbarAction
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import kotlinx.coroutines.delay
@@ -70,7 +69,7 @@ internal fun SearchBar(
             )
         },
         actions = {
-            ToolbarAction(
+            ToolbarButton(
                 icon = Icons.Rounded.Close,
                 contentDescription = "close search bar"
             ) {

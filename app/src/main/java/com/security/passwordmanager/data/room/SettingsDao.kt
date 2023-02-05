@@ -1,11 +1,8 @@
 package com.security.passwordmanager.data.room
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.security.passwordmanager.data.model.Settings
-import com.security.passwordmanager.presentation.model.enums.Themes
+import com.security.passwordmanager.presentation.model.enums.ColorDesign
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -13,17 +10,11 @@ interface SettingsDao {
     @Insert(entity = Settings::class, onConflict = OnConflictStrategy.REPLACE)
     suspend fun addSettings(settings: Settings)
 
-    @Query("UPDATE SettingsTable SET theme = :theme WHERE email = :email")
-    suspend fun updateTheme(email: String, theme: Themes)
+    @Update(entity = Settings::class, onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateSettings(settings: Settings)
 
-    @Query("UPDATE SettingsTable SET isUsingBeautifulFont = :usingBeautifulFont WHERE email = :email")
-    suspend fun updateUsingBeautifulFont(email: String, usingBeautifulFont: Boolean)
-
-    @Query("UPDATE SettingsTable SET isUsingAutofill = :autofill WHERE email = :email")
-    suspend fun updateAutofill(email: String, autofill: Boolean)
-
-    @Query("UPDATE SettingsTable SET usingDynamicColor = :useDynamicColor WHERE email = :email")
-    suspend fun updateUsingDynamicColor(email: String, useDynamicColor: Boolean)
+    @Query("UPDATE SettingsTable SET colorDesign = :colorDesign WHERE email = :email")
+    suspend fun updateTheme(email: String, colorDesign: ColorDesign)
 
     @Query("SELECT * FROM SettingsTable WHERE email = :email")
     fun getSettings(email: String): Flow<Settings?>

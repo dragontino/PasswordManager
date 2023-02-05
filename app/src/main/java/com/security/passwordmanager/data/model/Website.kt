@@ -12,18 +12,20 @@ import com.security.passwordmanager.presentation.model.enums.DataType
 
 @Entity(tableName = "WebsiteTable")
 class Website(
-        id: Int = 0,
-        email: String = "",
-        var address: String = "",
-        var nameWebsite: String = "",
-        var nameAccount: String = "",
-        var login: String = "",
-        var password: String = "",
-        var comment: String = "") : Data(id, email) {
+    id: Int = 0,
+    email: String = "",
+    var address: String = "",
+    var nameWebsite: String = "",
+    var nameAccount: String = "",
+    var login: String = "",
+    var password: String = "",
+    var comment: String = "",
+) : Data(id, email) {
 
 
     override val key get() = address
     override val type get() = DataType.Website
+    override val stringToCompare get() = nameWebsite
 
     constructor(parcel: Parcel) : this(
         id = parcel.readInt(),
@@ -65,14 +67,6 @@ class Website(
 
         if (comment.isNotEmpty())
             append("\n", context.getString(R.string.comment), ": ", comment)
-    }
-
-    override fun compareTo(other: Data) : Int {
-        val anotherString = when (other) {
-            is Website -> other.nameWebsite
-            is BankCard -> other.bankName
-        }
-        return nameWebsite.compareTo(anotherString)
     }
 
     override fun observe() =

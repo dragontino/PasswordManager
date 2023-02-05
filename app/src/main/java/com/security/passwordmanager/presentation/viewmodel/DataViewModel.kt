@@ -4,33 +4,32 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Parcelable
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Shape
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.R
-import com.security.passwordmanager.animationTimeMillis
 import com.security.passwordmanager.buildString
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.CryptoManager
 import com.security.passwordmanager.data.model.Data
 import com.security.passwordmanager.data.repository.DataRepository
 import com.security.passwordmanager.presentation.model.DataUI
-import com.security.passwordmanager.presentation.model.ObservableBankCard
-import com.security.passwordmanager.presentation.model.ObservableWebsite
 import com.security.passwordmanager.presentation.model.enums.DataType
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class DataViewModel(
+abstract class DataViewModel(
     private val dataRepository: DataRepository,
     private val preferences: AppPreferences,
     private val cryptoManager: CryptoManager
@@ -48,186 +47,21 @@ class DataViewModel(
     }
 
 
-    enum class TopBarState {
-        Search,
-        Navigate,
-        Hidden
-    }
-
-
-
 
     internal var viewModelState by mutableStateOf(DataViewModelState.Loading)
 
-    internal var topBarState by mutableStateOf(TopBarState.Navigate)
-
-    var dataType by mutableStateOf(DataType.All)
-
-    var query by mutableStateOf("")
-
     var showFab by mutableStateOf(true)
 
-    private var dataList by mutableStateOf(listOf<DataUI>())
-
-    private var searchList by mutableStateOf(listOf<DataUI>())
-
-    val currentList: List<DataUI> get() = when (topBarState) {
-        TopBarState.Search -> searchList
-        else -> dataList
-    }
-
-
-    var accountList = mutableStateListOf(
-        when (dataType) {
-            DataType.BankCard -> ObservableBankCard()
-            else -> ObservableWebsite()
-        }
-    )
-
-
-
-    init {
-        viewModelScope.launch {
-            delay(animationTimeMillis + 100L)
-        }
-
-        snapshotFlow { query to dataType }
-            .mapLatest {
-                dataRepository.searchData(
-                    preferences.email,
-                    query = it.first,
-                    dataType = it.second
-                ).decrypt()
-            }
-            .onEach {
-                viewModelState = DataViewModelState.Loading
-                delay(200)
-                searchList = it
-                viewModelState = if (currentList.isEmpty()) {
-                    DataViewModelState.EmptyList
-                } else {
-                    DataViewModelState.Ready
-                }
-            }
-            .launchIn(viewModelScope)
-
-
-        dataRepository
-            .getDataList(preferences.email, dataType)
-            .mapLatest { it.decrypt() }
-            .onEach {
-                dataList = it
-            }
-            .launchIn(viewModelScope)
-    }
-
-
-    fun openSearchbar() {
-        viewModelScope.launch {
-            viewModelState = DataViewModelState.Loading
-            delay(100)
-            topBarState = TopBarState.Search
-            viewModelState = DataViewModelState.EmptyList
-        }
-    }
-
-
-    fun closeSearchbar() {
-        viewModelScope.launch {
-            viewModelState = DataViewModelState.Loading
-            query = ""
-            delay(400)
-            topBarState = TopBarState.Navigate
-            viewModelState = if (currentList.isEmpty()) {
-                DataViewModelState.EmptyList
-            } else {
-                DataViewModelState.Ready
-            }
-        }
-    }
-
-
-
-
-    val enterFabAnimation = fadeIn(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis,
-            easing = LinearEasing
-        )
-    ) + slideInVertically(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis / 2,
-            easing = FastOutSlowInEasing
-        )
-    ) { it / 2 }
-
-    val exitFabAnimation = fadeOut(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis / 2,
-            easing = LinearEasing
-        )
-    ) + slideOutVertically(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis,
-            easing = FastOutSlowInEasing
-        )
-    ) { it / 2 }
-
-
-
-    val enterDataItemAnimation = fadeIn(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis / 4,
-            easing = LinearOutSlowInEasing,
-        ),
-    ) + expandVertically(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis / 2,
-            easing = LinearOutSlowInEasing,
-        ),
-    )
-
-    val exitDataItemAnimation = fadeOut(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis / 2,
-            easing = FastOutLinearInEasing
-        )
-    ) + shrinkVertically(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis / 2,
-            easing = FastOutLinearInEasing
-        )
-    )
-
-
-
-    val enterScreenFabAnimation = slideInHorizontally(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis,
-            easing = LinearEasing
-        )
-    )
-
-    val exitScreenFabAnimation = slideOutHorizontally(
-        animationSpec = tween(
-            durationMillis = animationTimeMillis,
-            easing = LinearEasing
-        )
-    )
-
-
+    abstract val enterScreenFabAnimation: EnterTransition
+    abstract val exitScreenFabAnimation: ExitTransition
 
 
     @Composable
-    fun screenShape() = if (topBarState != TopBarState.Hidden) {
+    open fun screenShape(): Shape =
         MaterialTheme.shapes.large.copy(
             bottomStart = CornerSize(0),
             bottomEnd = CornerSize(0)
         )
-    } else {
-        RoundedCornerShape(0)
-    }
-
 
 
 
@@ -245,6 +79,17 @@ class DataViewModel(
     fun updateData(data: Data) = viewModelScope.launch(Dispatchers.IO) {
         dataRepository.updateData(data.encrypt(cryptoManager::encrypt))
     }
+
+
+    suspend fun searchData(query: String, dataType: DataType) = dataRepository
+        .searchData(preferences.email, query, dataType).decrypt()
+
+
+    @ExperimentalCoroutinesApi
+    fun getDataUIList(dataType: DataType) = dataRepository
+        .getDataList(preferences.email, dataType)
+        .mapLatest { it.decrypt() }
+
 
 
     suspend fun getAccountList(key: String, dataType: DataType) =
@@ -293,6 +138,7 @@ class DataViewModel(
         copyText(context, dataString, resultMessage)
     }
 
+
     fun copyAccountList(
         context: Context,
         accountList: List<Data>,
@@ -321,7 +167,6 @@ class DataViewModel(
                 is Data -> it.decrypt(cryptoManager::decrypt)
             }
         }
-
         return this
     }
 }

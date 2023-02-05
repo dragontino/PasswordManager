@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -28,13 +29,12 @@ import com.security.passwordmanager.presentation.view.screens.LoginScreen
 import com.security.passwordmanager.presentation.view.screens.NotesScreen
 import com.security.passwordmanager.presentation.view.screens.SettingsScreen
 import com.security.passwordmanager.presentation.view.screens.WebsiteScreen
-import com.security.passwordmanager.presentation.viewmodel.DataViewModel
 import com.security.passwordmanager.presentation.viewmodel.NavigationViewModel
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
-import com.security.passwordmanager.presentation.viewmodel.WebsiteViewModel
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.ExperimentalToolbarApi
 
+@ExperimentalMaterialApi
 @ExperimentalToolbarApi
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
@@ -45,10 +45,6 @@ internal fun NavigationScreen(
     fragmentManager: FragmentManager,
     isDarkTheme: Boolean
 ) {
-
-    val dataViewModel = viewModel<DataViewModel>(factory = viewModel.factory)
-    val websiteViewModel = viewModel<WebsiteViewModel>(factory = viewModel.factory)
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberAnimatedNavController()
@@ -159,7 +155,8 @@ internal fun NavigationScreen(
                         AppScreens.Notes.Args.NotesScreenType.name,
                         DataType.All
                     ),
-                    viewModel = dataViewModel,
+                    viewModel = viewModel(factory = viewModel.factory),
+                    settings = viewModel<SettingsViewModel>(factory = viewModel.factory).settings,
                     fragmentManager = fragmentManager,
                     openDrawer = { openDrawer() },
                     navigateTo = { route -> viewModel.navigateTo(navController, route) },
@@ -202,8 +199,7 @@ internal fun NavigationScreen(
 
                 WebsiteScreen(
                     address = AppScreens.Website.replaceCharsInAddress(address),
-                    viewModel = websiteViewModel,
-                    dataViewModel = dataViewModel,
+                    viewModel = viewModel(factory = viewModel.factory),
                     settingsViewModel = viewModel(factory = viewModel.factory),
                     startPosition = it.arguments.getInt(
                         key = AppScreens.Website.Args.StartPosition.name,
