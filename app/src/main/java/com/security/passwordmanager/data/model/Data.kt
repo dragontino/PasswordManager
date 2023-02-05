@@ -10,7 +10,8 @@ import com.security.passwordmanager.presentation.model.enums.DataType
 
 @Entity
 sealed class Data(
-    @PrimaryKey(autoGenerate = true) var id: Int = 0,
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0,
     var email: String = ""
 ) : Parcelable, Comparable<Data> {
 
@@ -21,10 +22,13 @@ sealed class Data(
 
     abstract val key: String
     abstract val type: DataType
+    protected abstract val stringToCompare: String
     abstract fun encrypt(encrypt: (String) -> String): Data
     abstract fun decrypt(decrypt: (String) -> String): Data
     abstract fun toString(context: Context, needFirstLine: Boolean = true) : String
-    abstract override fun compareTo(other : Data) : Int
+    override fun compareTo(other : Data) : Int {
+        return this.stringToCompare.compareTo(other.stringToCompare)
+    }
 
     abstract fun observe(): ObservableData
 

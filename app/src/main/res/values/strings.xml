@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Password Manager</string>
     <string name="main_subtitle">by Dragontino</string>
-    <string name="app_version">Версия 5.7.1 от 27 января 2023</string>
+    <string name="app_version">Версия 5.8.0 от 5 февраля 2023</string>
     <string name="nav_header_desc">Navigation header</string>
 
     <string name="copy_text_successful">Скопировано в буфер обмена</string>
@@ -79,8 +79,8 @@
 
     <string name="switchThemeText">Оформление:</string>
 
-    <string name="start_time">Время рассвета</string>
-    <string name="end_time">Время заката</string>
+    <string name="sunrise_time">Время рассвета</string>
+    <string name="sunset_time">Время заката</string>
     <string name="changing_theme_time">Время перемен</string>
 
 
@@ -133,6 +133,9 @@
 <!-- Экран "Настройки" -->
     <string name="beautiful_font">Использовать в оформлении красивый шрифт</string>
     <string name="dynamic_color">Использовать динамические цвета</string>
+    <string name="dynamic_color_desc">Цветовая палитра приложения автоматически адаптируется и интегрируется с пользовательскими настройками</string>
+    <string name="disable_pull_to_refresh">Отключить обновление по свайпу</string>
+    <string name="disable_pull_to_refresh_desc"> Отключение обновления данных или возврата к предыдущему экрану по свайпу</string>
 
     <string name="vk">Вконтакте</string>
     <string name="telegram">Telegram</string>
@@ -140,7 +143,9 @@
     <string name="feedback">Обратная связь</string>
     <string name="current_user">Вы вошли под именем</string>
     <string name="edit_username">Редактировать имя пользователя</string>
-    <string name="change_theme_exception">Не удалось сменить оформление</string>
+    <string name="change_theme_exception">Не удалось сменить оформление. Проверьте, что вы вошли в аккаунт и повторите попытку позже.</string>
+    <string name="change_time_exception">Не удалось сменить время. Проверьте, что вы вошли в аккаунт и повторите попытку позже.</string>
+    <string name="change_setting_exception">Не удалось сменить настройку. Проверьте, что вы вошли в аккаунт и повторите попытку позже.</string>
 
 
 <!--  Диалоговые окна  -->
@@ -151,6 +156,6 @@
     <string name="confirm_delete">Подтверждение удаления</string>
     <string name="changing_username_placeholder">Введите новое имя пользователя</string>
     <string name="username">Имя пользователя</string>
-    <string name="dynamic_color_description">Цветовая палитра приложения автоматически адаптируется и интегрируется с пользовательскими настройками</string>
+    <string name="deletion_data_confirmation">Вы уверены, что хотите удалить данные?</string>
 
 </resources>

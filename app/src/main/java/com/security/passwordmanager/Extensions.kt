@@ -206,33 +206,47 @@ fun keyboardAsState(): State<Boolean> {
 }
 
 
+
 @Composable
-fun Loading(modifier: Modifier = Modifier, progress: Float? = null) {
+fun LoadingInBox(
+    modifier: Modifier = Modifier,
+    loadingModifier: Modifier = Modifier.scale(1.4f),
+    color: Color = MaterialTheme.colorScheme.primary,
+    progress: Float? = null
+) {
     Box(
+        contentAlignment = Alignment.Center,
         modifier = modifier
             .background(MaterialTheme.colorScheme.background.animate())
             .fillMaxSize(),
     ) {
-        if (progress == null) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary.animate(),
-                strokeCap = StrokeCap.Round,
-                strokeWidth = 3.5.dp,
-                modifier = Modifier
-                    .scale(1.4f)
-                    .align(Alignment.Center)
-            )
-        } else {
-            CircularProgressIndicator(
-                progress = progress,
-                strokeWidth = 3.5.dp,
-                strokeCap = StrokeCap.Round,
-                color = MaterialTheme.colorScheme.primary.animate(),
-                modifier = Modifier
-                    .scale(1.4f)
-                    .align(Alignment.Center)
-            )
-        }
+        Loading(progress = progress, modifier = loadingModifier, color = color)
+    }
+}
+
+
+@Composable
+fun Loading(
+    modifier: Modifier = Modifier,
+    progress: Float? = null,
+    color: Color = MaterialTheme.colorScheme.primary
+) = when (progress) {
+    null -> {
+        CircularProgressIndicator(
+            color = color.animate(),
+            strokeCap = StrokeCap.Round,
+            strokeWidth = 3.5.dp,
+            modifier = modifier
+        )
+    }
+    else -> {
+        CircularProgressIndicator(
+            progress = progress,
+            strokeWidth = 3.5.dp,
+            strokeCap = StrokeCap.Round,
+            color = color.animate(),
+            modifier = modifier
+        )
     }
 }
 

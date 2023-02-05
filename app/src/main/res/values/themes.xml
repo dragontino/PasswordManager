@@ -51,29 +51,6 @@
         <item name="android:layout_margin">8dp</item>
     </style>
 
-    <style name="card_view_background">
-        <item name="cardCornerRadius">@dimen/data_element_corner</item>
-        <item name="cardBackgroundColor">@color/data_background_color</item>
-    </style>
-
-    <style name="NormalTextViewTheme">
-        <item name="android:clickable">true</item>
-        <item name="android:focusable">true</item>
-        <item name="android:textSize">@dimen/text_view_normal_size</item>
-        <item name="android:layout_margin">@dimen/activity_horizontal_margin</item>
-    </style>
-
-
-    <style name="UtilityButtons">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:background">@android:color/transparent</item>
-    </style>
-
-
-    <style name="UtilityButtons.WithMargins">
-        <item name="android:layout_margin">4dp</item>
-    </style>
 
 
     <style name="AccountHeadingTheme">
@@ -90,18 +67,6 @@
         <item name="android:minHeight">48dp</item>
     </style>
 
-    <style name="Widget.MaterialComponents.TimePicker.Light" parent="Widget.MaterialComponents.TimePicker">
-        <item name="android:numbersInnerTextColor">@color/white</item>
-        <item name="android:numbersTextColor">@color/black</item>
-        <item name="android:numbersBackgroundColor">@color/light_gray</item>
-    </style>
-
-    <style name="Widget.MaterialComponents.TimePicker.Dark" parent="Widget.MaterialComponents.TimePicker">
-        <item name="android:numbersInnerTextColor">@color/white</item>
-        <item name="android:numbersTextColor">@color/white</item>
-        <item name="android:numbersBackgroundColor">@color/gray</item>
-    </style>
-
     <style name="AppBottomSheetDialogTheme" parent="Theme.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/AppModalStyle</item>
     </style>
@@ -111,23 +76,4 @@
         <item name="android:backgroundTint">@android:color/transparent</item>
     </style>
 
-    <style name="AboutButtons" parent="Widget.AppCompat.Button.Borderless.Colored">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:padding">@dimen/activity_vertical_margin</item>
-        <item name="android:textSize">17sp</item>
-        <item name="android:textAllCaps">false</item>
-    </style>
-
-    <style name="SwitchTheme" parent="Theme.MaterialComponents.Light">
-        <item name="colorControlActivated">@color/raspberry</item>
-        <item name="colorSwitchThumbNormal">@color/light_gray</item>
-        <item name="android:colorForeground">@android:color/darker_gray</item>
-    </style>
-
-    <style name="SwitchDark" parent="Theme.MaterialComponents.DayNight">
-        <item name="colorControlActivated">@color/header_dark</item>
-        <item name="colorSwitchThumbNormal">@color/light_gray</item>
-        <item name="android:colorForeground">@color/white</item>
-    </style>
 </resources>

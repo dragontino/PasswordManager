@@ -7,8 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.security.passwordmanager.data.model.Settings
-import com.security.passwordmanager.presentation.model.Times
-import com.security.passwordmanager.presentation.model.enums.Themes
+import com.security.passwordmanager.presentation.model.enums.ColorDesign
 import com.security.passwordmanager.presentation.model.toCalendar
 import java.util.*
 
@@ -49,17 +48,16 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun PasswordManagerTheme(
     settings: Settings,
-    times: Times,
     content: @Composable (isDarkTheme: Boolean) -> Unit,
 ) {
-    val startDate = times.startTime.toCalendar().time
-    val endDate = times.endTime.toCalendar().time
+    val startDate = settings.sunriseTime.toCalendar().time
+    val endDate = settings.sunsetTime.toCalendar().time
 
-    val isDarkTheme = when (settings.theme) {
-        Themes.Light -> false
-        Themes.Dark -> true
-        Themes.System -> isSystemInDarkTheme()
-        Themes.Auto -> {
+    val isDarkTheme = when (settings.colorDesign) {
+        ColorDesign.Light -> false
+        ColorDesign.Dark -> true
+        ColorDesign.System -> isSystemInDarkTheme()
+        ColorDesign.Auto -> {
             val date = Date(System.currentTimeMillis())
             when {
                 startDate <= endDate -> date !in startDate..endDate

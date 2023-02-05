@@ -1,22 +1,20 @@
 package com.security.passwordmanager.presentation.viewmodel
 
 import android.content.Context
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.security.passwordmanager.R
-import com.security.passwordmanager.checkNetworkConnection
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.Result
 import com.security.passwordmanager.data.model.Settings
 import com.security.passwordmanager.data.repository.SettingsRepository
-import com.security.passwordmanager.presentation.model.Time
-import com.security.passwordmanager.presentation.model.Times
-import com.security.passwordmanager.presentation.model.enums.Themes
+import com.security.passwordmanager.presentation.model.enums.ColorDesign
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
+import com.security.passwordmanager.presentation.view.BottomSheetState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -24,7 +22,6 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
-    private val firebaseAuth: FirebaseAuth,
     private val preferences: AppPreferences,
 ) : ViewModel() {
 
@@ -38,18 +35,7 @@ class SettingsViewModel(
     var settings by mutableStateOf(Settings())
         private set
 
-
-    private var startTime: Time by mutableStateOf(preferences.startTime)
-
-    private var endTime: Time by mutableStateOf(preferences.endTime)
-
-    var times: Times by mutableStateOf(Times())
-        private set
-
-
     val currentUsername: String get() = preferences.username.ifBlank { preferences.email }
-
-    var bottomSheetContent: @Composable (ColumnScope.(BottomSheetFragment) -> Unit) by mutableStateOf({})
 
     var switchThemeTextLineCount by mutableStateOf(1)
 
@@ -58,11 +44,10 @@ class SettingsViewModel(
     var usernameInDialog by mutableStateOf(currentUsername)
 
 
-    init {
-        snapshotFlow { Times(startTime, endTime) }
-            .onEach { times = it }
-            .launchIn(viewModelScope)
+    private val bottomSheetFragment = BottomSheetFragment()
 
+
+    init {
         settingsRepository
             .getSettings(preferences.email)
             .onEach { settings = it }
@@ -70,18 +55,32 @@ class SettingsViewModel(
     }
 
 
-
-    fun isDarkTheme(isDark: Boolean, context: Context): String =
-        context.getString(
-            if (isDark) R.string.dark_theme else R.string.light_theme
-        ).lowercase()
-
-    fun getThemeText(currentTheme: Themes, isDark: Boolean, context: Context) = buildString {
+    fun getThemeText(
+        currentTheme: ColorDesign,
+        isDark: Boolean,
+        context: Context
+    ) = buildString {
         append(context.getString(currentTheme.titleRes).lowercase())
 
-        if (currentTheme == Themes.System || currentTheme == Themes.Auto) {
-            append(" ", context.getString(R.string.now, isDarkTheme(isDark, context)))
+        if (currentTheme == ColorDesign.System || currentTheme == ColorDesign.Auto) {
+            val textToAppend = if (isDark) {
+                context.getString(R.string.dark_theme)
+            } else {
+                context.getString(R.string.light_theme)
+            }
+
+            append(" ", context.getString(R.string.now, textToAppend).lowercase())
         }
+    }
+
+
+    fun showBottomSheet(
+        fragmentManager: FragmentManager,
+        bottomSheetState: BottomSheetState = BottomSheetState()
+    ) {
+        bottomSheetFragment
+            .copy(state = bottomSheetState)
+            .show(fragmentManager)
     }
 
 
@@ -91,15 +90,23 @@ class SettingsViewModel(
 
 
 
-    fun saveUsernameFromDialog(context: Context, result: (Result<Unit>) -> Unit) {
-        changeUsername(usernameInDialog, context) {
+    fun saveUsernameFromDialog(context: Context, resultMessage: (resultMessage: String) -> Unit) {
+        settingsRepository.changeUsername(usernameInDialog, context) {
             showUsernameEditingDialog = false
             when (it) {
-                Result.Loading -> {}
-                is Result.Error -> usernameInDialog = currentUsername
-                is Result.Success -> preferences.username = usernameInDialog
+                Result.Loading ->
+                    viewModelState = State.Loading
+                is Result.Error -> {
+                    viewModelState = State.Ready
+                    usernameInDialog = currentUsername
+                    resultMessage(context.getString(R.string.change_username_exception))
+                }
+                is Result.Success -> {
+                    viewModelState = State.Ready
+                    preferences.username = usernameInDialog
+                    resultMessage(context.getString(R.string.change_username_successful))
+                }
             }
-            result(it)
         }
     }
 
@@ -109,80 +116,24 @@ class SettingsViewModel(
     }
 
 
-
-    fun changeUsername(newUsername: String, context: Context, result: (Result<Unit>) -> Unit) {
-        val currentUser = firebaseAuth.currentUser
-        when {
-            currentUser == null -> {
-                result(Result.Error(Exception(context.getString(R.string.change_username_exception))))
-            }
-            !context.checkNetworkConnection() -> {
-                result(Result.Error(Exception(context.getString(R.string.check_internet_connection))))
-            }
-            else -> {
-                result(Result.Loading)
-                currentUser
-                    .updateProfile(
-                        UserProfileChangeRequest.Builder()
-                            .setDisplayName(newUsername)
-                            .build()
-                    )
-                    .addOnCompleteListener {
-                        if (it.isSuccessful) result(Result.Success(Unit))
-                    }
-                    .addOnFailureListener {
-                        result(Result.Error(it))
-                    }
-            }
-        }
-    }
-
-
     fun signOut() {
-        firebaseAuth.signOut()
+        settingsRepository.signOut()
     }
 
 
-    fun updateTheme(newTheme: Themes, result: (Result<Themes>) -> Unit) {
+    fun updateSettings(
+        contentToUpdate: Settings.() -> Unit,
+        result: (success: Boolean) -> Unit
+    ) {
         viewModelScope.launch {
-            result(Result.Loading)
-            delay(50)
-            settingsRepository.updateTheme(preferences.email, newTheme)
-            delay(50)
-            if (settings.theme == newTheme) {
-                result(Result.Success(newTheme))
-            } else {
-                result(Result.Error(Exception()))
-            }
+            viewModelState = State.Loading
+            delay(100)
+            val newSettings = settings.copy().apply(contentToUpdate)
+            println("defaultSettings = $settings\nnewSettings = $newSettings")
+            settingsRepository.updateSettings(newSettings)
+            delay(100)
+            viewModelState = State.Ready
+            result(settings == newSettings)
         }
-    }
-
-    fun updateUsingBeautifulFont(usingBeautifulFont: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.updateUsingBeautifulFont(preferences.email, usingBeautifulFont)
-        }
-    }
-
-
-    fun updateAutofill(autofill: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.updateAutofill(preferences.email, autofill)
-        }
-    }
-
-
-    fun updateDynamicColor(useDynamicColor: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.updateUsingDynamicColor(preferences.email, useDynamicColor)
-        }
-    }
-
-
-    fun updateTimes(newTimes: Times) {
-        startTime = newTimes.startTime
-        endTime = newTimes.endTime
-
-        preferences.startTime = newTimes.startTime
-        preferences.endTime = newTimes.endTime
     }
 }

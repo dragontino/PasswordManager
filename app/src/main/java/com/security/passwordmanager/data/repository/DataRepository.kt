@@ -6,12 +6,10 @@ import com.security.passwordmanager.data.model.Website
 import com.security.passwordmanager.data.room.DataDao
 import com.security.passwordmanager.presentation.model.DataUI
 import com.security.passwordmanager.presentation.model.enums.DataType
-import com.security.passwordmanager.slice
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
-import kotlin.math.min
 
 class DataRepository(private val dataDao: DataDao) {
 
@@ -63,10 +61,9 @@ class DataRepository(private val dataDao: DataDao) {
         if (query.isBlank()) return emptyList()
 
         return when (dataType) {
-            DataType.All -> {
-                dataDao.searchWebsite(email, query) +
-                        dataDao.searchBankCard(email, query)
-            }
+            DataType.All -> dataDao
+                .searchData(email, query)
+                .reduce { acc, dataList -> acc + dataList }
             DataType.Website -> dataDao.searchWebsite(email, query)
             DataType.BankCard -> dataDao.searchBankCard(email, query)
         }.toDataUIList()
@@ -86,46 +83,37 @@ class DataRepository(private val dataDao: DataDao) {
     }
 
 
-    private fun sortedConcatenation(
-        websiteList: MutableList<Website>,
-        bankCardList: MutableList<BankCard>
-    ): List<Data> {
+    /** Merging 2 sorted lists **/
+    private operator fun List<Data>.plus(otherList: List<Data>): List<Data> {
+        val resultList = ArrayList<Data>()
+
+        val firstIterator = this.listIterator()
+        val secondIterator = otherList.listIterator()
+
+        var firstIndex = 0
+        var secondIndex = 0
+
+        while (firstIterator.hasNext() && secondIterator.hasNext()) {
+            val firstData = this.listIterator(firstIndex).next()
+            val secondData = otherList.listIterator(secondIndex).next()
+
+            if (firstData < secondData) {
+                resultList.add(firstData)
+                firstIterator.next()
+                firstIndex++
+            } else {
+                resultList.add(secondData)
+                secondIterator.next()
+                secondIndex++
+            }
+        }
 
         when {
-            bankCardList.isEmpty() -> return websiteList
-            websiteList.isEmpty() -> return bankCardList
+            firstIterator.hasNext() -> resultList.addAll(firstIterator.asSequence())
+            secondIterator.hasNext() -> resultList.addAll(secondIterator.asSequence())
         }
-
-        val resultList = ArrayList<Data>()
-        val minLength = min(websiteList.size, bankCardList.size)
-        var w = 0
-        var b = 0
-
-        while (w < minLength && b < minLength) {
-            val website = websiteList[w]
-            val bankCard = bankCardList[b]
-            if (website > bankCard) {
-                resultList.add(website)
-                w++
-            }
-            else {
-                resultList.add(bankCard)
-                b++
-            }
-        }
-
-        if (w > b)
-            resultList.addAll(bankCardList.slice(fromIndex = b))
-        else if (w < b)
-            resultList.addAll(websiteList.slice(fromIndex = w))
 
         return resultList
-    }
-
-
-
-    private operator fun MutableList<Website>.plus(bankCardList: MutableList<BankCard>): List<Data> {
-        return sortedConcatenation(this, bankCardList)
     }
 
 

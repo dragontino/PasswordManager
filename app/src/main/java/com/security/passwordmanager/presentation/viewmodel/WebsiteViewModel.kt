@@ -5,33 +5,30 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.security.passwordmanager.*
 import com.security.passwordmanager.R
-import com.security.passwordmanager.animationTimeMillis
-import com.security.passwordmanager.buildString
+import com.security.passwordmanager.data.AppPreferences
+import com.security.passwordmanager.data.CryptoManager
 import com.security.passwordmanager.data.model.Website
-import com.security.passwordmanager.deleteFromLast
+import com.security.passwordmanager.data.repository.DataRepository
 import com.security.passwordmanager.presentation.model.ObservableWebsite
+import com.security.passwordmanager.presentation.model.enums.DataType
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 
-class WebsiteViewModel : ViewModel() {
-
-
-    enum class ViewModelState {
-        Loading,
-        Ready
-    }
-
+class WebsiteViewModel(
+    repository: DataRepository,
+    preferences: AppPreferences,
+    cryptoManager: CryptoManager
+) : DataViewModel(repository, preferences, cryptoManager) {
 
 
-    val enterFabAnimation = slideInHorizontally(
+    override val enterScreenFabAnimation = slideInHorizontally(
         animationSpec = tween(
             durationMillis = animationTimeMillis,
             easing = LinearEasing
@@ -39,7 +36,7 @@ class WebsiteViewModel : ViewModel() {
     ) { it / 2 }
 
 
-    val exitFabAnimation = slideOutHorizontally(
+    override val exitScreenFabAnimation = slideOutHorizontally(
         animationSpec = tween(
             durationMillis = animationTimeMillis,
             easing = LinearEasing
@@ -47,14 +44,13 @@ class WebsiteViewModel : ViewModel() {
     ) { it / 2 }
 
 
+    val accountList = mutableStateListOf<ObservableWebsite>()
 
-    var viewModelState by mutableStateOf(ViewModelState.Loading)
-
-
-    val accountList = mutableStateListOf(ObservableWebsite())
     val itemsToDelete = mutableStateListOf<Website>()
 
     var newWebsites by mutableStateOf(0)
+
+    var address by mutableStateOf("")
 
 
     var showDialog by mutableStateOf(false)
@@ -82,18 +78,26 @@ class WebsiteViewModel : ViewModel() {
 
 
     init {
-        viewModelScope.launch {
-            delay(5000)
-            viewModelState = ViewModelState.Ready
-        }
+        snapshotFlow { address }
+            .map {
+                delay(100)
+                val newList =
+                    getAccountList(key = address, dataType = DataType.Website)
+                        .ifEmpty {
+                            newWebsites = 1
+                            listOf(Website())
+                        }
+                        .map {
+                            it.observe()
+                        }
+                        .filterIsInstance<ObservableWebsite>()
+
+                delay(100)
+                accountList.swapList(newList)
+                viewModelState = DataViewModelState.Ready
+            }
+            .launchIn(viewModelScope)
     }
-
-
-    @Composable
-    fun screenShape() = MaterialTheme.shapes.medium.copy(
-        bottomStart = CornerSize(0),
-        bottomEnd = CornerSize(0)
-    )
 
 
     fun openDialog(content: @Composable () -> Unit) {
