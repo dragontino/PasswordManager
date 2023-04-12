@@ -18,15 +18,11 @@ android {
         minSdk = 29
         targetSdk = 33
         versionCode = 6
-        versionName = "6.0.0"
+        versionName = "6.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
-        }
-
-        ndk {
-            abiFilters.addAll(arrayOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
         }
     }
 
@@ -110,7 +106,6 @@ dependencies {
     implementation(Dependencies.Compose.animation)
     implementation(Dependencies.Compose.constraintLayout)
 
-    androidTestImplementation(Dependencies.Compose.jUnit)
     debugImplementation(Dependencies.Compose.uiTooling)
 
 
@@ -124,6 +119,7 @@ dependencies {
     // UI Tests
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation(Dependencies.Compose.jUnit)
     testImplementation("org.testng:testng:7.7.1")
 
     Dependencies.Coroutines.values().forEach {

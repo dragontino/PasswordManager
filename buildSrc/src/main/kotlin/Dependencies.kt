@@ -26,7 +26,7 @@ object Dependencies {
 
 
     object Room {
-        private const val version = "2.5.0"
+        private const val version = "2.5.1"
 
         const val runtime = "androidx.room:room-runtime:$version"
         const val ktx = "androidx.room:room-ktx:$version"

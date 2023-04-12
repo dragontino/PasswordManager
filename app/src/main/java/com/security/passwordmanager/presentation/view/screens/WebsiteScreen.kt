@@ -118,10 +118,13 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
         }
 
         when {
-            id.isBlank() -> addWebsite()
-            else -> updateWebsite()
+            id.isBlank() -> addWebsite {
+                popBackStack()
+            }
+            else -> updateWebsite {
+                popBackStack()
+            }
         }
-        popBackStack()
     }
 
 

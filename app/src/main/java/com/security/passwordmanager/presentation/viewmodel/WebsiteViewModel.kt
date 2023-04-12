@@ -22,6 +22,7 @@ import com.security.passwordmanager.presentation.model.data.ComposableAccount
 import com.security.passwordmanager.presentation.model.data.ComposableWebsite
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.composablelements.DeleteDialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -139,6 +140,7 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
 
         inspectData(website) { isNew, id ->
             if (!isNew) {
+                viewModelState = DataViewModelState.Ready
                 composableWebsite.updatedProperties.remove(website::address.name)
                 updateWebsite(websiteId = id!!, website = composableWebsite, result)
                 return@inspectData
@@ -158,7 +160,9 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
                     if (it is Result.Success) {
                         this@WebsiteViewModel.id = it.data
                     }
-                    result(it is Result.Success && it !is Result.Loading)
+                    viewModelScope.launch(Dispatchers.Main) {
+                        result(it is Result.Success && it !is Result.Loading)
+                    }
                     viewModelState = DataViewModelState.Ready
                 }
             }
@@ -234,11 +238,12 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
                     }
                 },
                 resultAction = {
-                    if (it != Result.Loading) result(it is Result.Success)
+                    if (it != Result.Loading) viewModelScope.launch(Dispatchers.Main) {
+                        result(it is Result.Success)
+                    }
+                    viewModelState = DataViewModelState.Ready
                 }
             )
-
-            viewModelState = DataViewModelState.Ready
         }
 
 
