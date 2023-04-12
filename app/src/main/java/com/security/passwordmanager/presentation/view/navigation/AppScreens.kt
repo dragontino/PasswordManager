@@ -1,6 +1,5 @@
 package com.security.passwordmanager.presentation.view.navigation
 
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -63,16 +62,16 @@ sealed class AppScreens(
         route = "website"
     ) {
         enum class Args {
-            DataKey,
+            DataId,
             StartPosition
         }
 
-        fun replaceCharsInAddress(address: String?) = when {
-            address == null -> "null"
-            "/" in address -> address.replace("/", "___")
-            "___" in address -> address.replace("___", "/")
-            else -> address
-        }
+//        fun replaceCharsInAddress(address: String?) = when {
+//            address == null -> "null"
+//            "/" in address -> address.replace("/", "___")
+//            "___" in address -> address.replace("___", "/")
+//            else -> address
+//        }
 
         override val args: Array<String> = Args.values().toStringArray()
     }
@@ -107,19 +106,10 @@ fun createRouteToLoginScreen() = AppScreens.Login.route
 fun createRouteToNotesScreen(dataType: DataType, title: String) =
     "${AppScreens.Notes.route}/$dataType/$title"
 
-fun createRouteToWebsiteScreen(address: String? = null, startPosition: Int = 0): String {
-    val route = buildString {
-        append(AppScreens.Website.route, "/")
-        append(AppScreens.Website.replaceCharsInAddress(address), "/")
-        append(startPosition)
-    }
-    Log.d("NotesScreen", "route = $route")
-    return route
-}
+fun createRouteToWebsiteScreen(id: String? = null, startPosition: Int = 0) =
+    "${AppScreens.Website.route}/$id/$startPosition"
 
 fun createRouteToSettingsScreen() = AppScreens.Settings.route
 
-fun createRouteToBankCardScreen(bankName: String? = null, startPosition: Int = 0): String {
-    val correctBankName = bankName?.replace("/", "___")
-    return "${AppScreens.BankCard.route}/$correctBankName/$startPosition"
-}
+fun createRouteToBankCardScreen(id: String? = null, startPosition: Int = 0) =
+    "${AppScreens.BankCard.route}/$id/$startPosition"

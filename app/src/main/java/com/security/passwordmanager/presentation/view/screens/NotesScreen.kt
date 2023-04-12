@@ -1,10 +1,8 @@
 package com.security.passwordmanager.presentation.view.screens
 
-import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -14,22 +12,22 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.DataArray
-import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -39,14 +37,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.fragment.app.FragmentManager
+import coil.compose.AsyncImage
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
-import com.security.passwordmanager.data.model.Settings
-import com.security.passwordmanager.presentation.model.DataUI
-import com.security.passwordmanager.presentation.model.ObservableBankCard
-import com.security.passwordmanager.presentation.model.ObservableWebsite
+import com.security.passwordmanager.data.model.dao.usersdata.Bank
+import com.security.passwordmanager.data.model.dao.usersdata.UsersData
+import com.security.passwordmanager.data.model.dao.usersdata.Website
+import com.security.passwordmanager.data.model.dao.usersdatachild.Account
+import com.security.passwordmanager.data.model.dao.usersdatachild.BankCard
+import com.security.passwordmanager.data.model.settings.Settings
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
 import com.security.passwordmanager.presentation.view.composablelements.*
@@ -91,6 +91,8 @@ internal fun AnimatedVisibilityScope.NotesScreen(
 
     val scope = rememberCoroutineScope()
 
+    val context = LocalContext.current
+
     val toolbarState = rememberCollapsingToolbarState()
     val scaffoldState = rememberCollapsingToolbarScaffoldState(toolbarState)
     val snackbarHostState = remember(::SnackbarHostState)
@@ -118,10 +120,35 @@ internal fun AnimatedVisibilityScope.NotesScreen(
     }
 
 
-    val showSnackbar = { message: String ->
-        scope.launch { snackbarHostState.showSnackbar(message) }
+    fun showSnackbar(message: String, actionLabel: String? = null) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = actionLabel
+            )
+        }
     }
 
+
+
+    BackHandler {
+        with(viewModel) {
+            when {
+                topBarState == TopBarState.Search -> closeSearchbar()
+                notifyUserAboutFinishApp -> {
+                    scope.launch {
+                        notifyUserAboutFinishApp = false
+                        delay(5000)
+                        notifyUserAboutFinishApp = true
+                    }
+
+                    showSnackbar(message = context.getString(R.string.close_app))
+                }
+                else -> context.getActivity()?.finish()
+            }
+        }
+
+    }
 
 
     ScrollableTopBarScaffold(
@@ -155,8 +182,9 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                             DataType.All -> bottomFragment.show(fragmentManager)
                             DataType.Website ->
                                 navigateTo(createRouteToWebsiteScreen())
-                            DataType.BankCard ->
-                                TODO("Доделать")
+                            DataType.Bank -> {
+                                // TODO: 23.03.2023 доделать
+                            }
                         }
                     },
                     containerColor = MaterialTheme.colorScheme.primary.animate(),
@@ -180,7 +208,7 @@ internal fun AnimatedVisibilityScope.NotesScreen(
             SnackbarHost(hostState = snackbarHostState) {
                 Snackbar(
                     snackbarData = it,
-                    actionOnNewLine = true,
+                    actionOnNewLine = false,
                     shape = MaterialTheme.shapes.medium,
                     actionColor = MaterialTheme.colorScheme.primary.animate(),
                     containerColor = MaterialTheme.colorScheme.onBackground.animate(),
@@ -200,8 +228,12 @@ internal fun AnimatedVisibilityScope.NotesScreen(
             ),
         ),
         refreshing = viewModel.viewModelState == DataViewModel.DataViewModelState.Loading,
-        onRefresh = viewModel::refreshData,
-        isPullRefreshEnabled = !settings.disablePullToRefresh,
+        onRefresh = {
+            viewModel.refreshData {
+                if (it != null) showSnackbar(it)
+            }
+        },
+        isPullRefreshEnabled = settings.pullToRefresh,
         pullRefreshIndicator = {
             PullRefreshIndicator(
                 refreshing = viewModel.viewModelState == DataViewModel.DataViewModelState.Loading,
@@ -262,7 +294,7 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                         dataList = viewModel.dataList,
                         viewModel = viewModel,
                         fragmentManager = fragmentManager,
-                        useBeautifulFont = settings.isUsingBeautifulFont,
+                        useBeautifulFont = settings.beautifulFont,
                         isScrolling = { _, scrollUp ->
                             LaunchedEffect(key1 = scrollUp) {
                                 delay(100)
@@ -376,7 +408,7 @@ private fun EmptyList(
 @ExperimentalMaterial3Api
 @Composable
 private fun PasswordList(
-    dataList: List<DataUI>,
+    dataList: Map<String, UsersData>,
     fragmentManager: FragmentManager,
     viewModel: NotesViewModel,
     useBeautifulFont: Boolean,
@@ -387,11 +419,13 @@ private fun PasswordList(
 ) {
     val listState = rememberLazyListState()
 
-    if (viewModel.openedItem != null) {
-        LaunchedEffect(key1 = viewModel.openedItem) {
+    if (viewModel.openedItemId != null) {
+        LaunchedEffect(key1 = viewModel.openedItemId) {
             delay(50)
             listState.scrollToItem(
-                index = dataList.indexOf(viewModel.openedItem).takeIf { it >= 0 } ?: 0
+                index = dataList.keys
+                    .indexOfFirst { it == viewModel.openedItemId }
+                    .coerceAtLeast(0)
             )
         }
     }
@@ -400,11 +434,13 @@ private fun PasswordList(
 
 
     LazyColumn(state = listState, modifier = modifier) {
-        items(dataList) { dataUI ->
-            DataListItem(
-                dataUI = dataUI,
+        items(dataList.entries.toList()) { (id, data) ->
+
+            Data(
+                dataId = id,
+                data = data,
                 viewModel = viewModel,
-                showAll = { viewModel.openedItem == dataUI },
+                showAll = { viewModel.openedItemId == id },
                 showSnackbar = showSnackbar,
                 showBottomFragment = { it.show(fragmentManager) },
                 navigateTo = navigateTo,
@@ -413,7 +449,10 @@ private fun PasswordList(
                     .animateContentSize(spring(stiffness = Spring.StiffnessMedium))
                     .animateItemPlacement(spring(stiffness = Spring.StiffnessMedium)),
             ) {
-                viewModel.openedItem = if (viewModel.openedItem == dataUI) null else dataUI
+                viewModel.openedItemId = when (viewModel.openedItemId) {
+                    id -> null
+                    else -> id
+                }
             }
         }
 
@@ -432,8 +471,9 @@ private fun PasswordList(
 
 @ExperimentalMaterial3Api
 @Composable
-private fun DataListItem(
-    dataUI: DataUI,
+private fun Data(
+    dataId: String,
+    data: UsersData,
     viewModel: NotesViewModel,
     showAll: () -> Boolean,
     navigateTo: (route: String) -> Unit,
@@ -445,14 +485,19 @@ private fun DataListItem(
 ) {
     val context = LocalContext.current
     val title: String
-    val subtitle = when (dataUI.title) {
-        is ObservableWebsite -> {
-            title = dataUI.title.nameWebsite
-            dataUI.title.address
+    val subtitle: String
+    val logoUrl: String?
+
+    when (data) {
+        is Website -> {
+            title = data.name
+            subtitle = data.address
+            logoUrl = data.logoUrl
         }
-        is ObservableBankCard -> {
-            title = dataUI.title.bankName
-            dataUI.title.cardNumber
+        is Bank -> {
+            title = data.name
+            subtitle = data.cards.values.firstOrNull()?.number ?: ""
+            logoUrl = null
         }
     }
 
@@ -462,26 +507,20 @@ private fun DataListItem(
     ) { fragment ->
         EditItem(text = stringResource(R.string.edit)) {
             navigateTo(
-                when (dataUI.title) {
-                    is ObservableWebsite ->
-                        createRouteToWebsiteScreen(address = dataUI.title.address)
-                    is ObservableBankCard ->
-                        createRouteToBankCardScreen(bankName = dataUI.title.bankName)
+                when (data) {
+                    is Website -> createRouteToWebsiteScreen(dataId)
+                    is Bank -> createRouteToBankCardScreen(dataId)
                 }
             )
             fragment.dismiss()
         }
         CopyItem(text = stringResource(R.string.copy_info)) {
-            viewModel.copyAccountList(
-                context = context,
-                accountList = dataUI.accountList.map { it.toData() },
-                resultMessage = showSnackbar
-            )
+            viewModel.copyData(context, data, result = showSnackbar)
             fragment.dismiss()
         }
 
-        DeleteItem(text = stringResource(R.string.delete)) {
-            viewModel.deleteRecords(dataUI.title.toData())
+        DeleteItem(text = stringResource(R.string.delete_data)) {
+            viewModel.deleteData(dataId, dataType = data.type)
             fragment.dismiss()
         }
     }
@@ -492,64 +531,65 @@ private fun DataListItem(
         modifier = modifier
             .background(MaterialTheme.colorScheme.background.animate())
     ) {
-        DataItemHeader(
+        DataHeader(
             title = title,
             subtitle = subtitle,
-            onClick = onClick,
-            openMoreContent = { showBottomFragment(bottomFragment) }
-        )
+            logoUrl = logoUrl,
+            showAllContent = showAll(),
+            onClick = onClick
+        ) { showBottomFragment(bottomFragment) }
+        val iterableItems = when (data) {
+            is Bank -> data.cards.values
+            is Website -> data.accounts.values
+        }
 
-        dataUI.accountList.forEachIndexed { position, observableData ->
+        iterableItems.forEachIndexed { position, item ->
+            // TODO: 07.09.2022 подумать над тем, как будут размещатся элементы bank Card
+
             AnimatedVisibility(
                 visible = showAll(),
-                enter = viewModel.enterDataItemAnimation,
-                exit = viewModel.exitDataItemAnimation,
+                enter = viewModel.enterDataChildAnimation,
+                exit = viewModel.exitDataChildAnimation
             ) {
-                // TODO: 07.09.2022 подумать над тем, как будут размещатся элементы bank Card
-                when (observableData) {
-                    is ObservableWebsite -> Website(
-                        website = observableData,
+                when (item) {
+                    is Account -> Account(
+                        account = item,
                         copyText = {
                             viewModel.copyText(
                                 context = context,
                                 text = it,
-                                resultMessage = showSnackbar
+                                result = showSnackbar
                             )
                         },
-                        openUrl = { address ->
-                            val urlString = when {
-                                "www." in address -> "https://$address"
-                                "https://www." in address || "http://www." in address -> address
-                                else -> "https://www.$address"
-                            }
-
-                            if (urlString.isValidUrl()) {
-                                val intent = Intent(Intent.ACTION_VIEW, urlString.toUri())
-                                context.startActivity(intent)
-                            } else {
-                                showSnackbar(context.getString(R.string.invalid_address, address))
-                            }
-                        },
-                        onClick = { title ->
-                            BottomSheetFragment(
-                                title = title,
-                                beautifulDesign = useBeautifulFont
-                            ) { fragment ->
-                                EditItem(text = stringResource(R.string.edit)) {
-                                    navigateTo(
-                                        createRouteToWebsiteScreen(
-                                            address = observableData.address,
-                                            startPosition = position
-                                        )
+                        openUrl = {
+                            val address = (data as Website).address
+                            viewModel
+                                .createIntentForUrl(address)
+                                ?.let { context.startActivity(it) }
+                                ?: showSnackbar(
+                                    context.getString(
+                                        R.string.invalid_address,
+                                        address
                                     )
-                                    fragment.dismiss()
-                                }
-                            }.also(showBottomFragment)
+                                )
                         }
-                    )
-                    is ObservableBankCard -> BankCard(
-                        bankCard = observableData
-                    )
+                    ) { title ->
+                        BottomSheetFragment(
+                            title = title,
+                            beautifulDesign = useBeautifulFont
+                        ) { fragment ->
+                            EditItem(text = stringResource(R.string.edit)) {
+                                navigateTo(
+                                    createRouteToWebsiteScreen(
+                                        id = dataId,
+                                        startPosition = position
+                                    )
+                                )
+                                fragment.dismiss()
+                            }
+                        }.also(showBottomFragment)
+                    }
+                    is BankCard -> BankCard(bankCard = item)
                 }
             }
         }
@@ -560,25 +600,46 @@ private fun DataListItem(
 
 
 @Composable
-private fun DataItemHeader(
+private fun DataHeader(
     title: String = "",
     subtitle: String = "",
     beautifulDesign: Boolean = false,
+    logoUrl: String? = null,
+    showAllContent: Boolean = false,
     onClick: () -> Unit,
-    openMoreContent: () -> Unit
-) = DataItemHeader(
+    showDetails: () -> Unit
+) = DataHeader(
     header = Header(title, subtitle, beautifulDesign),
+    logoUrl = logoUrl,
+    showAllContent = showAllContent,
     onClick = onClick,
-    openMoreContent = openMoreContent
+    showDetails = showDetails
 )
 
 
 @Composable
-private fun DataItemHeader(
+private fun DataHeader(
     header: Header = Header(),
+    logoUrl: String? = null,
+    showAllContent: Boolean,
     onClick: () -> Unit,
-    openMoreContent: () -> Unit
+    showDetails: () -> Unit
 ) {
+    val arrowRotation = remember { Animatable(90f) }
+
+    
+    
+    LaunchedEffect(showAllContent) {
+        arrowRotation.animateTo(
+            targetValue = if (showAllContent) 90f else 0f,
+            animationSpec = tween(
+                durationMillis = animationTimeMillis / 3,
+                easing = LinearEasing
+            )
+        )
+    }
+
+    
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -588,26 +649,43 @@ private fun DataItemHeader(
             .fillMaxWidth()
     ) {
         // TODO: 06.09.2022 сделать анимацию
+
         Icon(
-            Icons.Outlined.ArrowForwardIos,
+            imageVector = Icons.Rounded.ArrowForwardIos,
             contentDescription = stringResource(R.string.more_info),
             tint = MaterialTheme.colorScheme.primary.animate(),
             modifier = Modifier
-                .width(40.dp)
-                .padding(start = 20.dp, end = 4.dp)
+                .rotate(arrowRotation.value)
+                .height(20.dp)
+                .padding(
+                    start = 20.dp,
+                    end = 4.dp
+                )
+        )
+
+        AsyncImage(
+            model = logoUrl,
+            contentDescription = "logo",
+            placeholder = painterResource(R.drawable.default_internet_logo),
+            error = painterResource(R.drawable.default_internet_logo),
+            contentScale = ContentScale.Fit,
+            filterQuality = FilterQuality.High,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .size(35.dp)
         )
 
         Header(header)
 
         IconButton(
-            onClick = { openMoreContent() },
+            onClick = showDetails,
             modifier = Modifier
                 .padding(8.dp)
                 .clip(CircleShape),
         ) {
             Icon(
                 Icons.Outlined.MoreVert,
-                contentDescription = "show bottom sheet",
+                contentDescription = "show details",
                 tint = MaterialTheme.colorScheme.onBackground.animate(),
                 modifier = Modifier.scale(1.5f)
             )
@@ -643,17 +721,15 @@ private fun RowScope.Header(header: Header) {
 }
 
 
-
-
 @ExperimentalMaterial3Api
 @Composable
-private fun Website(
-    website: ObservableWebsite,
+private fun Account(
+    account: Account,
     copyText: (String) -> Unit,
-    openUrl: (address: String) -> Unit,
+    openUrl: () -> Unit,
     onClick: (title: String) -> Unit
 ) {
-    val title = website.nameAccount.ifBlank { website.login }
+    val title = account.name.ifBlank { account.login }
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
     ElevatedCard(
@@ -670,9 +746,9 @@ private fun Website(
             )
             .padding(16.dp)
     ) {
-        if (website.nameAccount.isNotBlank()) {
+        if (account.name.isNotBlank()) {
             Text(
-                text = website.nameAccount,
+                text = account.name,
                 color = DarkerGray,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
@@ -687,16 +763,16 @@ private fun Website(
         }
 
         DataTextField(
-            text = website.login,
+            text = account.login,
             heading = stringResource(R.string.login),
         ) {
             CopyIconButton {
-                copyText(website.login)
+                copyText(account.login)
             }
         }
 
         DataTextField(
-            text = website.password,
+            text = account.password,
             heading = stringResource(R.string.password),
             keyboardType = KeyboardType.Password,
             visualTransformation = if (isPasswordVisible)
@@ -705,27 +781,26 @@ private fun Website(
         ) {
             VisibilityIconButton(
                 visible = isPasswordVisible,
-                changeVisibility = { isPasswordVisible = it },
-            )
+                ) { isPasswordVisible = it }
             Spacer(modifier = Modifier.width(8.dp))
             CopyIconButton(modifier = Modifier.padding(end = 8.dp)) {
-                copyText(website.password)
+                copyText(account.password)
             }
         }
 
-        if (website.comment.isNotBlank()) {
+        if (account.comment.isNotBlank()) {
             DataTextField(
-                text = website.comment,
+                text = account.comment,
                 heading = stringResource(R.string.comment)
             ) {
                 CopyIconButton {
-                    copyText(website.comment)
+                    copyText(account.comment)
                 }
             }
         }
 
         Button(
-            onClick = { openUrl(website.address) },
+            onClick = openUrl,
             shape = MaterialTheme.shapes.large,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary.animate(),
@@ -748,8 +823,8 @@ private fun Website(
 
 
 @Composable
-private fun BankCard(bankCard: ObservableBankCard) {
-    bankCard.cardNumber
+private fun BankCard(bankCard: BankCard) {
+    bankCard.number
 }
 
 
@@ -759,18 +834,52 @@ private fun BankCard(bankCard: ObservableBankCard) {
 @ExperimentalMaterial3Api
 @Preview
 @Composable
-private fun WebsitePreview() {
+private fun AccountPreview() {
     PasswordManagerTheme(isDarkTheme = true) {
-        Website(
-            website = ObservableWebsite(
-                nameWebsite = "Wrecked",
-                address = "Imagine Dragons",
-                nameAccount = "Test",
-                login = "petrovsd2002@yandex.ru",
-                password = "qwerty123",
-                comment = "Chill",
+        Column {
+            Account(
+                account = Account(
+                    name = "Imagine Dragons",
+                    login = "petrovsd2002@yandex.ru",
+                    password = "qwerty123",
+                    comment = "Chill",
+                ),
+                {}, {},
+            ) {}
+        }
+    }
+}
+
+
+
+
+@Preview
+@Composable
+private fun BankCardPreview() {
+    PasswordManagerTheme(isDarkTheme = true) {
+        BankCard(
+            bankCard = BankCard(
+                number = "1234 5678 9876 5432",
+                pin = "0000",
             ),
-            {}, {}, {},
         )
+    }
+}
+
+
+
+
+@Preview
+@Composable
+private fun DataHeaderPreview() {
+    PasswordManagerTheme(isDarkTheme = true) {
+        var showAll by remember { mutableStateOf(false) }
+
+        DataHeader(
+            title = "Imagine Dragons",
+            subtitle = "Ragged Insomnia",
+            logoUrl = "https://www.spotify.com/apple-touch-icon.png",
+            onClick = { showAll = !showAll }
+        ) {}
     }
 }

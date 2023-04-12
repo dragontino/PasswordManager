@@ -6,7 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import com.security.passwordmanager.data.model.Settings
+import com.security.passwordmanager.data.model.settings.Settings
 import com.security.passwordmanager.presentation.model.enums.ColorDesign
 import com.security.passwordmanager.presentation.model.toCalendar
 import java.util.*

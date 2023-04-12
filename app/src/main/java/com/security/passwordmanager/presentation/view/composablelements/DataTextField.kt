@@ -35,6 +35,7 @@ import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
+import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 
 @ExperimentalMaterial3Api
@@ -70,16 +71,18 @@ fun DataTextField(
         readOnly = true,
         enabled = false,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = TextFieldDefaults.textFieldColors(
-            textColor = MaterialTheme.colorScheme.onBackground.animate(),
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground.animate(),
             disabledTextColor = MaterialTheme.colorScheme.onBackground.animate(),
-            containerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             focusedLabelColor = MaterialTheme.colorScheme.onBackground.animate(),
+            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.animate(),
             disabledLabelColor = MaterialTheme.colorScheme.onBackground.animate(),
-            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.animate()
         ),
         modifier = Modifier
             .padding(vertical = 8.dp)
@@ -97,6 +100,7 @@ fun EditableDataTextField(
     hint: String = "",
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
+    keyboardAction: (text: String) -> Unit = {},
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingActions: @Composable (RowScope.() -> Unit) = {},
     isError: Boolean = false,
@@ -163,19 +167,24 @@ fun EditableDataTextField(
             keyboardType = keyboardType
         ),
         keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Next) },
-            onDone = { focusManager.clearFocus() }
-        ),
-        shape = MaterialTheme.shapes.small,
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            textColor = MaterialTheme.colorScheme.onBackground.animate(),
-            containerColor = if (isFocused) {
-                MaterialTheme.colorScheme.surface.animate()
-            } else {
-                MaterialTheme.colorScheme.background.animate()
+            onNext = {
+                keyboardAction(text)
+                focusManager.moveFocus(FocusDirection.Next)
             },
+            onDone = {
+                keyboardAction(text)
+                focusManager.clearFocus()
+            }
+        ),
+        shape = MaterialTheme.shapes.medium,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground.animate(),
+            disabledTextColor = DarkerGray,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = MaterialTheme.colorScheme.background.animate(),
             focusedBorderColor = MaterialTheme.colorScheme.primary.animate(),
-            unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f).animate(),
+            unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
+                .animate(),
             focusedLabelColor = MaterialTheme.colorScheme.secondary.animate(),
             unfocusedLabelColor = if (text.isNotEmpty()) {
                 MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
@@ -186,7 +195,7 @@ fun EditableDataTextField(
                 MaterialTheme.colorScheme.error.animate()
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.animate()
-            }
+            },
         ),
         modifier = modifier
             .padding(horizontal = 16.dp, vertical = 4.dp)

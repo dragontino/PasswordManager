@@ -130,7 +130,7 @@ fun DeleteDialog(text: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         confirmButton = {
             DialogButton(
-                text = stringResource(R.string.delete),
+                text = stringResource(R.string.delete_data),
                 onClick = onConfirm
             )
         },
@@ -203,14 +203,17 @@ fun RenameDialog(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
+                val containerColor = MaterialTheme.colorScheme.background.animate()
                 OutlinedTextField(
                     value = text,
                     onValueChange = onTextChange,
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        textColor = MaterialTheme.colorScheme.onBackground.animate(),
-                        containerColor = MaterialTheme.colorScheme.background.animate(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground.animate(),
+                        focusedContainerColor = containerColor,
+                        unfocusedContainerColor = containerColor,
+                        disabledContainerColor = containerColor,
                         focusedBorderColor = MaterialTheme.colorScheme.primary.animate(),
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.animate()
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.animate(),
                     ),
                     placeholder = {
                         Text(

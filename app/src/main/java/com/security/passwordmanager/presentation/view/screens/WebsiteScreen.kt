@@ -2,10 +2,7 @@ package com.security.passwordmanager.presentation.view.screens
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -26,7 +23,6 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,9 +43,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
-import com.security.passwordmanager.data.model.Settings
-import com.security.passwordmanager.data.model.Website
-import com.security.passwordmanager.presentation.model.ObservableWebsite
+import com.security.passwordmanager.data.Result
+import com.security.passwordmanager.data.model.settings.Settings
+import com.security.passwordmanager.presentation.model.data.ComposableAccount
 import com.security.passwordmanager.presentation.view.composablelements.*
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
@@ -74,13 +70,13 @@ import me.onebone.toolbar.ExperimentalToolbarApi
 @ExperimentalMaterial3Api
 @Composable
 internal fun AnimatedVisibilityScope.WebsiteScreen(
-    address: String,
+    id: String,
     viewModel: WebsiteViewModel,
     settingsViewModel: SettingsViewModel,
     popBackStack: () -> Unit,
     startPosition: Int = 0,
 ) {
-    viewModel.address = address
+    viewModel.id = id
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -94,9 +90,6 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
     )
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-
-    val isInEditing by rememberSaveable { mutableStateOf(false) }
 
 
     val showSnackbar = { message: String ->
@@ -115,78 +108,25 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 
     fun saveInfo() = with(viewModel) {
         showErrors = true
+        website.updateErrors(context)
 
-        if (!checkWebsites()) {
-            updateErrorMessages(context)
+        if (website.haveErrors) {
             scope.launch {
-                showSnackbar("Введите корректные данные!")
+                showSnackbar(context.getString(R.string.invalid_data))
             }
             return
         }
 
-        itemsToDelete.forEach {
-            viewModel.deleteData(it)
-        }
-
-        accountList.forEachIndexed { index, website ->
-            if (website.toData() !in itemsToDelete) {
-                when {
-                    index < accountList.size - newWebsites ->
-                        viewModel.updateData(website.toData())
-                    else ->
-                        viewModel.addData(website.toData())
-                }
-            }
+        when {
+            id.isBlank() -> addWebsite()
+            else -> updateWebsite()
         }
         popBackStack()
     }
 
 
-//    viewModel.result = loadWebsiteList(address = address, dataViewModel = dataViewModel).value
-//    if (viewModel.result is Result.Success) {
-//        viewModel.accountList.swapList(
-//            (viewModel.result as Result.Success<List<Website>>)
-//                .data
-//                .map { it.observe() }
-//        )
-//    }
-
-
-
-//    LaunchedEffect(key1 = Unit) {
-//        viewModel.viewModelState = DataViewModelState.Loading
-//        delay(200)
-//        val newList = viewModel
-//            .getAccountList(key = address, dataType = DataType.Website)
-//            .ifEmpty {
-//                viewModel.newWebsites = 1
-//                listOf(Website())
-//            }
-//
-//        viewModel.accountList.swapList(
-//            newList
-//                .map { it.observe() }
-//                .filterIsInstance<ObservableWebsite>()
-//        )
-//        viewModel.viewModelState = DataViewModelState.Ready
-//    }
-
-
-    LaunchedEffect(key1 = startPosition) {
-        delay(50)
-        listState.scrollToItem(
-            index = startPosition
-        )
-    }
-
-
-    if (viewModel.showDialog) {
-        viewModel.dialogContent()
-    }
-
-
-    BackHandler {
-        if (isInEditing) {
+    fun checkUnsavedDataAndGoBack() = when {
+        viewModel.isInEdit -> {
             viewModel.openDialog {
                 ExitDialog(
                     onConfirm = ::saveInfo,
@@ -195,42 +135,64 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                 )
             }
         }
-        else popBackStack()
+        else -> popBackStack()
     }
+
+
+    LaunchedEffect(key1 = startPosition) {
+        delay(50)
+        listState.scrollToItem(index = startPosition)
+    }
+
+
+    if (viewModel.showDialog) {
+        viewModel.dialogContent()
+    }
+
+
+    BackHandler(onBack = ::checkUnsavedDataAndGoBack)
 
 
     ModalBottomSheetLayout(
         sheetState = bottomState,
         sheetContent = {
             BottomSheetContent(
-                title = viewModel.currentWebsite.nameAccount,
+                title = viewModel.currentAccount.name,
                 beautifulDesign = true
             ) {
                 EditItem(text = viewModel.getEditItemName(context)) {
-                    viewModel.isNameRenaming = !viewModel.isNameRenaming
+                    viewModel.currentAccount.isNameRenaming =
+                        !viewModel.currentAccount.isNameRenaming
                     hideBottomSheet()
                 }
 
                 CopyItem(text = stringResource(R.string.copy_info)) {
                     viewModel.copyData(
                         context = context,
-                        data = viewModel.currentWebsite.toData(),
-                        resultMessage = { showSnackbar(it) }
+                        data = viewModel.currentAccount.convertToDao(),
+                        result = { showSnackbar(it) }
                     )
                     hideBottomSheet()
                 }
 
                 DeleteItem(text = stringResource(R.string.delete_account)) {
-                    with (viewModel) {
-                        if (currentWebsitePosition < accountList.size - newWebsites) {
-                            itemsToDelete += currentWebsite.toData() as Website
-                        } else {
-                            newWebsites--
-                        }
-                        accountList.remove(currentWebsite)
-                        if (accountList.isEmpty()) saveInfo()
-                        hideBottomSheet()
+                    hideBottomSheet()
+                    if (viewModel.website.accounts.size != 1) {
+                        viewModel.website.accounts.remove(viewModel.currentAccount)
                     }
+                    else if (id.isNotBlank()) {
+                        viewModel.deleteWebsite(
+                            R.string.deletion_last_account_confirmation
+                        ) { success ->
+                            when {
+                                success -> popBackStack()
+                                else -> showSnackbar(
+                                    context.getString(R.string.cannot_delete_data)
+                                )
+                            }
+                        }
+                    }
+                    else popBackStack()
                 }
             }
         },
@@ -244,52 +206,33 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                     navigationButton = {
                         ToolbarButton(
                             icon = when {
-                                isInEditing -> Icons.Rounded.Close
+                                viewModel.isInEdit -> Icons.Rounded.Close
                                 else -> Icons.Rounded.ArrowBackIos
                             },
                             contentDescription = "close screen"
                         ) {
-                            if (isInEditing) {
-                                viewModel.openDialog {
-                                    ExitDialog(
-                                        onConfirm = ::saveInfo,
-                                        onDismiss = popBackStack,
-                                        onClose = viewModel::closeDialog,
-                                    )
-                                }
-                            } else {
-                                popBackStack()
-                            }
+                            checkUnsavedDataAndGoBack()
                         }
                     },
                     actions = {
                         ToolbarButton(
                             icon = Icons.Rounded.Delete,
-                            contentDescription = stringResource(R.string.delete),
+                            contentDescription = stringResource(R.string.delete_data),
                             colors = ToolbarButtonDefaults.colors(
                                 borderColor = MaterialTheme.colorScheme.secondary.animate()
                             ),
                             iconModifier = Modifier.scale(1.1f)
                         ) {
-                            if (address.isNotEmpty()) {
-                                viewModel.openDialog {
-                                    DeleteDialog(
-                                        text = stringResource(R.string.deletion_data_confirmation),
-                                        onConfirm = {
-                                            viewModel.closeDialog()
-                                            val itemToDelete = viewModel.accountList.firstOrNull()
-                                                ?: return@DeleteDialog
-
-                                            viewModel.deleteRecords(itemToDelete.toData())
-                                            popBackStack()
-                                        },
-                                        onDismiss = {
-                                            viewModel.closeDialog()
-                                        }
-                                    )
+                            when {
+                                id.isNotEmpty() -> viewModel.deleteWebsite { success ->
+                                    when {
+                                        success -> popBackStack()
+                                        else -> showSnackbar(
+                                            context.getString(R.string.cannot_delete_data)
+                                        )
+                                    }
                                 }
-                            } else {
-                                popBackStack()
+                                else -> popBackStack()
                             }
                         }
                         Spacer(modifier = Modifier.width(4.dp))
@@ -308,42 +251,42 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                 )
             },
             floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    text = {
-                        Text(
-                            text = stringResource(R.string.add_account),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = "add"
-                        )
-                    },
-                    onClick = {
-                        viewModel.accountList.add(
-                            ObservableWebsite(
-                                address = viewModel.accountList[0].address,
-                                nameWebsite = viewModel.accountList[0].nameWebsite
-                            )
-                        )
-                        viewModel.newWebsites++
-                        scope.launch {
-                            delay(100)
-//                            listState.smoothScrollToItem(accountList.lastIndex + 1)
-                            listState.scrollToItem(viewModel.accountList.lastIndex)
-                        }
-
-                    },
-                    expanded = listState.isScrollingUp(),
-                    containerColor = MaterialTheme.colorScheme.primary.animate(),
-                    contentColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                AnimatedVisibility(
+                    visible = !isKeyboardOpen,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
                     modifier = Modifier.animateEnterExit(
                         enter = viewModel.enterScreenFabAnimation,
                         exit = viewModel.exitScreenFabAnimation,
                     )
-                )
+                ) {
+                    ExtendedFloatingActionButton(
+                        text = {
+                            Text(
+                                text = stringResource(R.string.add_account),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Add,
+                                contentDescription = "add"
+                            )
+                        },
+                        onClick = {
+                            viewModel.website.accounts.add(ComposableAccount())
+                            scope.launch {
+                                delay(100)
+//                            listState.smoothScrollToItem(accountList.lastIndex + 1)
+                                listState.scrollToItem(viewModel.website.accounts.toList().lastIndex)
+                            }
+
+                        },
+                        expanded = listState.isScrollingUp(),
+                        containerColor = MaterialTheme.colorScheme.primary.animate(),
+                        contentColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                    )
+                }
             },
             floatingActionButtonPosition = FabPosition.Center,
             snackbarHost = {
@@ -366,8 +309,8 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                 )
             ),
             contentShape = viewModel.screenShape(),
-            onRefresh = popBackStack,
-            isPullRefreshEnabled = !settingsViewModel.settings.disablePullToRefresh,
+            onRefresh = ::checkUnsavedDataAndGoBack,
+            isPullRefreshEnabled = settingsViewModel.settings.pullToRefresh,
             pullRefreshIndicator = {
                 Icon(
                     imageVector = Icons.Outlined.ArrowCircleLeft,
@@ -403,20 +346,17 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                                     showSnackbar(msg)
                                 }
                             },
-                            updateSettings = {
-                                settingsViewModel.updateSettings(
-                                    contentToUpdate = it
-                                ) { success ->
-                                    if (!success) {
-                                        showSnackbar(
-                                            context.getString(R.string.change_setting_exception)
-                                        )
+                            updateSettingsProperty = { name, value ->
+                                settingsViewModel.updateSettingsProperty(name, value) { errorMsg ->
+                                    if (errorMsg != null) {
+                                        showSnackbar(errorMsg)
                                     }
                                 }
                             },
                             openBottomSheet = {
                                 scope.launch { viewModel.openBottomSheet(bottomState, it) }
-                            }
+                            },
+                            showSnackbar = { showSnackbar(it) }
                         )
                     }
                 }
@@ -436,9 +376,10 @@ private fun WebsiteContentScreen(
     listState: LazyListState,
     viewModel: WebsiteViewModel,
     settings: Settings,
-    updateSettings: (Settings.() -> Unit) -> Unit,
+    updateSettingsProperty: (name: String, value: Any) -> Unit,
     copyText: (String) -> Unit,
-    openBottomSheet: (index: Int) -> Unit
+    openBottomSheet: (position: Int) -> Unit,
+    showSnackbar: (message: String) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -453,80 +394,74 @@ private fun WebsiteContentScreen(
             FirstTwoItems(
                 firstItem = {
                     EditableDataTextField(
-                        text = viewModel.accountList.firstOrNull()?.address ?: "",
-                        onTextChange = { address ->
-                            viewModel.accountList.forEach {
-                                it.address = address
-                                it.errorAddressMessage = if (address.isEmpty())
-                                    context.getString(R.string.empty_url)
-                                else ""
+                        text = viewModel.website.address,
+                        onTextChange = {
+                            viewModel.website.apply {
+                                updateValue(::address, it)
+                                updateAddressError(context)
                             }
                         },
                         hint = stringResource(R.string.url_address),
                         keyboardType = KeyboardType.Uri,
                         isError = viewModel.showErrors &&
                                 viewModel
-                                    .accountList
-                                    .firstOrNull()
-                                    ?.errorAddressMessage
-                                    ?.isNotBlank() == true,
-                        errorMessage = viewModel
-                            .accountList.firstOrNull()
-                            ?.errorAddressMessage
-                            ?: "",
-//                                textIsChanged = { isInEditing = it },
+                                    .website.errorAddressMessage.isNotBlank(),
+                        errorMessage = viewModel.website.errorAddressMessage
                     )
                 },
                 secondItem = {
                     Column {
                         EditableDataTextField(
-                            text = viewModel.accountList.firstOrNull()?.nameWebsite ?: "",
+                            text = viewModel.website.name,
                             onTextChange = { nameWebsite ->
-                                viewModel.accountList.forEach {
-                                    it.nameWebsite = nameWebsite
-                                    it.errorNameWebsiteMessage = if (nameWebsite.isEmpty())
-                                        context.getString(R.string.empty_website_name)
-                                    else ""
+                                viewModel.website.apply {
+                                    updateValue(::name, nameWebsite)
+                                    updateNameError(context)
                                 }
                             },
                             hint = stringResource(R.string.name_website),
-                            isError = viewModel.showErrors &&
-                                    viewModel
-                                        .accountList.firstOrNull()
-                                        ?.errorNameWebsiteMessage
-                                        ?.isNotBlank() == true,
+                            isError = viewModel.showErrors && viewModel
+                                .website
+                                .errorNameMessage
+                                .isNotBlank(),
                             errorMessage = context.getString(R.string.empty_website_name),
                             whenFocused = {
                                 if (
-                                    settings.isUsingAutofill
+                                    settings.autofill
                                     &&
                                     viewModel
-                                        .accountList
-                                        .firstOrNull()
-                                        ?.nameWebsite
-                                        ?.isEmpty() == true
+                                        .website
+                                        .name
+                                        .isEmpty()
                                     &&
                                     viewModel
-                                        .accountList.firstOrNull()
-                                        ?.address
-                                        ?.isNotEmpty() == true
+                                        .website
+                                        .address
+                                        .isNotEmpty()
                                 ) {
-                                    viewModel.accountList.map {
-                                        it.nameWebsite = viewModel.generateNameWebsite()
+                                    viewModel.getWebsiteDomainName(context) {
+                                        when (it) {
+                                            is Result.Success ->
+                                                viewModel.website.name = it.data
+                                            is Result.Error ->
+                                                it.exception.localizedMessage?.let { msg ->
+                                                    showSnackbar(msg)
+                                                }
+                                            is Result.Loading -> {}
+                                        }
                                     }
                                 }
                             },
                             modifier = Modifier.padding(bottom = 0.dp)
-//                                textIsChanged = { isInEditing = it },
                         )
 
                         Spacer(Modifier.size(4.dp))
 
                         CheckboxWithText(
                             text = stringResource(R.string.autofill_name_website),
-                            isChecked = settings.isUsingAutofill,
+                            isChecked = settings.autofill,
                             onCheckedChange = {
-                                updateSettings { isUsingAutofill = it }
+                                updateSettingsProperty(Settings::autofill.name, it)
                             },
                             modifier = Modifier
                                 .padding(top = 0.dp)
@@ -537,15 +472,15 @@ private fun WebsiteContentScreen(
             )
         }
 
-        itemsIndexed(viewModel.accountList) { index, website ->
-            Website(
-                website = website,
+        itemsIndexed(viewModel.website.accounts) { index, account ->
+
+            Account(
+                account = account,
                 position = index,
                 viewModel = viewModel,
                 copyText = copyText,
                 openBottomSheet = { openBottomSheet(index) },
-                isLast = index == viewModel.accountList.lastIndex,
-//                        isChanged = { isInEditing = it },
+                isLast = index == viewModel.website.accounts.lastIndex,
                 modifier = Modifier
                     .animateContentSize(
                         tween(
@@ -662,8 +597,8 @@ private fun CheckboxWithText(
 
 @ExperimentalMaterial3Api
 @Composable
-private fun Website(
-    website: ObservableWebsite,
+private fun Account(
+    account: ComposableAccount,
     position: Int,
     viewModel: WebsiteViewModel,
     copyText: (String) -> Unit,
@@ -683,35 +618,41 @@ private fun Website(
         ),
         modifier = modifier.padding(16.dp)
     ) {
-        WebsiteHeader(
-            heading = website.nameAccount.ifBlank {
-                if (viewModel.isNameRenaming) "" else defaultNameAccount
+        AccountHeader(
+            heading = account.name.ifBlank {
+                if (account.isNameRenaming) "" else defaultNameAccount
             },
-            updateHeading = website::nameAccount::set,
-            enabled = with(viewModel) { position == currentWebsitePosition && isNameRenaming },
+            updateHeading = {
+                account.updateValue(account::name, it)
+                viewModel.website.accounts.update(account.uid)
+            },
+            enabled = with(viewModel) { account == currentAccount && account.isNameRenaming },
             openBottomSheet = openBottomSheet,
             keyboardAction = {
                 focusManager.moveFocus(FocusDirection.Down)
-                viewModel.isNameRenaming = false
-                if (website.nameAccount == defaultNameAccount) website.nameAccount = ""
+                account.isNameRenaming = false
+                if (account.name == defaultNameAccount) account.name = ""
             }
         )
 
         EditableDataTextField(
-            text = website.login,
+            text = account.login,
             onTextChange = {
-                website.login = it
-                website.errorLoginMessage = if (website.login.isEmpty())
-                    context.getString(R.string.empty_login)
-                else ""
+                viewModel.website.accounts.update(account.uid) {
+                    updateValue(::login, it)
+                    errorLoginMessage = when {
+                        login.isEmpty() -> context.getString(R.string.empty_login)
+                        else -> ""
+                    }
+                }
             },
             hint = stringResource(R.string.login),
-            isError = viewModel.showErrors && website.errorLoginMessage.isNotBlank(),
-            errorMessage = website.errorLoginMessage,
+            isError = viewModel.showErrors && account.errorLoginMessage.isNotBlank(),
+            errorMessage = account.errorLoginMessage,
             trailingActions = {
-                if (website.login.isNotBlank()) {
+                if (account.login.isNotBlank()) {
                     CopyIconButton {
-                        copyText(website.login)
+                        copyText(account.login)
                     }
                 }
             }
@@ -720,30 +661,33 @@ private fun Website(
         Spacer(modifier = Modifier.height(12.dp))
 
         EditableDataTextField(
-            text = website.password,
+            text = account.password,
             onTextChange = {
-                website.password = it
-                website.errorPasswordMessage = if (website.password.isEmpty())
-                    context.getString(R.string.empty_password)
-                else ""
+                viewModel.website.accounts.update(account.uid) {
+                    updateValue(::password, it)
+                    errorPasswordMessage = when {
+                        password.isEmpty() -> context.getString(R.string.empty_password)
+                        else -> ""
+                    }
+                }
             },
             hint = stringResource(R.string.password),
             keyboardType = KeyboardType.Password,
-            visualTransformation = if (website.passwordIsVisible) {
+            visualTransformation = if (account.passwordIsVisible) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
             },
-            isError = viewModel.showErrors && website.errorPasswordMessage.isNotBlank(),
-            errorMessage = website.errorPasswordMessage,
+            isError = viewModel.showErrors && account.errorPasswordMessage.isNotBlank(),
+            errorMessage = account.errorPasswordMessage,
             trailingActions = {
-                VisibilityIconButton(visible = website.passwordIsVisible) {
-                    website.passwordIsVisible = it
+                VisibilityIconButton(visible = account.passwordIsVisible) {
+                    account.passwordIsVisible = it
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                if (website.password.isNotBlank()) {
+                if (account.password.isNotBlank()) {
                     CopyIconButton {
-                        copyText(website.password)
+                        copyText(account.password)
                     }
                     Spacer(Modifier.width(8.dp))
                 }
@@ -752,14 +696,18 @@ private fun Website(
         Spacer(modifier = Modifier.height(12.dp))
 
         EditableDataTextField(
-            text = website.comment,
-            onTextChange = website::comment::set,
+            text = account.comment,
+            onTextChange = {
+                viewModel.website.accounts.update(account.uid) {
+                    updateValue(::comment, it)
+                }
+            },
             hint = stringResource(R.string.comment),
             imeAction = if (isLast) ImeAction.Done else ImeAction.Next,
             trailingActions = {
-                if (website.comment.isNotBlank()) {
+                if (account.comment.isNotBlank()) {
                     CopyIconButton {
-                        copyText(website.comment)
+                        copyText(account.comment)
                     }
                 }
             }
@@ -772,7 +720,7 @@ private fun Website(
 
 @ExperimentalMaterial3Api
 @Composable
-private fun WebsiteHeader(
+private fun AccountHeader(
     heading: String,
     enabled: Boolean,
     keyboardAction: KeyboardActionScope.() -> Unit,
@@ -810,13 +758,15 @@ private fun WebsiteHeader(
                 .padding(horizontal = 10.dp)
                 .weight(4f)
                 .fillMaxWidth(),
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = MaterialTheme.colorScheme.onBackground.animate(),
-                placeholderColor = DarkerGray,
-                containerColor = Color.Transparent,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary.animate(),
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground.animate(),
                 disabledTextColor = DarkerGray,
-                disabledIndicatorColor = Color.Transparent
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary.animate(),
+                disabledIndicatorColor = Color.Transparent,
+                focusedPlaceholderColor = DarkerGray,
             ),
         )
 

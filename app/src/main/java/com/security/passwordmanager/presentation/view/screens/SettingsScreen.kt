@@ -1,7 +1,6 @@
 package com.security.passwordmanager.presentation.view.screens
 
 import android.os.Build
-import androidx.annotation.StringRes
 import androidx.compose.animation.*
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -37,6 +36,7 @@ import androidx.fragment.app.FragmentManager
 import com.security.passwordmanager.LoadingInBox
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
+import com.security.passwordmanager.data.model.settings.Settings
 import com.security.passwordmanager.presentation.model.Time
 import com.security.passwordmanager.presentation.model.enums.ColorDesign
 import com.security.passwordmanager.presentation.view.BottomSheetState
@@ -79,14 +79,14 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
 
 
     val accountInfoSheetState = createAccountInfoSheet(
-        username = viewModel.currentUsername,
-        usingBeautifulHeading = viewModel.settings.isUsingBeautifulFont,
+        username = viewModel.username,
+        usingBeautifulHeading = viewModel.settings.beautifulFont,
         changeUsername = {
             viewModel.showUsernameEditingDialog = true
         },
         signOut = {
             viewModel.signOut()
-            viewModel.clearEmail()
+            viewModel.restoreLogin()
             navigateTo(createRouteToLoginScreen())
         }
     )
@@ -156,7 +156,7 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
             ),
         ),
         onRefresh = popBackStack,
-        isPullRefreshEnabled = !viewModel.settings.disablePullToRefresh,
+        isPullRefreshEnabled = viewModel.settings.pullToRefresh,
         pullRefreshIndicator = {
             Icon(
                 imageVector = Icons.Outlined.ArrowCircleLeft,
@@ -218,22 +218,18 @@ private fun SettingsContentScreen(
 ) {
     val context = LocalContext.current
 
-    fun showResult(
-        success: Boolean,
-        @StringRes messageRes: Int = R.string.change_setting_exception
-    ) {
-        if (!success) showSnackbar(context.getString(messageRes))
+    fun showError(message: String?) {
+        if (message != null) showSnackbar(message)
     }
 
 
     val themeSheet = createThemeSheet(
         currentDesign = viewModel.settings.colorDesign,
         updateDesign = {
-            viewModel.updateSettings(
-                contentToUpdate = { colorDesign = it },
-                result = {
-                    showResult(it, R.string.change_theme_exception)
-                }
+            viewModel.updateSettingsProperty(
+                name = Settings::colorDesign.name,
+                value = it,
+                error = ::showError
             )
         },
         showAdditionalContent = viewModel.settings.colorDesign == ColorDesign.Auto
@@ -246,11 +242,10 @@ private fun SettingsContentScreen(
                 title = stringResource(R.string.sunrise_time),
                 modifier = Modifier.weight(1f)
             ) {
-                viewModel.updateSettings(
-                    contentToUpdate = { sunriseTime = it },
-                    result = {
-                        showResult(it, R.string.change_time_exception)
-                    },
+                viewModel.updateSettingsProperty(
+                    name = Settings::sunriseTime.name,
+                    value = it,
+                    error = ::showError
                 )
             }
 
@@ -259,11 +254,10 @@ private fun SettingsContentScreen(
                 title = stringResource(R.string.sunset_time),
                 modifier = Modifier.weight(1f)
             ) {
-                viewModel.updateSettings(
-                    contentToUpdate = { sunsetTime = it },
-                    result = {
-                        showResult(it, R.string.change_time_exception)
-                    }
+                viewModel.updateSettingsProperty(
+                    name = Settings::sunsetTime.name,
+                    value = it,
+                    error = ::showError
                 )
             }
         }
@@ -271,7 +265,7 @@ private fun SettingsContentScreen(
 
 
     val feedbackSheet = feedbackBottomState(
-        beautifulDesign = viewModel.settings.isUsingBeautifulFont
+        beautifulDesign = viewModel.settings.beautifulFont
     )
 
 
@@ -319,12 +313,13 @@ private fun SettingsContentScreen(
         Divider()
 
         SwitchItem(
-            isChecked = viewModel.settings.isUsingBeautifulFont,
+            isChecked = viewModel.settings.beautifulFont,
             title = stringResource(R.string.beautiful_font),
         ) {
-            viewModel.updateSettings(
-                contentToUpdate = { isUsingBeautifulFont = it },
-                result = ::showResult
+            viewModel.updateSettingsProperty(
+                name = Settings::beautifulFont.name,
+                value = it,
+                error = ::showError
             )
         }
 
@@ -336,9 +331,10 @@ private fun SettingsContentScreen(
                 title = stringResource(R.string.dynamic_color),
                 subtitle = stringResource(R.string.dynamic_color_desc)
             ) {
-                viewModel.updateSettings(
-                    contentToUpdate = { dynamicColor = it },
-                    result = ::showResult
+                viewModel.updateSettingsProperty(
+                    Settings::dynamicColor.name,
+                    value = it,
+                    error = ::showError
                 )
             }
 
@@ -346,13 +342,14 @@ private fun SettingsContentScreen(
         }
 
         SwitchItem(
-            isChecked = viewModel.settings.disablePullToRefresh,
-            title = stringResource(R.string.disable_pull_to_refresh),
-            subtitle = stringResource(R.string.disable_pull_to_refresh_desc)
+            isChecked = viewModel.settings.pullToRefresh,
+            title = stringResource(R.string.pull_to_refresh),
+            subtitle = stringResource(R.string.pull_to_refresh_desc)
         ) {
-            viewModel.updateSettings(
-                contentToUpdate = { disablePullToRefresh = it },
-                result = ::showResult
+            viewModel.updateSettingsProperty(
+                name = Settings::pullToRefresh.name,
+                value = it,
+                error = ::showError
             )
         }
 
