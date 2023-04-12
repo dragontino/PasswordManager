@@ -78,6 +78,7 @@ internal fun SearchBar(
             }
         },
         title = {
+            val containerColor = MaterialTheme.colorScheme.primary.animate()
             TextField(
                 value = query,
                 onValueChange = onQueryChange,
@@ -94,14 +95,16 @@ internal fun SearchBar(
                     onDone = { focusManager.clearFocus() },
                 ),
                 textStyle = MaterialTheme.typography.labelMedium,
-                colors = TextFieldDefaults.textFieldColors(
-                    textColor = MaterialTheme.colorScheme.onPrimary.animate(),
-                    containerColor = MaterialTheme.colorScheme.primary.animate(),
-                    focusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                    focusedContainerColor = containerColor,
+                    unfocusedContainerColor = containerColor,
+                    disabledContainerColor = containerColor,
                     cursorColor = MaterialTheme.colorScheme.onPrimary.animate(),
-                    placeholderColor = DarkerGray
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedPlaceholderColor = DarkerGray,
                 ),
                 modifier = Modifier.focusRequester(focusRequester)
             )

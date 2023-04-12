@@ -9,7 +9,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.view.WindowCompat
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.security.passwordmanager.PasswordManagerApplication
 import com.security.passwordmanager.presentation.view.navigation.NavigationScreen
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
@@ -30,23 +30,20 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val factory = (application as PasswordManagerApplication).viewModelFactory
-        val settingsViewModel by viewModels<SettingsViewModel> { factory }
+
         val navigationViewModel by viewModels<NavigationViewModel> { factory }
 
         setContent {
+            val settingsViewModel = viewModel<SettingsViewModel>(factory = factory)
+
             PasswordManagerTheme(settings = settingsViewModel.settings) {
                 NavigationScreen(
                     viewModel = navigationViewModel,
+                    settingsViewModel = settingsViewModel,
                     fragmentManager = supportFragmentManager,
                     isDarkTheme = it
                 )
             }
         }
-    }
-
-
-    override fun onDestroy() {
-        FirebaseAuth.getInstance().signOut()
-        super.onDestroy()
     }
 }

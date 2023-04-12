@@ -30,11 +30,6 @@ class BottomSheetFragment(
     }
 
 
-    private val settingsViewModel by viewModels<SettingsViewModel> {
-        (activity?.application as PasswordManagerApplication).viewModelFactory
-    }
-
-
     constructor(
         header: HeadingInterface = Header(),
         content: @Composable (ColumnScope.(BottomSheetFragment) -> Unit) = {}
@@ -78,6 +73,10 @@ class BottomSheetFragment(
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
+        val viewModelFactory = (activity?.application as PasswordManagerApplication).viewModelFactory
+        val settingsViewModel by viewModels<SettingsViewModel> {
+            viewModelFactory
+        }
 
         return ComposeView(inflater.context).apply {
             setContent {

@@ -1,13 +1,15 @@
 <resources>
     <string name="app_name">Password Manager</string>
     <string name="main_subtitle">by Dragontino</string>
-    <string name="app_version">Версия 5.8.1 от 06 февраля 2023</string>
+    <string name="app_version">Версия 6.0.0 от 12 апреля 2023</string>
     <string name="nav_header_desc">Navigation header</string>
 
     <string name="copy_text_successful">Скопировано в буфер обмена</string>
     <string name="copy_text_exception">Не удалось скопировать текст по причине: %s</string>
     <string name="open">Открыть</string>
     <string name="close">Закрыть</string>
+    <string name="hide">Скрыть</string>
+    <string name="close_app">Нажмите ещё раз, чтобы выйти из приложения</string>
 
 
 
@@ -68,6 +70,7 @@
     <string name="empty_data_list">Нажмите на «+» для добавления новых записей</string>
     <string name="new_note">Новая запись</string>
     <string name="invalid_address">Адрес %s — некорректный!</string>
+    <string name="load_icon_exception">Не удалось загрузить иконку с url %s. Код ответа: %d</string>
 
 
     <!--  Темы  -->
@@ -96,10 +99,12 @@
     <string name="add_account">Добавить аккаунт</string>
     <string name="autofill_name_website">Автозаполнение</string>
 
-    <string name="empty_url">Введите URL адрес сайта</string>
+    <string name="empty_url">Введите URL сайта</string>
     <string name="empty_website_name">Введите название сайта</string>
     <string name="empty_login">Введите логин</string>
     <string name="empty_password">Введите пароль</string>
+    <string name="invalid_data">Введите корректные данные!</string>
+    <string name="too_long_url">Длина URL должна быть не более %d символов</string>
 
     <string name="show_password">Показать пароль</string>
     <string name="hide_password">Скрыть пароль</string>
@@ -110,32 +115,43 @@
     <string name="rename_data">Переименовать</string>
     <string name="cancel_renaming_data">Сохранить новое название</string>
     <string name="copy_info">Копировать</string>
-    <string name="delete">Удалить</string>
+    <string name="delete_data">Удалить</string>
     <string name="delete_account">Удалить аккаунт</string>
     <string name="more_info">Больше информации</string>
+
+    <string name="server_request_error">Запрос к серверу вернулся с ошибкой: %d %s</string>
+    <string name="cannot_add_data">Вход в аккаунт не выполнен, невозможно добавить данные</string>
+    <string name="cannot_fetch_data">Не удалось извлечь данные</string>
+    <string name="cannot_delete_account">Не удалось удалить аккаунт</string>
+    <string name="cannot_delete_data">Не удалось удалить данные</string>
 
 
 <!--  BankCard Screen  -->
     <string name="bank_card_hint">Банковская карта №%d</string>
     <string name="bank_name">Название банка</string>
     <string name="bank_head">Основные данные</string>
+    <string name="bank_card">Карта</string>
     <string name="card_number">Номер карты</string>
     <string name="card_holder">Владелец карты</string>
     <string name="validity_period">Срок действия</string>
+    <string name="payment_system">Платёжная система</string>
     <string name="card_cvv">CVC2/CVV2</string>
     <string name="pin_code">PIN</string>
     <string name="add_more_cards">Добавить карту</string>
     <string name="optionally">Дополнительно</string>
     <string name="wrong_month">Неправильный номер месяца!</string>
-    <string name="payment_system">Платёжная система</string>
+
 
 
 <!-- Экран "Настройки" -->
     <string name="beautiful_font">Использовать в оформлении красивый шрифт</string>
-    <string name="dynamic_color">Использовать динамические цвета</string>
+    <string name="dynamic_color">Использовать в оформлении динамические цвета</string>
     <string name="dynamic_color_desc">Цветовая палитра приложения автоматически адаптируется и интегрируется с пользовательскими настройками</string>
-    <string name="disable_pull_to_refresh">Отключить обновление по свайпу</string>
-    <string name="disable_pull_to_refresh_desc"> Отключение обновления данных или возврата к предыдущему экрану по свайпу</string>
+    <string name="pull_to_refresh">Включить обновление по свайпу</string>
+    <string name="pull_to_refresh_desc">
+        При свайпе вверх за пределы экрана будет вызываться обновление
+        данных или возврат к предыдущему экрану (в зависимости от текущего экрана)
+    </string>
 
     <string name="vk">Вконтакте</string>
     <string name="telegram">Telegram</string>
@@ -146,6 +162,8 @@
     <string name="change_theme_exception">Не удалось сменить оформление. Проверьте, что вы вошли в аккаунт и повторите попытку позже.</string>
     <string name="change_time_exception">Не удалось сменить время. Проверьте, что вы вошли в аккаунт и повторите попытку позже.</string>
     <string name="change_setting_exception">Не удалось сменить настройку. Проверьте, что вы вошли в аккаунт и повторите попытку позже.</string>
+    <string name="cannot_change_settings">Вход не выполнен, настройки не могут быть изменены!</string>
+    <string name="cannot_find_settings">Не удалось найти сохранённых настроек в базе данных</string>
 
 
 <!--  Диалоговые окна  -->
@@ -154,8 +172,12 @@
     <string name="do_not_save">Не сохранять</string>
     <string name="unsaved_data">У вас есть несохранённые данные. Сохранить?</string>
     <string name="confirm_delete">Подтверждение удаления</string>
-    <string name="changing_username_placeholder">Введите новое имя пользователя</string>
+    <string name="changing_username_placeholder">Новое имя пользователя</string>
     <string name="username">Имя пользователя</string>
     <string name="deletion_data_confirmation">Вы уверены, что хотите удалить данные?</string>
+    <string name="deletion_last_account_confirmation">
+        Удаление данных об этом аккаунте приведёт к удалению данных <u>обо всем сайте</u>. Продолжить?
+    </string>
+
 
 </resources>

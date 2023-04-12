@@ -1,6 +1,7 @@
 package com.security.passwordmanager.presentation.viewmodel
 
 import android.content.Context
+import android.util.Log
 import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,8 +13,6 @@ import com.security.passwordmanager.R
 import com.security.passwordmanager.checkNetworkConnection
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.Result
-import com.security.passwordmanager.data.Result.Loading
-import com.security.passwordmanager.data.Result.Success
 import com.security.passwordmanager.data.repository.LoginRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -130,18 +129,16 @@ class LoginViewModel(
             EntryState.SignIn -> {
                 repository.login(email, password) { result ->
                     when (result) {
-                        Loading -> viewModelState = ViewModelState.Loading
+                        is Result.Loading -> viewModelState = ViewModelState.Loading
                         is Result.Error -> {
                             viewModelState = ViewModelState.Ready
                             entryState.message = ""
+                            result.exception.localizedMessage?.let { Log.e(TAG, it) }
                             afterBlock(result, entryState)
                         }
-                        is Success -> {
+                        is Result.Success -> {
                             viewModelState = ViewModelState.Ready
-                            saveCredentials(
-                                email = email,
-                                username = result.data.displayName ?: ""
-                            )
+                            saveLogin(email)
                             entryState.message = ""
                             afterBlock(result, entryState)
                         }
@@ -157,16 +154,13 @@ class LoginViewModel(
 
                 repository.register(email, password, username) { result ->
                     when (result) {
-                        Loading -> viewModelState = ViewModelState.Loading
+                        is Result.Loading -> viewModelState = ViewModelState.Loading
                         is Result.Error -> {
                             entryState.message = ""
                             afterBlock(result, entryState)
                         }
-                        is Success -> {
-                            saveCredentials(
-                                email = email,
-                                username = result.data.displayName ?: ""
-                            )
+                        is Result.Success -> {
+                            saveLogin(email)
                             entryState.message = ""
 
                             afterBlock(result, entryState)
@@ -189,9 +183,9 @@ class LoginViewModel(
         }
 
         repository.restorePassword(email) { result ->
-            if (result !is Loading) {
+            if (result !is Result.Loading) {
                 viewModelState = ViewModelState.Ready
-                afterRestore(result is Success)
+                afterRestore(result is Result.Success)
             }
         }
     }
@@ -206,11 +200,10 @@ class LoginViewModel(
     }
 
 
-
-    private fun saveCredentials(email: String, username: String) {
-        preferences.email = email
-        preferences.username = username
+    private fun saveLogin(login: String) {
+        preferences.email = login
     }
+
 
     private fun restoreLogin() {
         preferences.email = ""

@@ -13,11 +13,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.icons.rounded.AppRegistration
-import androidx.compose.material.icons.rounded.HelpOutline
-import androidx.compose.material.icons.rounded.Login
-import androidx.compose.material.icons.rounded.Start
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
+import androidx.compose.material3.OutlinedTextFieldDefaults.ContainerBox
+import androidx.compose.material3.TextFieldDefaults.contentPaddingWithLabel
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -31,6 +30,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -54,7 +54,7 @@ import androidx.fragment.app.FragmentManager
 import com.security.passwordmanager.*
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.Result
-import com.security.passwordmanager.data.model.Settings
+import com.security.passwordmanager.data.model.settings.Settings
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
 import com.security.passwordmanager.presentation.view.composablelements.feedbackBottomState
@@ -83,7 +83,7 @@ internal fun AnimatedVisibilityScope.LoginScreen(
     val bottomSheetFragment =
         BottomSheetFragment(
             state = feedbackBottomState(
-                beautifulDesign = settings.isUsingBeautifulFont
+                beautifulDesign = settings.beautifulFont
             )
         )
 
@@ -340,6 +340,12 @@ private fun AnimatedVisibilityScope.LoginScreen(
                 keyboardActions = KeyboardActions {
                     focusManager.clearFocus()
                 },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.Email,
+                        contentDescription = "Email"
+                    )
+                },
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Done
             )
@@ -413,6 +419,12 @@ private fun AnimatedVisibilityScope.LoginScreen(
                         } else {
                             PasswordVisualTransformation()
                         },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Password,
+                                contentDescription = "password"
+                            )
+                        },
                         trailingIcon = {
                             IconButton(
                                 onClick = {
@@ -452,6 +464,12 @@ private fun AnimatedVisibilityScope.LoginScreen(
                             visualTransformation = when {
                                 viewModel.isRepeatedPasswordVisible -> VisualTransformation.None
                                 else -> PasswordVisualTransformation()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Password,
+                                    contentDescription = "password"
+                                )
                             },
                             trailingIcon = {
                                 IconButton(
@@ -553,13 +571,14 @@ private fun LoginPasswordTextField(
     imeAction: ImeAction = ImeAction.Next,
     keyboardActions: KeyboardActions = KeyboardActions(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    leadingIcon: @Composable (() -> Unit) = {},
     trailingIcon: @Composable (() -> Unit) = {}
 ) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
 
-    val colors = listOf(
+    val borderColors = listOf(
         MaterialTheme.colorScheme.primary,
         MaterialTheme.colorScheme.onBackground
     ).map { it.animate() }
@@ -567,8 +586,34 @@ private fun LoginPasswordTextField(
     val brush = when {
         error -> SolidColor(MaterialTheme.colorScheme.error.animate())
         readOnly -> SolidColor(MaterialTheme.colorScheme.onBackground.animate())
-        else -> Brush.verticalGradient(colors)
+        else -> Brush.verticalGradient(borderColors, tileMode = TileMode.Repeated)
     }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val shape = MaterialTheme.shapes.medium
+    
+    val textColor = MaterialTheme.colorScheme.onBackground
+    val unfocusedTextColor = textColor.copy(alpha = 0.7f)
+
+    val colors = TextFieldDefaults.colors(
+        focusedTextColor = textColor.animate(),
+        unfocusedTextColor = unfocusedTextColor.animate(),
+        disabledTextColor = textColor.animate(),
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent,
+        errorIndicatorColor = Color.Transparent,
+        focusedLeadingIconColor = textColor.animate(),
+        unfocusedLeadingIconColor = unfocusedTextColor.animate(),
+        disabledLeadingIconColor = textColor.animate(),
+        errorLeadingIconColor = MaterialTheme.colorScheme.error.animate(),
+        focusedTrailingIconColor = textColor.animate(),
+        unfocusedTrailingIconColor = unfocusedTextColor.animate(),
+        disabledTrailingIconColor = textColor.animate()
+    )
 
 
     Box(
@@ -593,36 +638,45 @@ private fun LoginPasswordTextField(
             keyboardActions = keyboardActions,
             visualTransformation = visualTransformation,
             decorationBox = { innerTextField ->
-                TextFieldDefaults.TextFieldDecorationBox(
+                OutlinedTextFieldDefaults.DecorationBox(
                     value = text,
                     innerTextField = innerTextField,
                     enabled = true,
                     singleLine = true,
-                    trailingIcon = trailingIcon,
-                    isError = error,
                     visualTransformation = visualTransformation,
-                    placeholder = {
+                    interactionSource = interactionSource,
+                    isError = error,
+                    label = {
                         Text(
-                            text = if (!isFocused) label else "",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = label,
+                            style = when {
+                                text.isEmpty() -> MaterialTheme.typography.bodyMedium
+                                else -> MaterialTheme.typography.bodySmall
+                            },
+                            color = when {
+                                error -> MaterialTheme.colorScheme.error
+                                readOnly -> textColor
+                                text.isEmpty() -> unfocusedTextColor
+                                else -> MaterialTheme.colorScheme.primary
+                            }.animate()
                         )
                     },
-                    interactionSource = remember { MutableInteractionSource() },
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent,
-                        placeholderColor = MaterialTheme.colorScheme.onBackground
-                            .copy(alpha = 0.86f)
-                            .animate(),
-                        disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground
-                            .copy(alpha = 0.86f)
-                            .animate(),
-                        textColor = MaterialTheme.colorScheme.onBackground.animate(),
-                        disabledTextColor = MaterialTheme.colorScheme.onBackground.animate(),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
+                    leadingIcon = leadingIcon,
+                    trailingIcon = trailingIcon,
+                    colors = colors,
+                    contentPadding = contentPaddingWithLabel(
+                        top = 18.dp,
+                        bottom = 18.dp
                     ),
-                    shape = MaterialTheme.shapes.medium
+                    container = {
+                        ContainerBox(
+                            enabled = true,
+                            isError = error,
+                            interactionSource = interactionSource,
+                            colors = colors,
+                            shape = shape
+                        )
+                    },
                 )
             },
             modifier = modifier
@@ -638,37 +692,6 @@ private fun LoginPasswordTextField(
                 .fillMaxWidth(),
         )
 
-
-        AnimatedVisibility(
-            visible = text.isNotEmpty() || isFocused,
-            enter = fadeIn(
-                animationSpec = tween(
-                    durationMillis = 150,
-                    easing = LinearEasing
-                ),
-            ),
-            exit = fadeOut(
-                animationSpec = tween(
-                    durationMillis = 250,
-                    easing = LinearEasing
-                )
-            ),
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 13.dp, top = 1.4.dp)
-                .background(MaterialTheme.colorScheme.background.animate())
-                .padding(horizontal = 3.dp)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = when {
-                    error -> MaterialTheme.colorScheme.error
-                    readOnly -> MaterialTheme.colorScheme.onBackground
-                    else -> MaterialTheme.colorScheme.primary
-                }.animate()
-            )
-        }
 
 
         AnimatedVisibility(
@@ -687,7 +710,7 @@ private fun LoginPasswordTextField(
             ),
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 16.dp, top = 64.dp)
+                .padding(start = 17.dp, top = 70.dp)
         ) {
             Text(
                 text = errorMessage,

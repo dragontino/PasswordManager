@@ -31,6 +31,7 @@ import com.security.passwordmanager.presentation.view.screens.SettingsScreen
 import com.security.passwordmanager.presentation.view.screens.WebsiteScreen
 import com.security.passwordmanager.presentation.viewmodel.NavigationViewModel
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.ExperimentalToolbarApi
 
@@ -42,6 +43,7 @@ import me.onebone.toolbar.ExperimentalToolbarApi
 @Composable
 internal fun NavigationScreen(
     viewModel: NavigationViewModel,
+    settingsViewModel: SettingsViewModel,
     fragmentManager: FragmentManager,
     isDarkTheme: Boolean
 ) {
@@ -59,7 +61,10 @@ internal fun NavigationScreen(
         scope.launch {
             drawerState.animateTo(DrawerValue.Closed, BottomAnimationSpec)
         }
-        viewModel.navigateTo(navController, route)
+        scope.launch {
+            delay(100)
+            viewModel.navigateTo(navController, route)
+        }
     }
 
 
@@ -124,7 +129,7 @@ internal fun NavigationScreen(
                 LoginScreen(
                     viewModel = viewModel(factory = viewModel.factory),
                     fragmentManager = fragmentManager,
-                    settings = viewModel<SettingsViewModel>(factory = viewModel.factory).settings,
+                    settings = settingsViewModel.settings,
                     navigateTo = { route ->
                         viewModel.navigateTo(navController, route, true)
                     }
@@ -156,7 +161,7 @@ internal fun NavigationScreen(
                         DataType.All
                     ),
                     viewModel = viewModel(factory = viewModel.factory),
-                    settings = viewModel<SettingsViewModel>(factory = viewModel.factory).settings,
+                    settings = settingsViewModel.settings,
                     fragmentManager = fragmentManager,
                     openDrawer = { openDrawer() },
                     navigateTo = { route -> viewModel.navigateTo(navController, route) },
@@ -182,28 +187,25 @@ internal fun NavigationScreen(
             composable(
                 route = AppScreens.Website.fullRoute,
                 arguments = listOf(
-                    navArgument(AppScreens.Website.Args.DataKey.name) {
+                    navArgument(AppScreens.Website.Args.DataId.name) {
                         type = NavType.StringType
                         nullable = true
                     },
                     navArgument(AppScreens.Website.Args.StartPosition.name) {
                         type = NavType.IntType
+                        defaultValue = 0
                     }
                 )
             ) {
                 viewModel.isDarkStatusBarIcons = !isDarkTheme
 
-                val address = it
-                    .arguments
-                    .getString(AppScreens.Website.Args.DataKey.name)
-
                 WebsiteScreen(
-                    address = AppScreens.Website.replaceCharsInAddress(address),
+                    id = it.arguments.getString(AppScreens.Website.Args.DataId.name),
                     viewModel = viewModel(factory = viewModel.factory),
-                    settingsViewModel = viewModel(factory = viewModel.factory),
+                    settingsViewModel = settingsViewModel,
                     startPosition = it.arguments.getInt(
                         key = AppScreens.Website.Args.StartPosition.name,
-                        defaultValue = 0,
+                        defaultValue = 0
                     ),
                     popBackStack = navController::popBackStack
                 )

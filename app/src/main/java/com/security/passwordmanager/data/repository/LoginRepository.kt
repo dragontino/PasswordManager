@@ -1,10 +1,8 @@
 package com.security.passwordmanager.data.repository
 
 import android.content.Context
-import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.*
-import com.google.firebase.database.FirebaseDatabase
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.Result
 
@@ -13,50 +11,28 @@ import com.security.passwordmanager.data.Result
  * maintains an in-memory cache of login status and user credentials information.
  */
 
-class LoginRepository(private val auth: FirebaseAuth, private val context: Context) {
+class LoginRepository(
+    private val auth: FirebaseAuth,
+    private val context: Context
+) {
 
     fun register(
         email: String,
         password: String,
         displayName: String,
-        result: (Result<FirebaseUser>) -> Unit
+        resultAction: (Result<FirebaseUser>) -> Unit
     ) {
-        result(Result.Loading)
+        resultAction(Result.Loading)
         auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    result(Result.Error(task.exception?.getRightMessages() ?: NullPointerException()))
-                    return@addOnCompleteListener
-                }
+            .addOnSuccessListener {
+                val currentUser = auth.currentUser
 
-                auth.currentUser?.uid?.let {
-                    FirebaseDatabase
-                        .getInstance()
-                        .getReference("Users")
-                        .child(it)
-                        .setValue(email)
-                        .addOnCompleteListener { task1 ->
-                            val currentUser = auth.currentUser
-                            if (task1.isSuccessful && currentUser != null) {
-
-                                currentUser
-                                    .setDisplayName(displayName)
-                                    .addOnCompleteListener { task2 ->
-                                        if (task2.isSuccessful)
-                                            result(Result.Success(currentUser))
-                                    }
-                                    .addOnFailureListener { exception ->
-                                        result(Result.Error(exception.getRightMessages()))
-                                    }
-                            }
-                        }
-                        .addOnFailureListener { exception ->
-                            result(Result.Error(exception.getRightMessages()))
-                        }
+                currentUser?.setDisplayName(displayName) {
+                    resultAction(it.map { currentUser })
                 }
             }
             .addOnFailureListener {
-                result(Result.Error(it.getRightMessages()))
+                resultAction(Result.Error(it.getRightMessages()))
             }
     }
 
@@ -68,39 +44,39 @@ class LoginRepository(private val auth: FirebaseAuth, private val context: Conte
     fun login(
         email: String,
         password: String,
-        result: (Result<FirebaseUser>) -> Unit
+        resultAction: (Result<FirebaseUser>) -> Unit
     ) {
-        result(Result.Loading)
+        resultAction(Result.Loading)
         auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful && auth.currentUser != null) {
-                    result(Result.Success(auth.currentUser!!))
+            .addOnSuccessListener {
+                auth.currentUser?.let {
+                    resultAction(Result.Success(it))
                 }
             }
             .addOnFailureListener {
                 val exception = it.getRightMessages()
-                println("exception = $exception")
-                result(Result.Error(exception))
+                resultAction(Result.Error(exception))
             }
     }
 
 
-    fun checkEmailExists(email: String, isExists: (Boolean) -> Unit) = auth
-        .fetchSignInMethodsForEmail(email)
-        .addOnCompleteListener { task: Task<SignInMethodQueryResult?> ->
-            isExists(!task.result?.signInMethods.isNullOrEmpty())
-        }
+    fun checkEmailExists(email: String, isExists: (Boolean) -> Unit) {
+        auth
+            .fetchSignInMethodsForEmail(email)
+            .addOnSuccessListener { result ->
+                isExists(!result?.signInMethods.isNullOrEmpty())
+            }
+    }
 
 
-    fun restorePassword(email: String, result: (Result<Void>) -> Unit) {
-        result(Result.Loading)
+    fun restorePassword(email: String, resultAction: (Result<Unit>) -> Unit) {
+        resultAction(Result.Loading)
         auth.sendPasswordResetEmail(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) result(Result.Success(task.result))
-                else result(Result.Error(task.exception ?: NullPointerException()))
+            .addOnSuccessListener {
+                resultAction(Result.Success(Unit))
             }
             .addOnFailureListener {
-                result(Result.Error(it))
+                resultAction(Result.Error(it))
             }
     }
 
@@ -128,9 +104,17 @@ class LoginRepository(private val auth: FirebaseAuth, private val context: Conte
 
 
 
-    private fun FirebaseUser.setDisplayName(displayName: String) = updateProfile(
-        UserProfileChangeRequest.Builder()
+    private fun FirebaseUser.setDisplayName(displayName: String, result: (Result<Unit>) -> Unit) {
+        val request = UserProfileChangeRequest.Builder()
             .setDisplayName(displayName)
             .build()
-    )
+
+        updateProfile(request)
+            .addOnSuccessListener {
+                result(Result.Success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                result(Result.Error(exception.getRightMessages()))
+            }
+    }
 }

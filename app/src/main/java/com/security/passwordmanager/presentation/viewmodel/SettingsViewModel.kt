@@ -1,6 +1,7 @@
 package com.security.passwordmanager.presentation.viewmodel
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,7 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.R
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.Result
-import com.security.passwordmanager.data.model.Settings
+import com.security.passwordmanager.data.model.settings.Settings
 import com.security.passwordmanager.data.repository.SettingsRepository
 import com.security.passwordmanager.presentation.model.enums.ColorDesign
 import com.security.passwordmanager.presentation.view.BottomSheetFragment
@@ -25,6 +26,10 @@ class SettingsViewModel(
     private val preferences: AppPreferences,
 ) : ViewModel() {
 
+    private companion object {
+        const val TAG = "SettingsViewModel"
+    }
+
     enum class State {
         Loading,
         Ready
@@ -35,13 +40,14 @@ class SettingsViewModel(
     var settings by mutableStateOf(Settings())
         private set
 
-    val currentUsername: String get() = preferences.username.ifBlank { preferences.email }
+    var username by mutableStateOf(settingsRepository.username ?: "")
+        private set
 
     var switchThemeTextLineCount by mutableStateOf(1)
 
     var showUsernameEditingDialog by mutableStateOf(false)
 
-    var usernameInDialog by mutableStateOf(currentUsername)
+    var usernameInDialog by mutableStateOf(username)
 
 
     private val bottomSheetFragment = BottomSheetFragment()
@@ -49,8 +55,19 @@ class SettingsViewModel(
 
     init {
         settingsRepository
-            .getSettings(preferences.email)
-            .onEach { settings = it }
+            .fetchSettings()
+            .onEach {
+                if (it is Result.Success) {
+                    settings = it.data
+                } else if (it is Result.Error) {
+                    it.exception.localizedMessage?.let { msg -> Log.e(TAG, msg) }
+                    settings = Settings()
+
+                    if (it.exception is NullPointerException) {
+                        settingsRepository.addSettings(Settings())
+                    }
+                }
+            }
             .launchIn(viewModelScope)
     }
 
@@ -84,7 +101,7 @@ class SettingsViewModel(
     }
 
 
-    fun clearEmail() {
+    fun restoreLogin() {
         preferences.email = ""
     }
 
@@ -98,12 +115,15 @@ class SettingsViewModel(
                     viewModelState = State.Loading
                 is Result.Error -> {
                     viewModelState = State.Ready
-                    usernameInDialog = currentUsername
+                    usernameInDialog = username
+
+                    it.exception.localizedMessage?.let { msg -> Log.e(TAG, msg) }
+
                     resultMessage(context.getString(R.string.change_username_exception))
                 }
                 is Result.Success -> {
                     viewModelState = State.Ready
-                    preferences.username = usernameInDialog
+                    username = usernameInDialog
                     resultMessage(context.getString(R.string.change_username_successful))
                 }
             }
@@ -112,7 +132,7 @@ class SettingsViewModel(
 
     fun dismissChangingUsernameInDialog() {
         showUsernameEditingDialog = false
-        usernameInDialog = currentUsername
+        usernameInDialog = username
     }
 
 
@@ -121,19 +141,34 @@ class SettingsViewModel(
     }
 
 
-    fun updateSettings(
-        contentToUpdate: Settings.() -> Unit,
-        result: (success: Boolean) -> Unit
+    /**
+     * Метод, позволяющий обновить значение параметра с именем [name], изменив его на [value]
+     *
+     * Пример использования:
+     * ```
+     * viewModel.updateSettingsProperty(Settings::colorDesign.name, 1)
+     * ```
+     * @param name имя параметра, который нужно обновить
+     * @param value новое значение параметра
+     * @param error блок результата (не обязательный)
+     */
+    fun updateSettingsProperty(
+        name: String,
+        value: Any,
+        error: (message: String?) -> Unit = {}
     ) {
         viewModelScope.launch {
-            viewModelState = State.Loading
             delay(100)
-            val newSettings = settings.copy().apply(contentToUpdate)
-            println("defaultSettings = $settings\nnewSettings = $newSettings")
-            settingsRepository.updateSettings(newSettings)
-            delay(100)
-            viewModelState = State.Ready
-            result(settings == newSettings)
+            settingsRepository.updateSettingsProperty(name, value) {
+                viewModelState = when (it) {
+                    Result.Loading -> State.Loading
+                    is Result.Error -> {
+                        error(it.exception.localizedMessage)
+                        State.Ready
+                    }
+                    else -> State.Ready
+                }
+            }
         }
     }
 }

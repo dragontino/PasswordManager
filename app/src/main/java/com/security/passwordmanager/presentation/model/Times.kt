@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.room.TypeConverter
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
 import com.security.passwordmanager.presentation.view.composablelements.TimePickerDialog
@@ -30,7 +29,6 @@ import java.util.*
 
 
 data class Time(val hours: Int = 0, val minutes: Int = 0) {
-
     companion object {
         val defaultSunriseTime = Time(7, 0)
         
@@ -74,25 +72,18 @@ fun LocalTime.toTime(): Time =
     Time(hours = hour, minutes = minute)
 
 
+fun Time(timeString: String): Time {
+    val calendar = GregorianCalendar()
+    val dateFormat = SimpleDateFormat(
+        Time.dateFormatPattern,
+        Locale.getDefault()
+    )
 
-class TimeConverter {
-    @TypeConverter
-    fun String.convertToTime(): Time {
-        val calendar = GregorianCalendar()
-        val dateFormat = SimpleDateFormat(
-            Time.dateFormatPattern,
-            Locale.getDefault()
-        )
-
-        dateFormat.parse(this)?.let {
-            calendar.time = it
-        }
-
-        return calendar.toTime()
+    dateFormat.parse(timeString)?.let {
+        calendar.time = it
     }
 
-    @TypeConverter
-    fun Time.convertToString() = this.toString()
+    return calendar.toTime()
 }
 
 

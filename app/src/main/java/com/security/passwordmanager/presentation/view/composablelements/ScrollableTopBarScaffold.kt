@@ -87,7 +87,7 @@ fun AnimatedVisibilityScope.ScrollableTopBarScaffold(
         }
     }
 
-    suspend fun onRelease(flingVelocity: Float) {
+    suspend fun onRelease(flingVelocity: Float): Float {
         val distance = currentDistance
 
         refreshScope.launch {
@@ -101,6 +101,8 @@ fun AnimatedVisibilityScope.ScrollableTopBarScaffold(
         ) { value, _ ->
             currentDistance = value
         }
+
+        return currentDistance
     }
 
 
@@ -131,6 +133,7 @@ fun AnimatedVisibilityScope.ScrollableTopBarScaffold(
             snackbarHost = snackbarHost,
             contentWindowInsets = WindowInsets
                 .tappableElement
+                .union(WindowInsets.ime)
                 .only(WindowInsetsSides.Bottom),
             containerColor = colors.topBarColor,
             modifier = modifier,

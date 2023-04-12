@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import me.onebone.toolbar.CollapsingToolbarState
 
@@ -31,7 +32,7 @@ internal fun Bundle?.getInt(key: String, defaultValue: Int) =
 
 
 internal fun Bundle?.getString(key: String, defaultValue: String = "") =
-    this?.getString(key) ?: defaultValue
+    this?.getString(key)?.takeIf { it != "null" } ?: defaultValue
 
 
 @Suppress("UNCHECKED_CAST", "DEPRECATION")
@@ -40,9 +41,7 @@ fun <D : Enum<*>> Bundle?.getEnum(key: String, defaultValue: D): D =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
             this?.getSerializable(key, defaultValue::class.java) ?: defaultValue
         }
-        else -> {
-            this?.getSerializable(key) as D? ?: defaultValue
-        }
+        else -> this?.getSerializable(key) as D? ?: defaultValue
     }
 
 
@@ -51,13 +50,8 @@ inline fun buildString(initString: String = "", builderAction: StringBuilder.() 
 
 
 
-fun StringBuilder.deleteFromLast(count: Int = 1) =
-    deleteRange(length - count, length)
-
-
-
 fun <E> List<E>.slice(fromIndex: Int = 0, toIndex: Int = size) =
-    subList(fromIndex, toIndex)
+    slice(fromIndex until toIndex)
 
 
 
@@ -76,13 +70,6 @@ fun Parcel.getString(defaultValue: String = "") = readString() ?: defaultValue
 fun String.isValidUrl() = URLUtil.isValidUrl(this)
 
 
-
-fun <T> MutableList<T>.swapList(newList: List<T>) {
-    clear()
-    addAll(newList)
-}
-
-
 fun Context.checkNetworkConnection(): Boolean {
     val connectivityManager =
         getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -94,13 +81,12 @@ fun Context.checkNetworkConnection(): Boolean {
 }
 
 
-
 // Compose functions
 
 
 
 val BottomAnimationSpec: AnimationSpec<Float> = tween(
-    durationMillis = 350,
+    durationMillis = 380,
     easing = LinearOutSlowInEasing
 )
 
@@ -133,6 +119,21 @@ fun Color.animate(durationMillis: Int = 600): Color =
         animationSpec = tween(durationMillis, easing = FastOutSlowInEasing)
     ).value
 
+
+@Composable
+fun Float.animate(durationMillis: Int = 600): Float =
+    animateFloatAsState(
+        targetValue = this,
+        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing)
+    ).value
+
+
+@Composable
+fun Dp.animate(durationMillis: Int = 600): Dp =
+    animateDpAsState(
+        targetValue = this,
+        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing)
+    ).value
 
 
 @Composable
