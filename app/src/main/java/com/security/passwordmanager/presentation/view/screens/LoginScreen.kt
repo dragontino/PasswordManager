@@ -542,7 +542,8 @@ private fun BottomButtons(
 
             TextButton(
                 text = context.getString(R.string.change_login),
-                fontSize = 15.sp
+                fontSize = 15.sp,
+                modifier = Modifier.padding(bottom = 32.dp)
             ) {
                 viewModel.changeLogin()
                 viewModel.email = ""
@@ -571,8 +572,8 @@ private fun LoginPasswordTextField(
     imeAction: ImeAction = ImeAction.Next,
     keyboardActions: KeyboardActions = KeyboardActions(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    leadingIcon: @Composable (() -> Unit) = {},
-    trailingIcon: @Composable (() -> Unit) = {}
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null
 ) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
 
@@ -653,6 +654,7 @@ private fun LoginPasswordTextField(
                                 text.isEmpty() -> MaterialTheme.typography.bodyMedium
                                 else -> MaterialTheme.typography.bodySmall
                             },
+                            maxLines = 1,
                             color = when {
                                 error -> MaterialTheme.colorScheme.error
                                 readOnly -> textColor
