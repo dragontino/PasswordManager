@@ -33,10 +33,10 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.tappableElement
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -247,6 +247,9 @@ internal fun AnimatedVisibilityScope.NotesScreen(
         sheetState = bottomSheetState,
         sheetShape = ModalSheetDefaults.Shape,
         sheetBackgroundColor = MaterialTheme.colorScheme.surface.animate(),
+        modifier = Modifier.padding(
+            WindowInsets.tappableElement.only(WindowInsetsSides.Bottom).asPaddingValues()
+        )
     ) {
         ScrollableTopBarScaffold(
             state = scaffoldState,
@@ -292,13 +295,7 @@ internal fun AnimatedVisibilityScope.NotesScreen(
                         },
                         containerColor = MaterialTheme.colorScheme.primary.animate(),
                         contentColor = MaterialTheme.colorScheme.onPrimary.animate(),
-                        elevation = FloatingActionButtonDefaults.loweredElevation(),
-                        modifier = Modifier
-                            .padding(
-                                WindowInsets.navigationBars
-                                    .only(WindowInsetsSides.Vertical)
-                                    .asPaddingValues()
-                            )
+                        elevation = FloatingActionButtonDefaults.loweredElevation()
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Add,

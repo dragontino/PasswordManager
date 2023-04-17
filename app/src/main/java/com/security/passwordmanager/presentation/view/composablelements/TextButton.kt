@@ -30,13 +30,14 @@ fun TextButton(
     text: String,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = MaterialTheme.typography.bodyMedium.fontSize,
+    textColor: Color = MaterialTheme.colorScheme.secondary,
     onClick: () -> Unit
 ) {
     TextButton(
         onClick = onClick,
         colors = ButtonDefaults.textButtonColors(
             containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.secondary.animate()
+            contentColor = textColor.animate()
         ),
         shape = MaterialTheme.shapes.small,
         modifier = modifier,

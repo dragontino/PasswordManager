@@ -180,7 +180,7 @@ fun AnimatedVisibilityScope.ScrollableTopBarScaffold(
             contentWindowInsets = WindowInsets
                 .tappableElement
                 .union(WindowInsets.ime)
-                .only(WindowInsetsSides.Bottom),
+                .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
             containerColor = colors.topBarColor,
             modifier = modifier,
         ) { contentPadding ->

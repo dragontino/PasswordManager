@@ -8,28 +8,12 @@
         <item name="android:textColorPrimary">@color/white</item>
         <item name="android:fontFamily">@font/roboto</item>
         <item name="bottomSheetDialogTheme">@style/Theme.MaterialComponents.BottomSheetDialog</item>
-        <!-- Customize your theme here. -->
-        <!--        <item name="android:windowTranslucentStatus">true</item>-->
-        <!--        <item name="android:windowTranslucentNavigation">true</item>-->
-    </style>
-
-    <style name="Theme.PasswordManager.Dark" parent="Theme.AppCompat.DayNight">
-        <item name="colorPrimary">@color/header_dark</item>
-        <item name="colorPrimaryDark">@color/header_dark</item>
-        <item name="colorAccent">@color/teal_200</item>
-        <item name="android:textColorPrimary">@color/white</item>
-        <item name="android:fontFamily">@font/roboto</item>
-        <item name="bottomSheetDialogTheme">@style/Theme.MaterialComponents.BottomSheetDialog</item>
     </style>
 
     <style name="Theme.PasswordManager.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
-
-    <style name="Theme.PasswordManager.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="Theme.PasswordManager.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="AccountTextViewThemeWithoutMargin">
         <item name="android:padding">8dp</item>
