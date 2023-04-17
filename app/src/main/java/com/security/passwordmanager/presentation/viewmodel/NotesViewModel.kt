@@ -3,6 +3,7 @@ package com.security.passwordmanager.presentation.viewmodel
 import android.content.Intent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,8 @@ class NotesViewModel(dataRepository: DataRepository) : DataViewModel(dataReposit
     var showFab by mutableStateOf(true)
 
     var notifyUserAboutFinishApp by mutableStateOf(true)
+
+    var bottomSheetContent: @Composable ColumnScope.() -> Unit by mutableStateOf({})
 
     private var _dataList by mutableStateOf(mapOf<String, UsersData>())
 

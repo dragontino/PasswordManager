@@ -2,10 +2,11 @@ package com.security.passwordmanager.presentation.viewmodel
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.R
@@ -14,8 +15,6 @@ import com.security.passwordmanager.data.Result
 import com.security.passwordmanager.data.model.settings.Settings
 import com.security.passwordmanager.data.repository.SettingsRepository
 import com.security.passwordmanager.presentation.model.enums.ColorDesign
-import com.security.passwordmanager.presentation.view.BottomSheetFragment
-import com.security.passwordmanager.presentation.view.BottomSheetState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -50,7 +49,7 @@ class SettingsViewModel(
     var usernameInDialog by mutableStateOf(username)
 
 
-    private val bottomSheetFragment = BottomSheetFragment()
+    var bottomSheetContent: @Composable (ColumnScope.() -> Unit) by mutableStateOf({})
 
 
     init {
@@ -88,16 +87,6 @@ class SettingsViewModel(
 
             append(" ", context.getString(R.string.now, textToAppend).lowercase())
         }
-    }
-
-
-    fun showBottomSheet(
-        fragmentManager: FragmentManager,
-        bottomSheetState: BottomSheetState = BottomSheetState()
-    ) {
-        bottomSheetFragment
-            .copy(state = bottomSheetState)
-            .show(fragmentManager)
     }
 
 

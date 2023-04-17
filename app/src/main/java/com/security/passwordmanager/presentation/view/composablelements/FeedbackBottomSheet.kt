@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AlternateEmail
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,24 +17,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
-import com.security.passwordmanager.presentation.view.BottomSheetState
+import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.IconTextItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.ImageTextItem
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 
+
+@ExperimentalMaterial3Api
 @Composable
-internal fun feedbackBottomState(beautifulDesign: Boolean) =
-    BottomSheetState(
-        title = stringResource(R.string.feedback),
-        beautifulDesign = beautifulDesign
-    ) {
-        FeedbackSheetContent(onClose = it::dismiss)
-    }
-
-
-
-@Composable
-private fun ColumnScope.FeedbackSheetContent(onClose: () -> Unit) {
+fun ColumnScope.FeedbackSheetContent(
+    beautifulDesign: Boolean,
+    onClose: () -> Unit
+) {
     val context = LocalContext.current
     
     val openAddress = { address: String ->
@@ -41,45 +36,51 @@ private fun ColumnScope.FeedbackSheetContent(onClose: () -> Unit) {
         context.startActivity(intent)
         onClose()
     }
-    
-    ImageTextItem(
-        text = stringResource(R.string.telegram),
-        image = R.drawable.telegram_logo,
-        imageTintColor = MaterialTheme.colorScheme.secondary.animate(),
-        imageSpace = 12.dp
-    ) {
-        openAddress("https://t.me/cepetroff")
-    }
 
-    ImageTextItem(
-        text = stringResource(R.string.vk),
-        image = R.drawable.vk_logo,
-        imageTintColor = MaterialTheme.colorScheme.secondary.animate(),
-        imageModifier = Modifier.scale(1.2f),
-        imageSpace = 12.dp
+    BottomSheetContent(
+        title = stringResource(R.string.feedback),
+        beautifulDesign = beautifulDesign
     ) {
-        openAddress("https://vk.com/cepetroff")
-    }
+        ImageTextItem(
+            text = stringResource(R.string.telegram),
+            image = R.drawable.telegram_logo,
+            imageTintColor = MaterialTheme.colorScheme.secondary.animate(),
+            imageSpace = 12.dp
+        ) {
+            openAddress(context.getString(R.string.telegram_ref))
+        }
 
-    IconTextItem(
-        text = stringResource(R.string.email),
-        icon = Icons.Default.AlternateEmail,
-        iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
-        iconSpace = 12.dp
-    ) {
-        openAddress("mailto:petrovsd2002@gmail.com")
+        ImageTextItem(
+            text = stringResource(R.string.vk),
+            image = R.drawable.vk_logo,
+            imageTintColor = MaterialTheme.colorScheme.secondary.animate(),
+            imageModifier = Modifier.scale(1.2f),
+            imageSpace = 12.dp
+        ) {
+            openAddress(context.getString(R.string.vk_ref))
+        }
+
+        IconTextItem(
+            text = stringResource(R.string.email),
+            icon = Icons.Default.AlternateEmail,
+            iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
+            iconSpace = 12.dp
+        ) {
+            openAddress(context.getString(R.string.email_ref))
+        }
     }
 }
 
 
 
 
+@ExperimentalMaterial3Api
 @Preview
 @Composable
 private fun FeedbackSheetPreview() {
     PasswordManagerTheme(isDarkTheme = false) {
         Column {
-            FeedbackSheetContent {}
+            FeedbackSheetContent(beautifulDesign = true) {}
         }
     }
 }

@@ -1,18 +1,48 @@
 package com.security.passwordmanager.presentation.view.screens
 
 import android.os.Build
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.ArrowCircleLeft
 import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Logout
-import androidx.compose.material3.*
+import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,27 +62,34 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.FragmentManager
 import com.security.passwordmanager.LoadingInBox
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
 import com.security.passwordmanager.data.model.settings.Settings
 import com.security.passwordmanager.presentation.model.Time
 import com.security.passwordmanager.presentation.model.enums.ColorDesign
-import com.security.passwordmanager.presentation.view.BottomSheetState
-import com.security.passwordmanager.presentation.view.composablelements.*
+import com.security.passwordmanager.presentation.view.composablelements.FeedbackSheetContent
+import com.security.passwordmanager.presentation.view.composablelements.RenameDialog
+import com.security.passwordmanager.presentation.view.composablelements.ScrollableTopBar
+import com.security.passwordmanager.presentation.view.composablelements.ScrollableTopBarScaffold
+import com.security.passwordmanager.presentation.view.composablelements.ScrollableTopBarScaffoldDefaults
+import com.security.passwordmanager.presentation.view.composablelements.ToolbarButton
+import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
+import com.security.passwordmanager.presentation.view.navigation.ModalSheetDefaults
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.IconTextItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.TextItem
 import com.security.passwordmanager.presentation.view.navigation.createRouteToLoginScreen
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.screenBorderThickness
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.ExperimentalToolbarApi
 import me.onebone.toolbar.ScrollStrategy
 import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 
+@ExperimentalMaterialApi
 @ExperimentalToolbarApi
 @ExperimentalAnimationApi
 @ExperimentalMaterial3Api
@@ -60,7 +97,6 @@ import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 internal fun AnimatedVisibilityScope.SettingsScreen(
     title: String,
     viewModel: SettingsViewModel,
-    fragmentManager: FragmentManager,
     isDarkTheme: Boolean,
     navigateTo: (route: String) -> Unit,
     popBackStack: () -> Unit
@@ -70,6 +106,11 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
 
     val scaffoldState = rememberCollapsingToolbarScaffoldState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val bottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        animationSpec = ModalSheetDefaults.AnimationSpec,
+        skipHalfExpanded = true
+    )
 
     val showSnackbar = { message: String ->
         scope.launch {
@@ -77,19 +118,16 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
         }
     }
 
-
-    val accountInfoSheetState = createAccountInfoSheet(
-        username = viewModel.username,
-        usingBeautifulHeading = viewModel.settings.beautifulFont,
-        changeUsername = {
-            viewModel.showUsernameEditingDialog = true
-        },
-        signOut = {
-            viewModel.signOut()
-            viewModel.restoreLogin()
-            navigateTo(createRouteToLoginScreen())
+    val openBottomSheet = {
+        scope.launch {
+            delay(50)
+            bottomSheetState.show()
         }
-    )
+    }
+
+    val closeBottomSheet = {
+        scope.launch { bottomSheetState.hide() }
+    }
 
 
 
@@ -108,97 +146,116 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
 
 
 
-    ScrollableTopBarScaffold(
-        state = scaffoldState,
-        scrollStrategy = ScrollStrategy.EnterAlways,
-        topBar = {
-            ScrollableTopBar(
-                title = title,
-                navigationButton = {
-                    ToolbarButton(
-                        icon = Icons.Rounded.ArrowBackIosNew,
-                        contentDescription = "back screen",
-                        onClick = popBackStack
-                    )
-                },
-                actions = {
+    ModalBottomSheetLayout(
+        sheetContent = viewModel.bottomSheetContent,
+        sheetState = bottomSheetState,
+        sheetShape = ModalSheetDefaults.Shape,
+        sheetBackgroundColor = MaterialTheme.colorScheme.surface.animate()
+    ) {
+        ScrollableTopBarScaffold(
+            state = scaffoldState,
+            scrollStrategy = ScrollStrategy.EnterAlways,
+            topBar = {
+                ScrollableTopBar(
+                    title = title,
+                    navigationButton = {
+                        ToolbarButton(
+                            icon = Icons.Rounded.ArrowBackIosNew,
+                            contentDescription = "back screen",
+                            onClick = popBackStack
+                        )
+                    },
+                ) {
                     ToolbarButton(
                         icon = Icons.Outlined.ManageAccounts,
                         contentDescription = "manage accounts",
-                        iconModifier = Modifier.scale(1.2f),
-                        onClick = {
-                            viewModel.showBottomSheet(
-                                fragmentManager = fragmentManager,
-                                bottomSheetState = accountInfoSheetState
+                        iconModifier = Modifier.scale(1.2f)
+                    ) {
+                        viewModel.bottomSheetContent = {
+                            AccountInfoSheetContent(
+                                username = viewModel.username,
+                                usingBeautifulHeading = viewModel.settings.beautifulFont,
+                                changeUsername = {
+                                    closeBottomSheet()
+                                    viewModel.showUsernameEditingDialog = true
+                                },
+                                signOut = {
+                                    closeBottomSheet()
+                                    viewModel.signOut()
+                                    viewModel.restoreLogin()
+                                    navigateTo(createRouteToLoginScreen())
+                                },
+                                onClose = { closeBottomSheet() }
                             )
                         }
-                    )
-                },
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) {
-                Snackbar(
-                    snackbarData = it,
-                    actionOnNewLine = true,
-                    shape = MaterialTheme.shapes.medium,
-                    actionColor = MaterialTheme.colorScheme.primary.animate(),
-                    containerColor = MaterialTheme.colorScheme.onBackground.animate(),
-                    contentColor = MaterialTheme.colorScheme.background.animate()
-                )
-            }
-        },
-        contentBorder = BorderStroke(
-            width = screenBorderThickness,
-            brush = Brush.verticalGradient(
-                0.01f to MaterialTheme.colorScheme.onBackground.animate(),
-                0.08f to MaterialTheme.colorScheme.background.animate()
-            ),
-        ),
-        onRefresh = popBackStack,
-        isPullRefreshEnabled = viewModel.settings.pullToRefresh,
-        pullRefreshIndicator = {
-            Icon(
-                imageVector = Icons.Outlined.ArrowCircleLeft,
-                contentDescription = "return",
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier
-                    .padding(top = 32.dp)
-                    .scale(it)
-            )
-        },
-        colors = ScrollableTopBarScaffoldDefaults.colors(
-            topBarColor = MaterialTheme.colorScheme.background.animate(durationMillis = 400),
-            topBarTitleContentColor = MaterialTheme.colorScheme.onBackground.animate(400),
-            topBarNavigationIconContentColor = MaterialTheme.colorScheme.secondary.animate(400),
-            topBarActionIconContentColor = MaterialTheme.colorScheme.secondary.animate(400),
-            containerColor = MaterialTheme.colorScheme.background.animate()
-        ),
-        contentModifier = Modifier
-            .padding(horizontal = 1.dp)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        Crossfade(
-            targetState = viewModel.viewModelState,
-            animationSpec = tween(durationMillis = 700)
-        ) {
-            when (it) {
-                SettingsViewModel.State.Loading -> {
-                    LoadingInBox(Modifier.padding(32.dp))
+                        openBottomSheet()
+                    }
                 }
-                SettingsViewModel.State.Ready -> {
-                    SettingsContentScreen(
-                        viewModel = viewModel,
-                        isDarkTheme = isDarkTheme,
-                        showFragment = {
-                            viewModel.showBottomSheet(
-                                fragmentManager,
-                                bottomSheetState = this
-                            )
-                        },
-                        showSnackbar = { msg -> showSnackbar(msg) }
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) {
+                    Snackbar(
+                        snackbarData = it,
+                        actionOnNewLine = true,
+                        shape = MaterialTheme.shapes.medium,
+                        actionColor = MaterialTheme.colorScheme.primary.animate(),
+                        containerColor = MaterialTheme.colorScheme.onBackground.animate(),
+                        contentColor = MaterialTheme.colorScheme.background.animate()
                     )
+                }
+            },
+            contentBorder = BorderStroke(
+                width = screenBorderThickness,
+                brush = Brush.verticalGradient(
+                    0.01f to MaterialTheme.colorScheme.onBackground.animate(),
+                    0.08f to MaterialTheme.colorScheme.background.animate()
+                ),
+            ),
+            onRefresh = popBackStack,
+            isPullRefreshEnabled = viewModel.settings.pullToRefresh,
+            pullRefreshIndicator = {
+                Icon(
+                    imageVector = Icons.Outlined.ArrowCircleLeft,
+                    contentDescription = "return",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(top = 32.dp)
+                        .scale(it)
+                )
+            },
+            colors = ScrollableTopBarScaffoldDefaults.colors(
+                topBarColor = MaterialTheme.colorScheme.background.animate(durationMillis = 400),
+                topBarTitleContentColor = MaterialTheme.colorScheme.onBackground.animate(400),
+                topBarNavigationIconContentColor = MaterialTheme.colorScheme.secondary.animate(400),
+                topBarActionIconContentColor = MaterialTheme.colorScheme.secondary.animate(400),
+                containerColor = MaterialTheme.colorScheme.background.animate()
+            ),
+            contentModifier = Modifier
+                .padding(horizontal = 1.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Crossfade(
+                targetState = viewModel.viewModelState,
+                animationSpec = tween(durationMillis = 700)
+            ) {
+                when (it) {
+                    SettingsViewModel.State.Loading -> {
+                        LoadingInBox(Modifier.padding(32.dp))
+                    }
+
+                    SettingsViewModel.State.Ready -> {
+                        SettingsContentScreen(
+                            viewModel = viewModel,
+                            isDarkTheme = isDarkTheme,
+                            showSnackbar = { msg -> showSnackbar(msg) },
+                            openBottomSheet = { content ->
+                                viewModel.bottomSheetContent = content
+                                openBottomSheet()
+                            },
+                            hideBottomSheet = { closeBottomSheet() }
+                        )
+                    }
                 }
             }
         }
@@ -209,11 +266,14 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
 
 
 
+@ExperimentalMaterial3Api
+@ExperimentalMaterialApi
 @Composable
 private fun SettingsContentScreen(
     viewModel: SettingsViewModel,
     isDarkTheme: Boolean,
-    showFragment: BottomSheetState.() -> Unit,
+    openBottomSheet: (content: @Composable ColumnScope.() -> Unit) -> Unit,
+    hideBottomSheet: () -> Unit,
     showSnackbar: (message: String) -> Unit
 ) {
     val context = LocalContext.current
@@ -223,50 +283,48 @@ private fun SettingsContentScreen(
     }
 
 
-    val themeSheet = createThemeSheet(
-        currentDesign = viewModel.settings.colorDesign,
-        updateDesign = {
-            viewModel.updateSettingsProperty(
-                name = Settings::colorDesign.name,
-                value = it,
-                error = ::showError
-            )
-        },
-        showAdditionalContent = viewModel.settings.colorDesign == ColorDesign.Auto
-    ) {
-        Divider()
-
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Time(
-                time = viewModel.settings.sunriseTime,
-                title = stringResource(R.string.sunrise_time),
-                modifier = Modifier.weight(1f)
-            ) {
+    val themeSheetContent: @Composable (ColumnScope.() -> Unit) = {
+        ThemeSheetContent(
+            currentDesign = viewModel.settings.colorDesign,
+            updateDesign = {
                 viewModel.updateSettingsProperty(
-                    name = Settings::sunriseTime.name,
+                    name = Settings::colorDesign.name,
                     value = it,
                     error = ::showError
                 )
-            }
+            },
+            onClose = hideBottomSheet,
+            showAdditionalContent = viewModel.settings.colorDesign == ColorDesign.Auto
+        ) {
+            Divider()
 
-            Time(
-                time = viewModel.settings.sunsetTime,
-                title = stringResource(R.string.sunset_time),
-                modifier = Modifier.weight(1f)
-            ) {
-                viewModel.updateSettingsProperty(
-                    name = Settings::sunsetTime.name,
-                    value = it,
-                    error = ::showError
-                )
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Time(
+                    time = viewModel.settings.sunriseTime,
+                    title = stringResource(R.string.sunrise_time),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    viewModel.updateSettingsProperty(
+                        name = Settings::sunriseTime.name,
+                        value = it,
+                        error = ::showError
+                    )
+                }
+
+                Time(
+                    time = viewModel.settings.sunsetTime,
+                    title = stringResource(R.string.sunset_time),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    viewModel.updateSettingsProperty(
+                        name = Settings::sunsetTime.name,
+                        value = it,
+                        error = ::showError
+                    )
+                }
             }
         }
     }
-
-
-    val feedbackSheet = feedbackBottomState(
-        beautifulDesign = viewModel.settings.beautifulFont
-    )
 
 
 
@@ -284,7 +342,10 @@ private fun SettingsContentScreen(
                     style = SpanStyle(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.7.sp,
-                        shadow = Shadow(color = MaterialTheme.colorScheme.secondary.animate()),
+                        shadow = Shadow(
+                            color = MaterialTheme.colorScheme.primary.animate(),
+                            blurRadius = 1f
+                        ),
                         fontSynthesis = FontSynthesis.Weight
                     ),
                 ) {
@@ -292,7 +353,7 @@ private fun SettingsContentScreen(
                         text = viewModel.getThemeText(
                             currentTheme = viewModel.settings.colorDesign,
                             isDark = isDarkTheme,
-                            context
+                            context = context
                         )
                     )
                 }
@@ -305,7 +366,7 @@ private fun SettingsContentScreen(
                 viewModel.switchThemeTextLineCount = it.lineCount
             },
             modifier = Modifier
-                .clickable { themeSheet.showFragment() }
+                .clickable { openBottomSheet(themeSheetContent) }
                 .padding(horizontal = 16.dp, vertical = 20.dp)
                 .fillMaxWidth()
         )
@@ -361,7 +422,14 @@ private fun SettingsContentScreen(
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Start,
             modifier = Modifier
-                .clickable { feedbackSheet.showFragment() }
+                .clickable {
+                    openBottomSheet {
+                        FeedbackSheetContent(
+                            beautifulDesign = viewModel.settings.beautifulFont,
+                            onClose = hideBottomSheet
+                        )
+                    }
+                }
                 .padding(16.dp)
                 .fillMaxWidth()
         )
@@ -420,20 +488,21 @@ private fun SwitchItem(
 }
 
 
+@ExperimentalMaterial3Api
 @Composable
-private fun createThemeSheet(
+private fun ColumnScope.ThemeSheetContent(
     currentDesign: ColorDesign,
     updateDesign: (newDesign: ColorDesign) -> Unit,
+    onClose: () -> Unit,
     showAdditionalContent: Boolean,
     additionalContent: @Composable (ColumnScope.() -> Unit),
-) = BottomSheetState { fragment ->
-
+) = BottomSheetContent {
     ColorDesign.values().forEach { design ->
         TextItem(
             text = stringResource(design.titleRes),
             selected = design == currentDesign,
             onClick = {
-                if (design != ColorDesign.Auto) fragment.dismiss()
+                if (design != ColorDesign.Auto) onClose()
                 updateDesign(design)
             }
         )
@@ -464,54 +533,56 @@ private fun createThemeSheet(
 
 
 
+@ExperimentalMaterial3Api
 @Composable
-private fun createAccountInfoSheet(
+private fun ColumnScope.AccountInfoSheetContent(
     username: String,
     usingBeautifulHeading: Boolean,
     changeUsername: () -> Unit,
-    signOut: () -> Unit
-) =
-    BottomSheetState(
-        title = buildAnnotatedString {
-            if (username.isBlank()) return@buildAnnotatedString
+    signOut: () -> Unit,
+    onClose: () -> Unit
+) = BottomSheetContent(
+    title = buildAnnotatedString {
+        if (username.isBlank()) return@buildAnnotatedString
 
-            append(stringResource(R.string.current_user))
-            append(" ")
+        append(stringResource(R.string.current_user))
+        append(" ")
 
-            withStyle(
-                SpanStyle(
-                    fontWeight = FontWeight.Bold,
-                    shadow = Shadow(color = MaterialTheme.colorScheme.secondary.animate()),
-                    letterSpacing = 3.sp,
+        withStyle(
+            SpanStyle(
+                fontWeight = FontWeight.Bold,
+                shadow = Shadow(
+                    color = MaterialTheme.colorScheme.primary.animate(),
+                    blurRadius = 1f
                 ),
-            ) {
-                append(username)
-            }
-        },
-        beautifulDesign = usingBeautifulHeading,
-    ) { fragment ->
-        IconTextItem(
-            text = stringResource(R.string.edit_username),
-            icon = Icons.Filled.DriveFileRenameOutline,
-            iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
-            modifier = Modifier.padding(vertical = 16.dp),
-            onClick = {
-                fragment.dismiss()
-                changeUsername()
-            }
-        )
-
-        IconTextItem(
-            text = stringResource(R.string.logout),
-            icon = Icons.Rounded.Logout,
-            iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
-            modifier = Modifier.padding(vertical = 16.dp),
-            onClick = {
-                fragment.dismiss()
-                signOut()
-            }
-        )
+                letterSpacing = 3.sp,
+            ),
+        ) {
+            append(username)
+        }
+    },
+    beautifulDesign = usingBeautifulHeading,
+) {
+    IconTextItem(
+        text = stringResource(R.string.edit_username),
+        icon = Icons.Filled.DriveFileRenameOutline,
+        iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
+        modifier = Modifier.padding(vertical = 16.dp)
+    ) {
+        onClose()
+        changeUsername()
     }
+
+    IconTextItem(
+        text = stringResource(R.string.logout),
+        icon = Icons.Rounded.Logout,
+        iconTintColor = MaterialTheme.colorScheme.secondary.animate(),
+        modifier = Modifier.padding(vertical = 16.dp)
+    ) {
+        onClose()
+        signOut()
+    }
+}
 
 
 

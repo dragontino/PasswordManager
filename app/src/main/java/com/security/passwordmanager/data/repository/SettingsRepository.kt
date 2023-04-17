@@ -42,7 +42,7 @@ class SettingsRepository(
             val userId = currentUser?.uid
 
             if (userId == null) {
-                resultAction(Result.Error(Exception(context.getString(R.string.cannot_change_settings))))
+                resultAction(Result.Error(Exception(context.getString(R.string.user_not_authenticated_exception))))
                 return@withContext
             }
 
@@ -68,7 +68,7 @@ class SettingsRepository(
         val uid = currentUser?.uid
 
         if (uid == null) {
-            resultAction(Result.Error(Exception(context.getString(R.string.cannot_change_settings))))
+            resultAction(Result.Error(Exception(context.getString(R.string.user_not_authenticated_exception))))
             return@withContext
         }
 
@@ -93,7 +93,7 @@ class SettingsRepository(
             awaitClose {
                 trySendBlocking(
                     Result.Error(
-                        UserNotAuthenticatedException(context.getString(R.string.cannot_change_settings)),
+                        UserNotAuthenticatedException(context.getString(R.string.user_not_authenticated_exception)),
                     ),
                 )
             }

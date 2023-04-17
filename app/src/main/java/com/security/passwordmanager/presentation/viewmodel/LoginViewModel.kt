@@ -72,13 +72,14 @@ class LoginViewModel(
 
     init {
         viewModelScope.launch {
-
             startLoadingTime = System.currentTimeMillis()
             delay(loadingTimeMillis)
             startLoadingTime = -1
             viewModelState = ViewModelState.Ready
             entryState = if (hasEmailInPreferences()) EntryState.SignIn else EntryState.Undefined
         }
+
+
     }
 
     internal val loadingProgress: Float get() = when {
@@ -133,7 +134,7 @@ class LoginViewModel(
                         is Result.Error -> {
                             viewModelState = ViewModelState.Ready
                             entryState.message = ""
-                            result.exception.localizedMessage?.let { Log.e(TAG, it) }
+                            Log.e(TAG, result.exception.localizedMessage, result.exception)
                             afterBlock(result, entryState)
                         }
                         is Result.Success -> {

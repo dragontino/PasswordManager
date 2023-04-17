@@ -49,10 +49,7 @@ data class Website(
         name = name,
         logoUrl = logoUrl,
         accounts = accounts
-            .toSortedMap { a1, a2 ->
-                println("a1 = $a1, a2 = $a2")
-                a1.toUID().compareTo(a2.toUID())
-            }
+            .toSortedMap { a1, a2 -> a1.toUID().compareTo(a2.toUID()) }
             .map { it.value.convertToComposable(it.key.toUID()) }
     )
 

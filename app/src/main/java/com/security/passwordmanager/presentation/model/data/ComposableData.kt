@@ -40,12 +40,6 @@ sealed interface ComposableData {
      * @param newValue новое значение свойства
      */
     fun <T : Any> updateValue(property: KMutableProperty0<T>, newValue: T) {
-        val a = updatedProperties
-            .toList()
-            .joinToString("\n") { "{ key = ${it.first}, value = ${it.second} }" }
-
-        println("updatedProperties = $a")
-
         val previousValue = property.get()
         property.set(newValue)
 
@@ -63,3 +57,7 @@ sealed interface ComposableData {
         }
     }
 }
+
+
+operator fun <T> SnapshotStateMap<String, Pair<String, String>>.contains(property: KMutableProperty0<T>) =
+    this.contains(property.name)

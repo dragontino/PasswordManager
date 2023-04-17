@@ -2,27 +2,82 @@ package com.security.passwordmanager.presentation.view.screens
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ArrowCircleLeft
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowBackIos
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.rememberModalBottomSheetState
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +89,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -41,15 +97,25 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.security.passwordmanager.*
+import com.security.passwordmanager.LoadingInBox
 import com.security.passwordmanager.R
+import com.security.passwordmanager.animate
 import com.security.passwordmanager.data.Result
 import com.security.passwordmanager.data.model.settings.Settings
+import com.security.passwordmanager.isScrollingUp
+import com.security.passwordmanager.keyboardAsState
 import com.security.passwordmanager.presentation.model.data.ComposableAccount
-import com.security.passwordmanager.presentation.view.composablelements.*
+import com.security.passwordmanager.presentation.model.data.contains
+import com.security.passwordmanager.presentation.view.composablelements.EditableDataTextField
+import com.security.passwordmanager.presentation.view.composablelements.ExitDialog
+import com.security.passwordmanager.presentation.view.composablelements.ScrollableTopBar
+import com.security.passwordmanager.presentation.view.composablelements.ScrollableTopBarScaffold
+import com.security.passwordmanager.presentation.view.composablelements.ToolbarButton
+import com.security.passwordmanager.presentation.view.composablelements.ToolbarButtonDefaults
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
+import com.security.passwordmanager.presentation.view.navigation.ModalSheetDefaults
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.CopyItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.DeleteItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.EditItem
@@ -84,9 +150,10 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
     val isKeyboardOpen by keyboardAsState()
     val focusManager = LocalFocusManager.current
     
-    val bottomState = rememberModalBottomSheetState(
+    val bottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
-        animationSpec = BottomAnimationSpec
+        animationSpec = ModalSheetDefaults.AnimationSpec,
+        skipHalfExpanded = true
     )
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -96,8 +163,13 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
         scope.launch { snackbarHostState.showSnackbar(message) }
     }
 
-    val hideBottomSheet = {
-        scope.launch { bottomState.hide() }
+    val openBottomSheet = { position: Int ->
+        viewModel.currentAccountPosition = position
+        scope.launch { bottomSheetState.show() }
+    }
+
+    val closeBottomSheet = {
+        scope.launch { bottomSheetState.hide() }
     }
 
 
@@ -157,16 +229,17 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
 
 
     ModalBottomSheetLayout(
-        sheetState = bottomState,
+        sheetState = bottomSheetState,
         sheetContent = {
             BottomSheetContent(
                 title = viewModel.currentAccount.name,
-                beautifulDesign = true
+                beautifulDesign = settingsViewModel.settings.beautifulFont
             ) {
-                EditItem(text = viewModel.getEditItemName(context)) {
+                Spacer(modifier = Modifier.size(8.dp))
+                EditItem(text = viewModel.getBottomSheetEditName(context)) {
                     viewModel.currentAccount.isNameRenaming =
                         !viewModel.currentAccount.isNameRenaming
-                    hideBottomSheet()
+                    closeBottomSheet()
                 }
 
                 CopyItem(text = stringResource(R.string.copy_info)) {
@@ -175,15 +248,15 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                         data = viewModel.currentAccount.convertToDao(),
                         result = { showSnackbar(it) }
                     )
-                    hideBottomSheet()
+                    closeBottomSheet()
                 }
 
                 DeleteItem(text = stringResource(R.string.delete_account)) {
-                    hideBottomSheet()
-                    if (viewModel.website.accounts.size != 1) {
+                    closeBottomSheet()
+
+                    if (viewModel.website.accounts.size > 1) {
                         viewModel.website.accounts.remove(viewModel.currentAccount)
-                    }
-                    else if (id.isNotBlank()) {
+                    } else if (id.isNotBlank()) {
                         viewModel.deleteWebsite(
                             R.string.deletion_last_account_confirmation
                         ) { success ->
@@ -194,13 +267,12 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                                 )
                             }
                         }
-                    }
-                    else popBackStack()
+                    } else popBackStack()
                 }
             }
         },
-        sheetShape = MaterialTheme.shapes.large,
-        sheetBackgroundColor = MaterialTheme.colorScheme.background.animate()
+        sheetShape = ModalSheetDefaults.Shape,
+        sheetBackgroundColor = MaterialTheme.colorScheme.surface.animate()
     ) {
         ScrollableTopBarScaffold(
             topBar = {
@@ -356,9 +428,7 @@ internal fun AnimatedVisibilityScope.WebsiteScreen(
                                     }
                                 }
                             },
-                            openBottomSheet = {
-                                scope.launch { viewModel.openBottomSheet(bottomState, it) }
-                            },
+                            openBottomSheet = { openBottomSheet(it) },
                             showSnackbar = { showSnackbar(it) }
                         )
                     }
@@ -402,14 +472,33 @@ private fun WebsiteContentScreen(
                             viewModel.website.apply {
                                 updateValue(::address, it)
                                 updateAddressError(context)
+
+                                viewModel.needUpdateName = ::address in updatedProperties
                             }
                         },
-                        hint = stringResource(R.string.url_address),
+                        label = stringResource(R.string.url_address),
                         keyboardType = KeyboardType.Uri,
-                        isError = viewModel.showErrors &&
-                                viewModel
-                                    .website.errorAddressMessage.isNotBlank(),
-                        errorMessage = viewModel.website.errorAddressMessage
+                        error = viewModel.showErrors &&
+                                viewModel.website.errorAddressMessage.isNotBlank(),
+                        errorMessage = viewModel.website.errorAddressMessage,
+                        onImeActionClick = {
+                            with (viewModel) {
+                                if (needUpdateName && settings.autofill) {
+                                    getDomainNameByUrl(context) { result ->
+                                        needUpdateName = false
+                                        when (result) {
+                                            is Result.Error -> result.exception
+                                                .localizedMessage
+                                                ?.let { showSnackbar(it) }
+                                            is Result.Success -> {
+                                                if (settings.autofill) website.name = result.data
+                                            }
+                                            else -> {}
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     )
                 },
                 secondItem = {
@@ -422,39 +511,13 @@ private fun WebsiteContentScreen(
                                     updateNameError(context)
                                 }
                             },
-                            hint = stringResource(R.string.name_website),
-                            isError = viewModel.showErrors && viewModel
+                            readOnly = settings.autofill && viewModel.needUpdateName,
+                            label = stringResource(R.string.name_website),
+                            error = viewModel.showErrors && viewModel
                                 .website
                                 .errorNameMessage
                                 .isNotBlank(),
                             errorMessage = context.getString(R.string.empty_website_name),
-                            whenFocused = {
-                                if (
-                                    settings.autofill
-                                    &&
-                                    viewModel
-                                        .website
-                                        .name
-                                        .isEmpty()
-                                    &&
-                                    viewModel
-                                        .website
-                                        .address
-                                        .isNotEmpty()
-                                ) {
-                                    viewModel.getWebsiteDomainName(context) {
-                                        when (it) {
-                                            is Result.Success ->
-                                                viewModel.website.name = it.data
-                                            is Result.Error ->
-                                                it.exception.localizedMessage?.let { msg ->
-                                                    showSnackbar(msg)
-                                                }
-                                            is Result.Loading -> {}
-                                        }
-                                    }
-                                }
-                            },
                             modifier = Modifier.padding(bottom = 0.dp)
                         )
 
@@ -466,9 +529,7 @@ private fun WebsiteContentScreen(
                             onCheckedChange = {
                                 updateSettingsProperty(Settings::autofill.name, it)
                             },
-                            modifier = Modifier
-                                .padding(top = 0.dp)
-                                .padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = 8.dp)
                         )
                     }
                 }
@@ -570,14 +631,20 @@ private fun CheckboxWithText(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
         modifier = modifier
+            .toggleable(
+                value = isChecked,
+                role = Role.Checkbox,
+                onValueChange = onCheckedChange
+            )
             .clip(MaterialTheme.shapes.small)
-            .clickable { onCheckedChange(!isChecked) }
+//            .clickable { onCheckedChange(!isChecked) }
             .background(MaterialTheme.colorScheme.background.animate())
+            .padding(16.dp)
             .fillMaxWidth()
     ) {
         Checkbox(
             checked = isChecked,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = null,
             colors = CheckboxDefaults.colors(
                 checkedColor = MaterialTheme.colorScheme.primary.animate(),
                 checkmarkColor = MaterialTheme.colorScheme.onPrimary.animate(),
@@ -621,8 +688,9 @@ private fun Account(
         ),
         modifier = modifier.padding(16.dp)
     ) {
+        Spacer(modifier = Modifier.height(8.dp))
         AccountHeader(
-            heading = account.name.ifBlank {
+            text = account.name.ifBlank {
                 if (account.isNameRenaming) "" else defaultNameAccount
             },
             updateHeading = {
@@ -638,6 +706,8 @@ private fun Account(
             }
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         EditableDataTextField(
             text = account.login,
             onTextChange = {
@@ -649,8 +719,8 @@ private fun Account(
                     }
                 }
             },
-            hint = stringResource(R.string.login),
-            isError = viewModel.showErrors && account.errorLoginMessage.isNotBlank(),
+            label = stringResource(R.string.login),
+            error = viewModel.showErrors && account.errorLoginMessage.isNotBlank(),
             errorMessage = account.errorLoginMessage,
             trailingActions = {
                 if (account.login.isNotBlank()) {
@@ -674,14 +744,14 @@ private fun Account(
                     }
                 }
             },
-            hint = stringResource(R.string.password),
+            label = stringResource(R.string.password),
             keyboardType = KeyboardType.Password,
             visualTransformation = if (account.passwordIsVisible) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
             },
-            isError = viewModel.showErrors && account.errorPasswordMessage.isNotBlank(),
+            error = viewModel.showErrors && account.errorPasswordMessage.isNotBlank(),
             errorMessage = account.errorPasswordMessage,
             trailingActions = {
                 VisibilityIconButton(visible = account.passwordIsVisible) {
@@ -705,7 +775,7 @@ private fun Account(
                     updateValue(::comment, it)
                 }
             },
-            hint = stringResource(R.string.comment),
+            label = stringResource(R.string.comment),
             imeAction = if (isLast) ImeAction.Done else ImeAction.Next,
             trailingActions = {
                 if (account.comment.isNotBlank()) {
@@ -715,7 +785,7 @@ private fun Account(
                 }
             }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -724,72 +794,81 @@ private fun Account(
 @ExperimentalMaterial3Api
 @Composable
 private fun AccountHeader(
-    heading: String,
+    text: String,
     enabled: Boolean,
     keyboardAction: KeyboardActionScope.() -> Unit,
     updateHeading: (String) -> Unit,
     openBottomSheet: () -> Unit
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(top = 10.dp)
-            .fillMaxWidth()
-    ) {
-        TextField(
-            value = heading,
-            onValueChange = updateHeading,
-            placeholder = {
-                Text(
-                    text = stringResource(R.string.account_name_placeholder),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                textAlign = TextAlign.Center
-            ),
-            enabled = enabled,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(onDone = keyboardAction),
-            modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .weight(4f)
-                .fillMaxWidth(),
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground.animate(),
-                disabledTextColor = DarkerGray,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary.animate(),
-                disabledIndicatorColor = Color.Transparent,
-                focusedPlaceholderColor = DarkerGray,
-            ),
-        )
-
-        IconButton(
-            onClick = openBottomSheet,
-            colors = IconButtonDefaults.iconButtonColors(
-                contentColor = MaterialTheme.colorScheme.onBackground.animate(),
-                containerColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .padding(end = 8.dp, start = 4.dp)
-                .fillMaxHeight()
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.rename_data),
-                modifier = Modifier.scale(1.3f)
+    TextField(
+        value = text,
+        onValueChange = updateHeading,
+        placeholder = {
+            Text(
+                text = stringResource(R.string.account_name_placeholder),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.fillMaxWidth()
             )
-        }
-    }
+        },
+        trailingIcon = {
+            IconButton(
+                onClick = openBottomSheet,
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onBackground.animate(),
+                    containerColor = Color.Transparent
+                ),
+                modifier = Modifier.fillMaxHeight()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.rename_data),
+                    modifier = Modifier.scale(1.3f)
+                )
+            }
+        },
+        textStyle = MaterialTheme.typography.bodyMedium.copy(
+            textAlign = TextAlign.Center
+        ),
+        enabled = enabled,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Done,
+        ),
+        keyboardActions = KeyboardActions(onDone = keyboardAction),
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground.animate(),
+            disabledTextColor = DarkerGray,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            focusedPlaceholderColor = DarkerGray,
+        ),
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .fillMaxWidth(),
+    )
+//
+//        IconButton(
+//            onClick = openBottomSheet,
+//            colors = IconButtonDefaults.iconButtonColors(
+//                contentColor = MaterialTheme.colorScheme.onBackground.animate(),
+//                containerColor = Color.Transparent
+//            ),
+//            modifier = Modifier.fillMaxHeight()
+//        ) {
+//            Icon(
+//                imageVector = Icons.Default.MoreVert,
+//                contentDescription = stringResource(R.string.rename_data),
+//                modifier = Modifier.scale(1.3f)
+//            )
+//        }
+//
+//        Spacer(modifier = Modifier.width(8.dp))
 }
 
 

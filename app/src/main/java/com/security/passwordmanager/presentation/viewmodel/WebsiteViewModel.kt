@@ -7,9 +7,11 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.R
@@ -20,9 +22,9 @@ import com.security.passwordmanager.data.repository.DataRepository
 import com.security.passwordmanager.presentation.model.data.ChildStatus
 import com.security.passwordmanager.presentation.model.data.ComposableAccount
 import com.security.passwordmanager.presentation.model.data.ComposableWebsite
+import com.security.passwordmanager.presentation.model.data.contains
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.composablelements.DeleteDialog
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -56,7 +58,10 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
     var dialogContent: @Composable () -> Unit by mutableStateOf({})
         private set
 
+
     var showErrors by mutableStateOf(false)
+
+    var needUpdateName by mutableStateOf(false)
 
 
     val isInEdit get() =
@@ -64,14 +69,13 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
                 website.accounts.any { it.updatedProperties.isNotEmpty() }
 
 
-    fun getEditItemName(context: Context) = if (currentAccount.isNameRenaming) {
-        context.getString(R.string.cancel_renaming_data)
-    } else {
-        context.getString(R.string.rename_data)
+    fun getBottomSheetEditName(context: Context) = when {
+        currentAccount.isNameRenaming -> context.getString(R.string.cancel_renaming_data)
+        else -> context.getString(R.string.rename_data)
     }
 
 
-    private var currentAccountPosition by mutableStateOf(-1)
+    internal var currentAccountPosition by mutableStateOf(-1)
 
     val currentAccount get() = website.accounts
         .getOrElse(currentAccountPosition) { ComposableAccount() }
@@ -107,32 +111,38 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
         showDialog = false
     }
 
-    @ExperimentalMaterialApi
-    suspend fun openBottomSheet(sheetState: ModalBottomSheetState, position: Int) {
-        currentAccountPosition = position
-        sheetState.show()
-    }
 
 
+    fun getDomainNameByUrl(context: Context, resultAction: (Result<String>) -> Unit) {
+        if (website.name.isNotBlank()) return
 
-    fun getWebsiteDomainName(context: Context, resultBlock: (Result<String>) -> Unit) {
         val url = website.address
         if (url.isBlank()) {
-            resultBlock(Result.Error(Exception(context.getString(R.string.empty_url))))
+            resultAction(
+                Result.Error(
+                    Exception(
+                        context.getString(R.string.empty_url))
+                    ),
+                )
             return
         }
 
-        viewModelState = DataViewModelState.Loading
          viewModelScope.launch {
-             resultBlock(repository.getWebsiteDomainName(url, context))
-             viewModelState = DataViewModelState.Ready
+             when (val domainNameResult = repository.getWebsiteDomainName(url)) {
+                 is Result.Success -> resultAction(domainNameResult)
+                 is Result.Error -> {
+                     Log.w(TAG, domainNameResult.exception)
+                     resultAction(domainNameResult)
+                 }
+                 is Result.Loading -> {}
+             }
          }
     }
 
 
     fun addWebsite(
         composableWebsite: ComposableWebsite = this.website,
-        result: (success: Boolean) -> Unit = {}
+        result: suspend (success: Boolean) -> Unit = {}
     ) {
         viewModelState = DataViewModelState.Loading
 
@@ -145,8 +155,8 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
                 updateWebsite(websiteId = id!!, website = composableWebsite, result)
                 return@inspectData
             }
-            
-            
+
+
             viewModelScope.launch {
                 val resultUrl = repository.getWebsiteLogo(website.address)
 
@@ -156,13 +166,11 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
                     Log.w(TAG, resultUrl.exception)
                 }
 
-                repository.addData(data = website) {
+                addData(data = website) {
                     if (it is Result.Success) {
                         this@WebsiteViewModel.id = it.data
                     }
-                    viewModelScope.launch(Dispatchers.Main) {
-                        result(it is Result.Success && it !is Result.Loading)
-                    }
+                    if (it !is Result.Loading) result(it is Result.Success)
                     viewModelState = DataViewModelState.Ready
                 }
             }
@@ -173,7 +181,7 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
     fun updateWebsite(
         websiteId: String = this.id,
         website: ComposableWebsite = this.website,
-        result: (success: Boolean) -> Unit = {}
+        result: suspend (success: Boolean) -> Unit = {}
     ) {
         viewModelState = DataViewModelState.Loading
 
@@ -211,7 +219,7 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
             .toMap()
 
         viewModelScope.launch {
-            if (website::address.name in website.updatedProperties) {
+            if (website::address in website.updatedProperties) {
                 when (val logoUrlResult = repository.getWebsiteLogo(website.address)) {
                     is Result.Success ->
                         dataUpdates[website::logoUrl.name] = logoUrlResult.data
@@ -223,7 +231,7 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
                 }
             }
 
-            repository.updateData(
+            updateData(
                 id = websiteId,
                 dataType = DataType.Website,
                 dataUpdates = dataUpdates + accountsUpdates,
@@ -238,58 +246,11 @@ class WebsiteViewModel(repository: DataRepository) : DataViewModel(repository) {
                     }
                 },
                 resultAction = {
-                    if (it != Result.Loading) viewModelScope.launch(Dispatchers.Main) {
-                        result(it is Result.Success)
-                    }
+                    if (it != Result.Loading) result(it is Result.Success)
                     viewModelState = DataViewModelState.Ready
                 }
             )
         }
-
-
-//        val accountsInfo = website.accounts.info
-//
-//        println("info = $accountsInfo")
-//
-//        val accountsUpdates = accountsInfo.flatMap { (id, status) ->
-//            val accountPath = "${website::accounts.name}/$id"
-//            val composableAccount = website.accounts.find { it.uuid == id }
-//
-//            when (status) {
-//                ChildStatus.Created -> listOf(accountPath to composableAccount?.convertToDao())
-//                ChildStatus.Deleted -> listOf(accountPath to null)
-//                ChildStatus.Updated -> composableAccount
-//                    ?.updatedProperties
-//                    ?.map { (property, changes) ->
-//                        "$accountPath/$property" to changes.second
-//                    }
-//                    ?: listOf()
-//            }
-//        }.toMap()
-
-//        val accountsUpdates = when {
-//            accountsInfo.all { it.value == ChildStatus.Updated } -> accountsInfo.flatMap {
-//                val position = website.accounts
-//                    .indexOfFirst { it.uuid == id }
-//                    .coerceAtLeast(0)
-//                val accountPath = "${website::accounts.name}/$position"
-//
-//                website.accounts[position]
-//                    .updatedProperties
-//                    .map { (property, changes) ->
-//                        "$accountPath/$property" to changes.second
-//                    }
-//            }
-//            else -> {
-//                accountsInfo
-//                    .filter { it.value != ChildStatus.Deleted }
-//                    .toList()
-//                    .mapIndexed { index, pair ->
-//                        val account = website.accounts.find { it.uuid == pair.first }
-//                        "${website::accounts.name}/$index" to account?.convertToDao()
-//                    }
-//            }
-//        }.toMap()
     }
 
 
