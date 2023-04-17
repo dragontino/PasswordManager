@@ -1,5 +1,6 @@
 package com.security.passwordmanager.presentation.view.navigation
 
+import android.content.res.Configuration
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -182,17 +183,30 @@ fun ColumnScope.BottomSheetContent(
     header: HeadingInterface = Header(),
     bodyContent: @Composable (ColumnScope.() -> Unit),
 ) {
-    if (header.isEmpty()) {
-        Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            BottomSheetDefaults.DragHandle()
-        }
-    } else {
-        BottomSheetHeader(header)
-        Spacer(modifier = Modifier.size(8.dp))
+    val configuration = LocalConfiguration.current
+
+    val scrollModifier = when (configuration.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> Modifier.verticalScroll(rememberScrollState())
+        else -> Modifier
     }
 
-    bodyContent()
-    Spacer(modifier = Modifier.size(8.dp))
+    Column(
+        modifier = Modifier
+            .then(scrollModifier)
+            .align(Alignment.CenterHorizontally)
+    ) {
+        if (header.isEmpty()) {
+            Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                BottomSheetDefaults.DragHandle()
+            }
+        } else {
+            BottomSheetHeader(header)
+            Spacer(modifier = Modifier.size(8.dp))
+        }
+
+        bodyContent()
+        Spacer(modifier = Modifier.size(8.dp))
+    }
 }
 
 

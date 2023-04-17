@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Password Manager</string>
     <string name="main_subtitle">by Dragontino</string>
-    <string name="app_version">Версия 6.2.0 от 16 апреля 2023</string>
+    <string name="app_version">Версия 6.3.0 от 17 апреля 2023</string>
     <string name="nav_header_desc">Navigation header</string>
 
     <string name="copy_text_successful">Скопировано в буфер обмена</string>
@@ -9,7 +9,7 @@
     <string name="open">Открыть</string>
     <string name="close">Закрыть</string>
     <string name="hide">Скрыть</string>
-    <string name="close_app">Нажмите ещё раз, если хотите выйти из приложения</string>
+    <string name="close_app">Для выхода из приложения нажмите ещё раз</string>
 
 
 
@@ -147,7 +147,8 @@
 
 <!--  Диалоговые окна  -->
     <string name="save">Сохранить</string>
-    <string name="cancel">Отменить</string>
+    <string name="cancel_action">Отменить</string>
+    <string name="cancel">Отмена</string>
     <string name="do_not_save">Не сохранять</string>
     <string name="unsaved_data">У вас есть несохранённые данные. Сохранить?</string>
     <string name="confirm_delete">Подтверждение удаления</string>

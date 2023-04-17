@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,9 +23,7 @@ import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
 import com.security.passwordmanager.presentation.view.composablelements.TimePickerDialog
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
-import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.text.SimpleDateFormat
-import java.time.LocalTime
 import java.util.*
 
 
@@ -62,14 +61,10 @@ fun Calendar.toTime(): Time {
 }
 
 
-
-fun Time.toLocalTime(): LocalTime =
-    LocalTime.of(hours, minutes)
-
-
-
-fun LocalTime.toTime(): Time =
+fun TimePickerState.toTime(): Time =
     Time(hours = hour, minutes = minute)
+
+
 
 
 fun Time(timeString: String): Time {
@@ -95,11 +90,19 @@ fun RowScope.Time(
     modifier: Modifier = Modifier,
     onTimeChange: (Time) -> Unit
 ) {
-    val dialogState = rememberMaterialDialogState()
-    val timeString = time.toString()
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
 
-    // TODO: 31.10.2022 переделать на mt timePicker
-    TimePickerDialog(dialogState, time, title, onTimeChange)
+    if (showTimePicker) {
+        TimePickerDialog(
+            time = time,
+            title = title,
+            onConfirm = { newTime ->
+                onTimeChange(newTime)
+                showTimePicker = false
+            },
+            onDismiss = { showTimePicker = false }
+        )
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -121,7 +124,7 @@ fun RowScope.Time(
         Row(
             modifier = Modifier
                 .clip(MaterialTheme.shapes.medium)
-                .clickable { dialogState.show() }
+                .clickable { showTimePicker = true }
                 .border(
                     width = 1.2.dp,
                     brush = Brush.linearGradient(
@@ -134,6 +137,8 @@ fun RowScope.Time(
                     shape = MaterialTheme.shapes.medium
                 )
         ) {
+            val timeString = time.toString()
+
             repeat(timeString.length) { index ->
                 Box(
                     contentAlignment = Alignment.Center,
@@ -155,39 +160,6 @@ fun RowScope.Time(
             }
         }
     }
-
-    
-//    OutlinedButton(
-//        onClick = dialogState::show,
-//        border = BorderStroke(
-//            width = 1.2.dp,
-//            brush = Brush.horizontalGradient(
-//                listOf(
-//                    MaterialTheme.colorScheme.primary,
-//                    MaterialTheme.colorScheme.secondary,
-//                    MaterialTheme.colorScheme.primaryContainer
-//                )
-//            )
-//        ),
-//        shape = MaterialTheme.shapes.medium,
-//        colors = ButtonDefaults.outlinedButtonColors(
-//            containerColor = Color.Transparent,
-//            contentColor = MaterialTheme.colorScheme.onBackground.animate(),
-//            disabledContentColor = MaterialTheme.colorScheme
-//                .onBackground
-//                .copy(alpha = 0.7f)
-//                .animate()
-//        ),
-//        modifier = modifier
-//            .padding(16.dp)
-//            .align(Alignment.CenterVertically)
-//    ) {
-//        Text(
-//            text = time.toString(),
-//            style = MaterialTheme.typography.bodyMedium,
-//            textAlign = TextAlign.Center,
-//        )
-//    }
 }
 
 

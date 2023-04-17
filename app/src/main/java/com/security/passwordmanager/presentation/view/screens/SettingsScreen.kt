@@ -1,6 +1,7 @@
 package com.security.passwordmanager.presentation.view.screens
 
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.Crossfade
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
@@ -53,6 +55,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontSynthesis
@@ -142,6 +145,15 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
             },
             onDismiss = viewModel::dismissChangingUsernameInDialog
         )
+    }
+
+
+
+    BackHandler {
+        when {
+            bottomSheetState.isVisible -> closeBottomSheet()
+            else -> popBackStack()
+        }
     }
 
 
@@ -241,7 +253,7 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
             ) {
                 when (it) {
                     SettingsViewModel.State.Loading -> {
-                        LoadingInBox(Modifier.padding(32.dp))
+                        LoadingInBox(Modifier.padding(40.dp))
                     }
 
                     SettingsViewModel.State.Ready -> {
@@ -344,7 +356,7 @@ private fun SettingsContentScreen(
                         letterSpacing = 1.7.sp,
                         shadow = Shadow(
                             color = MaterialTheme.colorScheme.primary.animate(),
-                            blurRadius = 1f
+                            blurRadius = 0.4f
                         ),
                         fontSynthesis = FontSynthesis.Weight
                     ),
@@ -452,7 +464,11 @@ private fun SwitchItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background.animate())
-            .clickable { onClick(!isChecked) }
+            .toggleable(
+                value = isChecked,
+                role = Role.Switch,
+                onValueChange = onClick
+            )
             .padding(16.dp)
             .fillMaxWidth()
     ) {
@@ -474,7 +490,7 @@ private fun SwitchItem(
         
         Switch(
             checked = isChecked,
-            onCheckedChange = onClick,
+            onCheckedChange = null,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.onPrimary.animate(),
                 checkedTrackColor = MaterialTheme.colorScheme.primary.animate(),
@@ -553,7 +569,7 @@ private fun ColumnScope.AccountInfoSheetContent(
                 fontWeight = FontWeight.Bold,
                 shadow = Shadow(
                     color = MaterialTheme.colorScheme.primary.animate(),
-                    blurRadius = 1f
+                    blurRadius = 0.6f
                 ),
                 letterSpacing = 3.sp,
             ),
