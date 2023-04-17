@@ -87,6 +87,7 @@ fun Time(timeString: String): Time {
 }
 
 
+@ExperimentalMaterial3Api
 @Composable
 fun RowScope.Time(
     time: Time,
@@ -193,6 +194,7 @@ fun RowScope.Time(
 
 
 
+@ExperimentalMaterial3Api
 @Preview
 @Composable
 private fun TimesPreview() {

@@ -1,9 +1,10 @@
 package com.security.passwordmanager.data.repository
 
-import android.content.Context
-import com.google.firebase.FirebaseTooManyRequestsException
-import com.google.firebase.auth.*
-import com.security.passwordmanager.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.database.DatabaseReference
+import com.security.passwordmanager.data.CryptoManager
 import com.security.passwordmanager.data.Result
 
 /**
@@ -12,9 +13,10 @@ import com.security.passwordmanager.data.Result
  */
 
 class LoginRepository(
-    private val auth: FirebaseAuth,
-    private val context: Context
-) {
+    auth: FirebaseAuth,
+    database: DatabaseReference,
+    cryptoManager: CryptoManager
+) : FirebaseEncryptedRepository(auth, database, cryptoManager) {
 
     fun register(
         email: String,
@@ -76,30 +78,8 @@ class LoginRepository(
                 resultAction(Result.Success(Unit))
             }
             .addOnFailureListener {
-                resultAction(Result.Error(it))
+                resultAction(Result.Error(it.getRightMessages()))
             }
-    }
-
-
-
-    private fun Exception.getRightMessages() = when (this) {
-        is FirebaseAuthInvalidCredentialsException ->
-            FirebaseAuthInvalidCredentialsException(
-                errorCode,
-                context.getString(R.string.incorrect_password)
-            )
-        is FirebaseAuthInvalidUserException -> {
-            val msg = if (errorCode == "ERROR_USER_DISABLED") {
-                context.getString(R.string.user_disabled_exception)
-            } else {
-                context.getString(R.string.incorrect_email)
-            }
-
-            FirebaseAuthInvalidUserException(errorCode, msg)
-        }
-        is FirebaseTooManyRequestsException ->
-            FirebaseTooManyRequestsException(context.getString(R.string.too_many_requests_exception))
-        else -> this
     }
 
 

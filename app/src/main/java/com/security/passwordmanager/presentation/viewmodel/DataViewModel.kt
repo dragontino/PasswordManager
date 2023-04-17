@@ -20,6 +20,7 @@ import com.security.passwordmanager.data.model.dao.FirebaseDao
 import com.security.passwordmanager.data.model.dao.usersdata.UsersData
 import com.security.passwordmanager.data.repository.DataRepository
 import com.security.passwordmanager.presentation.model.enums.DataType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -58,14 +59,16 @@ abstract class DataViewModel(protected val repository: DataRepository) : ViewMod
 
     protected fun inspectData(
         data: UsersData,
-        inspectionResult: (isNew: Boolean, id: String?) -> Unit
+        inspectionResult: suspend (isNew: Boolean, id: String?) -> Unit
     ) {
         viewModelScope.launch {
             repository.findDataInDatabase(data) {
-                if (it is Result.Success) {
-                    inspectionResult(false, it.data)
-                } else if (it is Result.Error) {
-                    inspectionResult(true, null)
+                viewModelScope.launch(Dispatchers.Main) {
+                    if (it is Result.Success) {
+                        inspectionResult(false, it.data)
+                    } else if (it is Result.Error) {
+                        inspectionResult(true, null)
+                    }
                 }
             }
         }
@@ -73,52 +76,36 @@ abstract class DataViewModel(protected val repository: DataRepository) : ViewMod
 
 
 
-//    protected fun <D : UsersData> inspectDataAndLoadToDatabase(
-//        data: D,
-//        inspectionResult: suspend (isNew: Boolean, id: String?) -> Unit = { _, _ -> },
-//        loadingResult: (id: String?) -> Unit = {}
-//    ) {
-//        viewModelState = DataViewModelState.Loading
-//
-//        viewModelScope.launch {
-//            repository.findDataInDatabase(data) { id ->
-//                viewModelScope.launch {
-//                    inspectionResult(id is Result.Error, null)
-//
-//                    if (id == null) {
-//                        repository.addData(data) {
-//                            viewModelState = when (it) {
-//                                is Result.Loading -> DataViewModelState.Loading
-//                                is Result.Error -> {
-//                                    it.exception.printStackTrace()
-//                                    loadingResult(null)
-//                                    DataViewModelState.Ready
-//                                }
-//                                is Result.Success -> {
-//                                    loadingResult(it.data)
-//                                    DataViewModelState.Ready
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+    suspend fun addData(
+        data: UsersData,
+        resultId: suspend (Result<String>) -> Unit = {}
+    ) {
+        repository.addData(data) {
+            viewModelScope.launch(Dispatchers.Main) {
+                resultId(it)
+            }
+        }
+    }
 
-//    fun <T> updateData(
-//        id: String,
-//        dataType: DataType,
-//        dataUpdates: Map<String, T>,
-//        encryptValue: (value: T, encryption: (String) -> String) -> T,
-//        resultAction: (Result<Unit>) -> Unit = {}
-//    ) {
-//        viewModelState = DataViewModelState.Loading
-//        viewModelScope.launch {
-//            repository.updateData(id, dataType, dataUpdates, encryptValue, resultAction)
-//            viewModelState = DataViewModelState.Ready
-//        }
-//    }
+
+    /**
+     * Функция, обновляющая записи в базе данных
+     * @param resultAction результат выполнения. Вызывается по окончании загрузки.
+     * Работает на главном потоке
+     */
+    suspend fun <T> updateData(
+        id: String,
+        dataType: DataType,
+        dataUpdates: Map<String, T>,
+        encryptValue: (value: T, encryption: (String) -> String) -> T,
+        resultAction: suspend (Result<Unit>) -> Unit = {}
+    ) {
+        repository.updateData(id, dataType, dataUpdates, encryptValue) {
+            viewModelScope.launch(Dispatchers.Main) {
+                resultAction(it)
+            }
+        }
+    }
 
 
     fun fetchDataList(dataType: DataType): Flow<Map<String, UsersData>> =

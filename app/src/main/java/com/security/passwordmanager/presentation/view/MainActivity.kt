@@ -40,7 +40,6 @@ class MainActivity : AppCompatActivity() {
                 NavigationScreen(
                     viewModel = navigationViewModel,
                     settingsViewModel = settingsViewModel,
-                    fragmentManager = supportFragmentManager,
                     isDarkTheme = it
                 )
             }

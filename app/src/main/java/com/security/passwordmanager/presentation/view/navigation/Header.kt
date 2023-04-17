@@ -6,6 +6,8 @@ sealed interface HeadingInterface {
     val title: CharSequence
     val subtitle: CharSequence
     val beautifulDesign: Boolean
+
+    fun isEmpty(): Boolean = title.isBlank()
 }
 
 

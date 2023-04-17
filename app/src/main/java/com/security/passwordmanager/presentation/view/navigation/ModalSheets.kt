@@ -1,15 +1,47 @@
 package com.security.passwordmanager.presentation.view.navigation
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.tappableElement
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -113,76 +145,61 @@ private fun NavHeader(topPadding: Dp = 0.dp) {
 
 
 
+
+@ExperimentalMaterial3Api
 @Composable
-fun BottomSheetContent(
-    modifier: Modifier = Modifier,
+fun ColumnScope.BottomSheetContent(
     title: String = "",
     subtitle: String = "",
     beautifulDesign: Boolean = false,
     bodyContent: @Composable (ColumnScope.() -> Unit)
 ) = BottomSheetContent(
     header = Header(title, subtitle, beautifulDesign),
-    bodyContent = bodyContent,
-    modifier = modifier,
+    bodyContent = bodyContent
 )
 
 
 
+
+@ExperimentalMaterial3Api
 @Composable
-fun BottomSheetContent(
-    modifier: Modifier = Modifier,
+fun ColumnScope.BottomSheetContent(
     title: AnnotatedString = AnnotatedString(""),
     subtitle: AnnotatedString = AnnotatedString(""),
     beautifulDesign: Boolean = false,
     bodyContent: @Composable (ColumnScope.() -> Unit)
 ) = BottomSheetContent(
     header = AnnotatedHeader(title, subtitle, beautifulDesign),
-    bodyContent = bodyContent,
-    modifier = modifier
+    bodyContent = bodyContent
 )
 
 
 
+
+@ExperimentalMaterial3Api
 @Composable
-fun BottomSheetContent(
-    modifier: Modifier = Modifier,
+fun ColumnScope.BottomSheetContent(
     header: HeadingInterface = Header(),
     bodyContent: @Composable (ColumnScope.() -> Unit),
 ) {
-    Column(
-        modifier = modifier
-            .padding(
-                WindowInsets.tappableElement
-                    .only(WindowInsetsSides.Bottom)
-                    .asPaddingValues()
-            )
-            .clip(MaterialTheme.shapes.large)
-            .background(
-                color = MaterialTheme.colorScheme.background.animate(),
-                shape = MaterialTheme.shapes.large
-            )
-            .border(
-                width = bottomSheetBorderThickness,
-                brush = Brush.verticalGradient(
-                    0.1f to MaterialTheme.colorScheme.onBackground.animate(),
-                    0.5f to MaterialTheme.colorScheme.background.animate()
-                ),
-                shape = MaterialTheme.shapes.large
-            )
-            .fillMaxWidth()
-    ) {
+    if (header.isEmpty()) {
+        Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            BottomSheetDefaults.DragHandle()
+        }
+    } else {
         BottomSheetHeader(header)
         Spacer(modifier = Modifier.size(8.dp))
-        bodyContent()
-        Spacer(modifier = Modifier.size(8.dp))
     }
+
+    bodyContent()
+    Spacer(modifier = Modifier.size(8.dp))
 }
+
+
 
 
 @Composable
 private fun ColumnScope.BottomSheetHeader(header: HeadingInterface) {
-    if (header.title.isBlank()) return
-
     Column(
         modifier = Modifier
             .padding(top = 16.dp)
@@ -429,6 +446,33 @@ object ModalSheetItems {
 
 
 
+object ModalSheetDefaults {
+    val AnimationSpec = tween<Float>(
+        durationMillis = 500,
+        easing = FastOutSlowInEasing
+    )
+
+    val Shape = RoundedCornerShape(18.dp)
+
+
+    @Composable
+    fun borderStroke(
+        firstColor: Color = MaterialTheme.colorScheme.onBackground,
+        secondColor: Color = MaterialTheme.colorScheme.surface,
+        width: Dp = bottomSheetBorderThickness
+    ) = BorderStroke(
+        width = width,
+        brush = Brush.verticalGradient(
+            0.1f to firstColor.animate(),
+            0.5f to secondColor.animate()
+        )
+    )
+}
+
+
+
+
+
 @ExperimentalMaterial3Api
 @Preview
 @Composable
@@ -445,28 +489,31 @@ private fun ModalNavigationContentPreview() {
 
 
 
+@ExperimentalMaterial3Api
 @Preview
 @Composable
 private fun BottomSheetContentPreview() {
     PasswordManagerTheme(isDarkTheme = true) {
-        BottomSheetContent(
-            title = "Wrecked",
-            subtitle = "Imagine Dragons",
-            beautifulDesign = true
-        ) {
-            IconTextItem(
-                text = "Добавить аккаунт",
-                icon = Icons.Outlined.AccountCircle,
-                iconTintColor = MaterialTheme.colorScheme.primary.animate(),
-            ) {}
+        Column {
+            BottomSheetContent(
+                title = "Wrecked",
+                subtitle = "Imagine Dragons",
+                beautifulDesign = true
+            ) {
+                IconTextItem(
+                    text = "Добавить аккаунт",
+                    icon = Icons.Outlined.AccountCircle,
+                    iconTintColor = MaterialTheme.colorScheme.primary.animate(),
+                ) {}
 
-            IconTextItem(
-                text = "Bank Account",
-                icon = Icons.Outlined.CreditCard,
-                iconTintColor = MaterialTheme.colorScheme.primary.animate(),
-                iconAlignment = Alignment.End,
-                selected = true
-            ) {}
+                IconTextItem(
+                    text = "Bank Account",
+                    icon = Icons.Outlined.CreditCard,
+                    iconTintColor = MaterialTheme.colorScheme.primary.animate(),
+                    iconAlignment = Alignment.End,
+                    selected = true
+                ) {}
+            }
         }
     }
 }

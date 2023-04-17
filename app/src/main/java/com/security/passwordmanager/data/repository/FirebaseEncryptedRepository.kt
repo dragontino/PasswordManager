@@ -1,8 +1,13 @@
 package com.security.passwordmanager.data.repository
 
 import android.content.Context
+import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.database.DatabaseReference
+import com.security.passwordmanager.R
 import com.security.passwordmanager.data.CryptoManager
 
 open class FirebaseEncryptedRepository(
@@ -38,5 +43,28 @@ open class FirebaseEncryptedRepository(
 
     protected fun String.decrypt(uid: String): String {
         return decrypt(uid) { it }
+    }
+
+
+    protected fun Exception.getRightMessages() = when (this) {
+        is FirebaseAuthInvalidCredentialsException ->
+            FirebaseAuthInvalidCredentialsException(
+                errorCode,
+                context.getString(R.string.incorrect_password)
+            )
+        is FirebaseAuthInvalidUserException -> {
+            val msg = if (errorCode == "ERROR_USER_DISABLED") {
+                context.getString(R.string.user_disabled_exception)
+            } else {
+                context.getString(R.string.incorrect_email)
+            }
+
+            FirebaseAuthInvalidUserException(errorCode, msg)
+        }
+        is FirebaseTooManyRequestsException ->
+            FirebaseTooManyRequestsException(context.getString(R.string.too_many_requests_exception))
+        is FirebaseException ->
+            FirebaseException(context.getString(R.string.failed_to_connect_to_server), this)
+        else -> this
     }
 }

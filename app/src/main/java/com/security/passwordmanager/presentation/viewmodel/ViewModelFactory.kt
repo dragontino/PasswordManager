@@ -39,7 +39,8 @@ class ViewModelFactory(
                 return LoginViewModel(
                     repository = LoginRepository(
                         auth = auth,
-                        context = application
+                        database = database,
+                        cryptoManager = cryptoManager
                     ),
                     preferences = preferences
                 ) as T

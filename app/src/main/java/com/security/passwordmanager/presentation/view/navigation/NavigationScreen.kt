@@ -6,7 +6,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material3.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -14,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -22,7 +26,12 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.security.passwordmanager.*
+import com.security.passwordmanager.EnterScreenAnimation
+import com.security.passwordmanager.ExitScreenAnimation
+import com.security.passwordmanager.animate
+import com.security.passwordmanager.getEnum
+import com.security.passwordmanager.getInt
+import com.security.passwordmanager.getString
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.ScreenTypeItem
 import com.security.passwordmanager.presentation.view.screens.LoginScreen
@@ -44,7 +53,6 @@ import me.onebone.toolbar.ExperimentalToolbarApi
 internal fun NavigationScreen(
     viewModel: NavigationViewModel,
     settingsViewModel: SettingsViewModel,
-    fragmentManager: FragmentManager,
     isDarkTheme: Boolean
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -53,13 +61,14 @@ internal fun NavigationScreen(
 
     val openDrawer = {
         scope.launch {
-            drawerState.animateTo(DrawerValue.Open, BottomAnimationSpec)
+            delay(50)
+            drawerState.animateTo(DrawerValue.Open, ModalSheetDefaults.AnimationSpec)
         }
     }
 
     fun onDrawerItemClick(route: String) {
         scope.launch {
-            drawerState.animateTo(DrawerValue.Closed, BottomAnimationSpec)
+            drawerState.animateTo(DrawerValue.Closed, ModalSheetDefaults.AnimationSpec)
         }
         scope.launch {
             delay(100)
@@ -128,12 +137,10 @@ internal fun NavigationScreen(
 
                 LoginScreen(
                     viewModel = viewModel(factory = viewModel.factory),
-                    fragmentManager = fragmentManager,
-                    settings = settingsViewModel.settings,
-                    navigateTo = { route ->
-                        viewModel.navigateTo(navController, route, true)
-                    }
-                )
+                    settings = settingsViewModel.settings
+                ) { route ->
+                    viewModel.navigateTo(navController, route, true)
+                }
             }
 
 
@@ -162,13 +169,11 @@ internal fun NavigationScreen(
                     ),
                     viewModel = viewModel(factory = viewModel.factory),
                     settings = settingsViewModel.settings,
-                    fragmentManager = fragmentManager,
                     openDrawer = { openDrawer() },
-                    navigateTo = { route -> viewModel.navigateTo(navController, route) },
-                    isDarkStatusBarIcons = { isDarkStatusBarIcons ->
-                        viewModel.isDarkStatusBarIcons = isDarkStatusBarIcons
-                    }
-                )
+                    navigateTo = { route -> viewModel.navigateTo(navController, route) }
+                ) { isDarkStatusBarIcons ->
+                    viewModel.isDarkStatusBarIcons = isDarkStatusBarIcons
+                }
             }
 
             composable(AppScreens.Settings.fullRoute) {
@@ -177,7 +182,6 @@ internal fun NavigationScreen(
                 SettingsScreen(
                     title = stringResource(AppScreens.Settings.titleRes),
                     viewModel = viewModel(factory = viewModel.factory),
-                    fragmentManager = fragmentManager,
                     isDarkTheme = isDarkTheme,
                     navigateTo = { viewModel.navigateTo(navController, it, clearStack = true) },
                     popBackStack = navController::popBackStack

@@ -1,22 +1,83 @@
 package com.security.passwordmanager.presentation.view.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.with
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.DataArray
+import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,23 +98,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.FragmentManager
 import coil.compose.AsyncImage
-import com.security.passwordmanager.*
+import com.security.passwordmanager.LoadingInBox
 import com.security.passwordmanager.R
+import com.security.passwordmanager.animate
+import com.security.passwordmanager.animationTimeMillis
 import com.security.passwordmanager.data.model.dao.usersdata.Bank
 import com.security.passwordmanager.data.model.dao.usersdata.UsersData
 import com.security.passwordmanager.data.model.dao.usersdata.Website
 import com.security.passwordmanager.data.model.dao.usersdatachild.Account
 import com.security.passwordmanager.data.model.dao.usersdatachild.BankCard
 import com.security.passwordmanager.data.model.settings.Settings
+import com.security.passwordmanager.getActivity
+import com.security.passwordmanager.isScrollingUp
 import com.security.passwordmanager.presentation.model.enums.DataType
-import com.security.passwordmanager.presentation.view.BottomSheetFragment
-import com.security.passwordmanager.presentation.view.composablelements.*
+import com.security.passwordmanager.presentation.view.composablelements.DataTextField
+import com.security.passwordmanager.presentation.view.composablelements.ScrollableTopBar
+import com.security.passwordmanager.presentation.view.composablelements.ScrollableTopBarScaffold
+import com.security.passwordmanager.presentation.view.composablelements.SearchBar
+import com.security.passwordmanager.presentation.view.composablelements.ToolbarButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composablelements.TrailingActions.VisibilityIconButton
 import com.security.passwordmanager.presentation.view.navigation.AppScreens
+import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.Header
+import com.security.passwordmanager.presentation.view.navigation.ModalSheetDefaults
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.CopyItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.DeleteItem
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.EditItem
@@ -66,9 +135,14 @@ import com.security.passwordmanager.presentation.view.theme.screenBorderThicknes
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
 import com.security.passwordmanager.presentation.viewmodel.NotesViewModel
 import com.security.passwordmanager.presentation.viewmodel.NotesViewModel.TopBarState
+import com.security.passwordmanager.scrollProgress
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.onebone.toolbar.*
+import me.onebone.toolbar.CollapsingToolbarScope
+import me.onebone.toolbar.ExperimentalToolbarApi
+import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
+import me.onebone.toolbar.rememberCollapsingToolbarState
 
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
@@ -82,7 +156,6 @@ internal fun AnimatedVisibilityScope.NotesScreen(
     dataType: DataType,
     viewModel: NotesViewModel,
     settings: Settings,
-    fragmentManager: FragmentManager,
     openDrawer: () -> Unit,
     navigateTo: (route: String) -> Unit,
     isDarkStatusBarIcons: (Boolean) -> Unit
@@ -90,12 +163,28 @@ internal fun AnimatedVisibilityScope.NotesScreen(
     viewModel.dataType = dataType
 
     val scope = rememberCoroutineScope()
-
     val context = LocalContext.current
 
     val toolbarState = rememberCollapsingToolbarState()
     val scaffoldState = rememberCollapsingToolbarScaffoldState(toolbarState)
     val snackbarHostState = remember(::SnackbarHostState)
+    val bottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        animationSpec = ModalSheetDefaults.AnimationSpec,
+        skipHalfExpanded = true
+    )
+
+
+    val showBottomSheet = {
+        scope.launch {
+            delay(50)
+            bottomSheetState.show()
+        }
+    }
+
+    val hideBottomSheet = {
+        scope.launch { bottomSheetState.hide() }
+    }
 
 //    isDarkStatusBarIcons(toolbarState.progress() < 0.5f && !isDarkTheme)
 
@@ -104,19 +193,21 @@ internal fun AnimatedVisibilityScope.NotesScreen(
 //    else viewModel.topBarState = DataViewModel.TopBarState.Navigate
 
 
-    val bottomFragment = BottomSheetFragment(
-        title = stringResource(R.string.new_note),
-        beautifulDesign = true
-    ) { fragment ->
-        ScreenTypeItem(AppScreens.Website) {
-            navigateTo(createRouteToWebsiteScreen())
-            fragment.dismiss()
-        }
+    val mainBottomSheetContent: @Composable (ColumnScope.() -> Unit) = {
+        BottomSheetContent(
+            title = stringResource(R.string.new_note),
+            beautifulDesign = true
+        ) {
+            ScreenTypeItem(AppScreens.Website) {
+                navigateTo(createRouteToWebsiteScreen())
+                hideBottomSheet()
+            }
 
 //        ScreenTypeItem(Screen.BankCard) {
 //            navigateTo(createRouteToBankCardScreen(dataUI = DataUI.DefaultBankCard))
 //            fragment.dismiss()
 //        }
+        }
     }
 
 
@@ -151,160 +242,179 @@ internal fun AnimatedVisibilityScope.NotesScreen(
     }
 
 
-    ScrollableTopBarScaffold(
-        state = scaffoldState,
-        scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
-        topBar = {
-            Toolbar(
-                viewModel = viewModel,
-                title = title,
-                onNavigate = openDrawer,
-                modifier = Modifier
-                    .progress {
-                        println("progress = $it, isDarkTheme = $isDarkTheme")
-                        isDarkStatusBarIcons(scaffoldState.toolbarState.scrollProgress < 0.5 && !isDarkTheme)
-                    }
-            )
-        },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = viewModel.showFab,
-                enter = viewModel.enterFabAnimation,
-                exit = viewModel.exitFabAnimation,
-                modifier = Modifier.animateEnterExit(
-                    enter = viewModel.enterScreenFabAnimation,
-                    exit = viewModel.exitScreenFabAnimation
-                )
-            ) {
-                FloatingActionButton(
-                    onClick = {
-                        when (dataType) {
-                            DataType.All -> bottomFragment.show(fragmentManager)
-                            DataType.Website ->
-                                navigateTo(createRouteToWebsiteScreen())
-                            DataType.Bank -> {
-                                // TODO: 23.03.2023 доделать
-                            }
-                        }
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary.animate(),
-                    contentColor = MaterialTheme.colorScheme.onPrimary.animate(),
-                    elevation = FloatingActionButtonDefaults.loweredElevation(),
-                    modifier = Modifier
-                        .padding(
-                            WindowInsets.navigationBars
-                                .only(WindowInsetsSides.Vertical)
-                                .asPaddingValues()
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Add,
-                        contentDescription = "add new note"
-                    )
-                }
-            }
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) {
-                Snackbar(
-                    snackbarData = it,
-                    actionOnNewLine = false,
-                    shape = MaterialTheme.shapes.medium,
-                    actionColor = MaterialTheme.colorScheme.primary.animate(),
-                    containerColor = MaterialTheme.colorScheme.onBackground.animate(),
-                    contentColor = MaterialTheme.colorScheme.background.animate()
-                )
-            }
-        },
-        contentShape = viewModel.screenShape(),
-        contentBorder = BorderStroke(
-            width = when (viewModel.topBarState) {
-                TopBarState.Hidden -> 0.dp
-                else -> screenBorderThickness
-            },
-            brush = Brush.verticalGradient(
-                0.1f to MaterialTheme.colorScheme.primary.animate(),
-                0.6f to MaterialTheme.colorScheme.background.animate()
-            ),
-        ),
-        refreshing = viewModel.viewModelState == DataViewModel.DataViewModelState.Loading,
-        onRefresh = {
-            viewModel.refreshData {
-                if (it != null) showSnackbar(it)
-            }
-        },
-        isPullRefreshEnabled = settings.pullToRefresh,
-        pullRefreshIndicator = {
-            PullRefreshIndicator(
-                refreshing = viewModel.viewModelState == DataViewModel.DataViewModelState.Loading,
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.background
-            )
-        },
-        contentModifier = Modifier.fillMaxSize()
+    ModalBottomSheetLayout(
+        sheetContent = viewModel.bottomSheetContent,
+        sheetState = bottomSheetState,
+        sheetShape = ModalSheetDefaults.Shape,
+        sheetBackgroundColor = MaterialTheme.colorScheme.surface.animate(),
     ) {
-        Crossfade(
-            targetState = viewModel.viewModelState,
-            animationSpec = spring(stiffness = Spring.StiffnessLow),
-        ) {
-            when (it) {
-                DataViewModel.DataViewModelState.Loading -> {
-                    LoadingInBox(
+        ScrollableTopBarScaffold(
+            state = scaffoldState,
+            scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
+            topBar = {
+                Toolbar(
+                    viewModel = viewModel,
+                    title = title,
+                    onNavigate = openDrawer,
+                    modifier = Modifier
+                        .progress {
+                            println("progress = $it, isDarkTheme = $isDarkTheme")
+                            isDarkStatusBarIcons(
+                                scaffoldState.toolbarState.scrollProgress < 0.5 && !isDarkTheme
+                            )
+                        }
+                )
+            },
+            floatingActionButton = {
+                AnimatedVisibility(
+                    visible = viewModel.showFab,
+                    enter = viewModel.enterFabAnimation,
+                    exit = viewModel.exitFabAnimation,
+                    modifier = Modifier.animateEnterExit(
+                        enter = viewModel.enterScreenFabAnimation,
+                        exit = viewModel.exitScreenFabAnimation
+                    )
+                ) {
+                    FloatingActionButton(
+                        onClick = {
+                            when (dataType) {
+                                DataType.All -> {
+                                    viewModel.bottomSheetContent = mainBottomSheetContent
+                                    showBottomSheet()
+                                }
+                                DataType.Website ->
+                                    navigateTo(createRouteToWebsiteScreen())
+
+                                DataType.Bank -> {
+                                    navigateTo(createRouteToBankCardScreen())
+                                }
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.primary.animate(),
+                        contentColor = MaterialTheme.colorScheme.onPrimary.animate(),
+                        elevation = FloatingActionButtonDefaults.loweredElevation(),
                         modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
+                            .padding(
+                                WindowInsets.navigationBars
+                                    .only(WindowInsetsSides.Vertical)
+                                    .asPaddingValues()
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = "add new note"
+                        )
+                    }
+                }
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) {
+                    Snackbar(
+                        snackbarData = it,
+                        actionOnNewLine = true,
+                        shape = MaterialTheme.shapes.medium,
+                        actionColor = MaterialTheme.colorScheme.primary.animate(),
+                        containerColor = MaterialTheme.colorScheme.onBackground.animate(),
+                        contentColor = MaterialTheme.colorScheme.background.animate()
                     )
                 }
-                DataViewModel.DataViewModelState.EmptyList -> with(viewModel) {
-                    EmptyList(
-                        text = when {
-                            topBarState == TopBarState.Search && query.isBlank() ->
-                                stringResource(R.string.empty_query)
-                            topBarState == TopBarState.Search ->
-                                stringResource(R.string.search_no_results)
-                            else ->
-                                stringResource(R.string.empty_data_list)
-                        },
-                        icon = {
-                            when (topBarState) {
-                                TopBarState.Search -> {
-                                    if (query.isNotBlank()) {
-                                        Text(
-                                            "\\(o_o)/",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontSize = 70.sp,
-                                            color = MaterialTheme.colorScheme.onBackground.animate(),
+            },
+            contentShape = viewModel.screenShape(),
+            contentBorder = BorderStroke(
+                width = when (viewModel.topBarState) {
+                    TopBarState.Hidden -> 0.dp
+                    else -> screenBorderThickness
+                },
+                brush = Brush.verticalGradient(
+                    0.1f to MaterialTheme.colorScheme.primary.animate(),
+                    0.6f to MaterialTheme.colorScheme.background.animate()
+                ),
+            ),
+            refreshing = viewModel.viewModelState == DataViewModel.DataViewModelState.Loading,
+            onRefresh = {
+                viewModel.refreshData {
+                    if (it != null) showSnackbar(it)
+                }
+            },
+            isPullRefreshEnabled = settings.pullToRefresh,
+            pullRefreshIndicator = {
+                PullRefreshIndicator(
+                    refreshing = viewModel.viewModelState == DataViewModel.DataViewModelState.Loading,
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
+                )
+            },
+            contentModifier = Modifier.fillMaxSize()
+        ) {
+            Crossfade(
+                targetState = viewModel.viewModelState,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+            ) {
+                when (it) {
+                    DataViewModel.DataViewModelState.Loading -> {
+                        LoadingInBox(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                        )
+                    }
+
+                    DataViewModel.DataViewModelState.EmptyList -> with(viewModel) {
+                        EmptyList(
+                            text = when {
+                                topBarState == TopBarState.Search && query.isBlank() ->
+                                    stringResource(R.string.empty_query)
+
+                                topBarState == TopBarState.Search ->
+                                    stringResource(R.string.search_no_results)
+
+                                else ->
+                                    stringResource(R.string.empty_data_list)
+                            },
+                            icon = {
+                                when (topBarState) {
+                                    TopBarState.Search -> {
+                                        if (query.isNotBlank()) {
+                                            Text(
+                                                "\\(o_o)/",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontSize = 70.sp,
+                                                color = MaterialTheme.colorScheme.onBackground.animate(),
+                                            )
+                                        }
+                                    }
+
+                                    else -> {
+                                        Icon(
+                                            imageVector = Icons.Rounded.DataArray,
+                                            contentDescription = "empty list",
+                                            tint = MaterialTheme.colorScheme.onBackground.animate(),
+                                            modifier = Modifier.scale(2.5f)
                                         )
                                     }
                                 }
-                                else -> {
-                                    Icon(
-                                        imageVector = Icons.Rounded.DataArray,
-                                        contentDescription = "empty list",
-                                        tint = MaterialTheme.colorScheme.onBackground.animate(),
-                                        modifier = Modifier.scale(2.5f)
-                                    )
+                            }
+                        )
+                    }
+
+                    DataViewModel.DataViewModelState.Ready -> {
+                        PasswordList(
+                            dataList = viewModel.dataList,
+                            viewModel = viewModel,
+                            useBeautifulFont = settings.beautifulFont,
+                            isScrolling = { _, scrollUp ->
+                                LaunchedEffect(key1 = scrollUp) {
+                                    delay(100)
+                                    viewModel.showFab = scrollUp
                                 }
-                            }
-                        }
-                    )
-                }
-                DataViewModel.DataViewModelState.Ready -> {
-                    PasswordList(
-                        dataList = viewModel.dataList,
-                        viewModel = viewModel,
-                        fragmentManager = fragmentManager,
-                        useBeautifulFont = settings.beautifulFont,
-                        isScrolling = { _, scrollUp ->
-                            LaunchedEffect(key1 = scrollUp) {
-                                delay(100)
-                                viewModel.showFab = scrollUp
-                            }
-                        },
-                        navigateTo = navigateTo,
-                        showSnackbar = { msg -> showSnackbar(msg) },
-                        modifier = Modifier.fillMaxSize()
-                    )
+                            },
+                            navigateTo = navigateTo,
+                            showBottomSheet = { showBottomSheet() },
+                            hideBottomSheet = { hideBottomSheet() },
+                            showSnackbar = { msg -> showSnackbar(msg) },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         }
@@ -409,8 +519,9 @@ private fun EmptyList(
 @Composable
 private fun PasswordList(
     dataList: Map<String, UsersData>,
-    fragmentManager: FragmentManager,
     viewModel: NotesViewModel,
+    showBottomSheet: () -> Unit,
+    hideBottomSheet: () -> Unit,
     useBeautifulFont: Boolean,
     navigateTo: (route: String) -> Unit,
     isScrolling: @Composable (isScrolling: Boolean, scrollUp: Boolean) -> Unit,
@@ -442,7 +553,8 @@ private fun PasswordList(
                 viewModel = viewModel,
                 showAll = { viewModel.openedItemId == id },
                 showSnackbar = showSnackbar,
-                showBottomFragment = { it.show(fragmentManager) },
+                showBottomSheet = showBottomSheet,
+                hideBottomSheet = hideBottomSheet,
                 navigateTo = navigateTo,
                 useBeautifulFont = useBeautifulFont,
                 modifier = Modifier
@@ -478,7 +590,8 @@ private fun Data(
     showAll: () -> Boolean,
     navigateTo: (route: String) -> Unit,
     showSnackbar: (message: String) -> Unit,
-    showBottomFragment: (fragment: BottomSheetFragment) -> Unit,
+    showBottomSheet: () -> Unit,
+    hideBottomSheet: () -> Unit,
     useBeautifulFont: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -501,27 +614,29 @@ private fun Data(
         }
     }
 
-    val bottomFragment = BottomSheetFragment(
-        title = title,
-        subtitle = subtitle,
-    ) { fragment ->
-        EditItem(text = stringResource(R.string.edit)) {
-            navigateTo(
-                when (data) {
-                    is Website -> createRouteToWebsiteScreen(dataId)
-                    is Bank -> createRouteToBankCardScreen(dataId)
-                }
-            )
-            fragment.dismiss()
-        }
-        CopyItem(text = stringResource(R.string.copy_info)) {
-            viewModel.copyData(context, data, result = showSnackbar)
-            fragment.dismiss()
-        }
+    val dataBottomSheetContent: @Composable (ColumnScope.() -> Unit) = {
+        BottomSheetContent(
+            title = title,
+            subtitle = subtitle,
+        ) {
+            EditItem(text = stringResource(R.string.edit)) {
+                navigateTo(
+                    when (data) {
+                        is Website -> createRouteToWebsiteScreen(dataId)
+                        is Bank -> createRouteToBankCardScreen(dataId)
+                    }
+                )
+                hideBottomSheet()
+            }
+            CopyItem(text = stringResource(R.string.copy_info)) {
+                viewModel.copyData(context, data, result = showSnackbar)
+                hideBottomSheet()
+            }
 
-        DeleteItem(text = stringResource(R.string.delete_data)) {
-            viewModel.deleteData(dataId, dataType = data.type)
-            fragment.dismiss()
+            DeleteItem(text = stringResource(R.string.delete_data)) {
+                viewModel.deleteData(dataId, dataType = data.type)
+                hideBottomSheet()
+            }
         }
     }
 
@@ -536,8 +651,12 @@ private fun Data(
             subtitle = subtitle,
             logoUrl = logoUrl,
             showAllContent = showAll(),
-            onClick = onClick
-        ) { showBottomFragment(bottomFragment) }
+            onClick = onClick,
+            showDetails = {
+                viewModel.bottomSheetContent = dataBottomSheetContent
+                showBottomSheet()
+            }
+        )
         val iterableItems = when (data) {
             is Bank -> data.cards.values
             is Website -> data.accounts.values
@@ -574,20 +693,23 @@ private fun Data(
                                 )
                         }
                     ) { title ->
-                        BottomSheetFragment(
-                            title = title,
-                            beautifulDesign = useBeautifulFont
-                        ) { fragment ->
-                            EditItem(text = stringResource(R.string.edit)) {
-                                navigateTo(
-                                    createRouteToWebsiteScreen(
-                                        id = dataId,
-                                        startPosition = position
+                        viewModel.bottomSheetContent = {
+                            BottomSheetContent(
+                                title = title,
+                                beautifulDesign = useBeautifulFont
+                            ) {
+                                EditItem(text = stringResource(R.string.edit)) {
+                                    navigateTo(
+                                        createRouteToWebsiteScreen(
+                                            id = dataId,
+                                            startPosition = position
+                                        )
                                     )
-                                )
-                                fragment.dismiss()
+                                    hideBottomSheet()
+                                }
                             }
-                        }.also(showBottomFragment)
+                        }
+                        showBottomSheet()
                     }
                     is BankCard -> BankCard(bankCard = item)
                 }

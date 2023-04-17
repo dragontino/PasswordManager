@@ -1,7 +1,6 @@
 package com.security.passwordmanager.data.repository
 
 import android.accounts.NetworkErrorException
-import android.content.Context
 import android.security.keystore.UserNotAuthenticatedException
 import androidx.core.net.toUri
 import com.google.firebase.auth.FirebaseAuth
@@ -22,13 +21,17 @@ import com.security.passwordmanager.presentation.model.enums.DataType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
 import java.net.URL
-import java.util.*
+import java.util.UUID
 import kotlin.reflect.KClass
 
 class DataRepository(
@@ -76,8 +79,6 @@ class DataRepository(
 
             data.encrypt { it.encrypt(userId) }
 
-            println("enc data = $data")
-
             reference
                 .child(key)
                 .setValue(data)
@@ -108,9 +109,22 @@ class DataRepository(
         resultAction: (Result<Unit>) -> Unit = {}
     ) = withContext(Dispatchers.IO) {
 
-        if (dataUpdates.isEmpty()) return@withContext
+        if (dataUpdates.isEmpty()) {
+            resultAction(Result.Success(Unit))
+            return@withContext
+        }
 
-        val userId = currentUser?.uid ?: return@withContext
+        val userId = currentUser?.uid
+
+        if (userId == null) {
+            resultAction(
+                Result.Error(
+                    UserNotAuthenticatedException(context.getString(R.string.cannot_add_data))
+                )
+            )
+            return@withContext
+        }
+
         val ref = when (dataType) {
             DataType.Bank -> BankReference
             else -> WebsiteReference
@@ -126,7 +140,7 @@ class DataRepository(
 
         getDatabaseReference(userId)
             .updateChildren(update)
-            .addOnSuccessListener {
+            .addOnCompleteListener {
                 resultAction(Result.Success(Unit))
             }
             .addOnFailureListener {
@@ -374,6 +388,7 @@ class DataRepository(
     }
 
 
+
     /** Удаление данных из таблицы. В зависимости от [dataType] удаляются данные из разных таблиц
      * @param id id элемента, который нужно удалить
      * @param dataType тип объекта, который нужно удалить
@@ -414,29 +429,8 @@ class DataRepository(
      * @param address URL адрес сайта
      * @return название сайта
      */
-    suspend fun getWebsiteDomainName(address: String, context: Context): Result<String> =
+    suspend fun getWebsiteDomainName(address: String): Result<String> =
         withContext(Dispatchers.IO) {
-//            val url = when {
-//                address.startsWith("http://") -> address
-//                address.startsWith("https://") -> address
-//                else -> "https://$this"
-//            }
-//
-//            return@withContext try {
-//                when {
-//                    url.isValidUrl() -> {
-//                        val title = Jsoup.connect(url).get().title()
-//                        Result.Success(title)
-//                    }
-//                    else -> {
-//                        val host = url.toUri().host ?: address
-//                        Result.Success(host)
-//                    }
-//                }
-//            } catch (e: Exception) {
-//                Result.Error(e)
-//            }
-
             if (!context.checkNetworkConnection()) {
                 return@withContext Result.Error(
                     NetworkErrorException(
@@ -479,10 +473,15 @@ class DataRepository(
                             suffix = "</title>"
                         )
                         ?.let { Result.Success(it) }
-                        ?: throw IOException("Не удалось узнать заголовок сайта $address")
+                        ?: throw IOException(
+                            context.getString(
+                                R.string.cannot_find_website_title,
+                                address,
+                            ),
+                        )
                 }
             } catch (e: IOException) {
-                Result.Error(e)
+                Result.Error(e.getRightMessages())
             }
         }
 
