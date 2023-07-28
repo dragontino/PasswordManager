@@ -1,6 +1,6 @@
 object Dependencies {
     object Compose {
-        private const val version = "1.4.1"
+        private const val version = "1.4.3"
         private const val materialVersion = "1.4.1"
         private const val accompanistVersion = "0.30.1"
 
@@ -19,6 +19,7 @@ object Dependencies {
         const val rxJava = "androidx.compose.runtime:runtime-rxjava2:$version"
         const val systemUiController = "com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion"
         const val animation = "com.google.accompanist:accompanist-navigation-animation:$accompanistVersion"
+        const val placeholder = "com.google.accompanist:accompanist-placeholder:$accompanistVersion"
         const val jUnit = "androidx.compose.ui:ui-test-junit4:$version"
         const val uiTooling = "androidx.compose.ui:ui-test-manifest:$version"
         const val constraintLayout = "androidx.constraintlayout:constraintlayout-compose:1.0.1"
@@ -45,7 +46,7 @@ object Dependencies {
 
 
     object Lifecycle {
-        private const val version = "2.6.0"
+        private const val version = "2.6.1"
 
         const val liveData = "androidx.lifecycle:lifecycle-livedata-ktx:$version"
         const val viewModel = "androidx.lifecycle:lifecycle-viewmodel-ktx:$version"

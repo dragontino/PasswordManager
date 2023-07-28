@@ -1,6 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
 include(":app")
+
+
 rootProject.name = "Password Manager"
 
 

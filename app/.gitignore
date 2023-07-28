@@ -1,3 +1,5 @@
 /build
-/src/main/java/com/security/passwordmanager/data/CryptoManager.kt
-/src/main/java/com/security/passwordmanager/data/UID.kt
+src/main/kotlin/com/security/passwordmanager/data/CryptoManager.kt
+src/main/kotlin/com/security/passwordmanager/data/UID.kt
+google-services.json
+proguard-rules.pro

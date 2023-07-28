@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:tint="@android:color/transparent">
-    <corners android:topLeftRadius="@dimen/bottom_sheet_corner"
-        android:topRightRadius="@dimen/bottom_sheet_corner"/>
-    <solid
-        android:color="@android:color/transparent"/>
+    <corners
+        android:topLeftRadius="@dimen/bottom_sheet_corner"
+        android:topRightRadius="@dimen/bottom_sheet_corner" />
+    <solid android:color="@android:color/transparent" />
 </shape>

@@ -8,8 +8,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="raspberry">#FA056B</color>
+    <color name="secondary">#F05454</color>
     <color name="background_dark">#212123</color>
-    <color name="header_dark">#810E3E</color>
+    <color name="raspberry_dark">#810E3E</color>
+    <color name="secondary_dark">#852626</color>
     <color name="light_gray">#EDEEF3</color>
     <color name="gray">#39393C</color>
     <color name="darker_gray">#FFAAAAAA</color>

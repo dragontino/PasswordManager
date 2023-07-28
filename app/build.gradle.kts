@@ -11,14 +11,14 @@ plugins {
 android {
     namespace = "com.security.passwordmanager"
     compileSdk = 33
-    buildToolsVersion = "30.0.3"
+    buildToolsVersion = "33.0.3"
 
     defaultConfig {
         applicationId = "com.security.passwordmanager"
-        minSdk = 29
+        minSdk = 26
         targetSdk = 33
-        versionCode = 6
-        versionName = "6.3.0"
+        versionCode = 7
+        versionName = "7.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -38,12 +38,12 @@ android {
 
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_19
+        targetCompatibility = JavaVersion.VERSION_19
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "19"
         freeCompilerArgs = freeCompilerArgs + "-Xjvm-default=all"
     }
 
@@ -52,10 +52,10 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.5"
+        kotlinCompilerExtensionVersion = "1.5.0"
     }
 
-    packagingOptions {
+    packaging {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
@@ -65,14 +65,13 @@ android {
 dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.annotation:annotation:1.6.0")
-    implementation("com.google.android.material:material:1.8.0")
+    implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.preference:preference-ktx:1.2.0")
-    implementation("androidx.core:core-ktx:1.10.0")
+    implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("com.google.android.gms:play-services-auth:20.5.0")
-
-    implementation("com.squareup.picasso:picasso:2.71828")
-    implementation("io.coil-kt:coil-compose:2.3.0")
+    implementation("com.google.android.gms:play-services-auth:20.6.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
     // Firebase
     implementation(platform(Dependencies.Firebase.bom))
@@ -104,12 +103,14 @@ dependencies {
     implementation(Dependencies.Compose.rxJava)
     implementation(Dependencies.Compose.systemUiController)
     implementation(Dependencies.Compose.animation)
+    implementation(Dependencies.Compose.placeholder)
     implementation(Dependencies.Compose.constraintLayout)
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 
     debugImplementation(Dependencies.Compose.uiTooling)
 
 
-    //Room
+    // Room
     implementation(Dependencies.Room.runtime)
     implementation(Dependencies.Room.ktx)
     kapt(Dependencies.Room.compiler)
@@ -120,15 +121,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(Dependencies.Compose.jUnit)
-    testImplementation("org.testng:testng:7.7.1")
+    testImplementation("org.testng:testng:7.8.0")
 
     Dependencies.Coroutines.values().forEach {
         api(it.path)
     }
-
-    // Other Libs
-
-    implementation("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("me.onebone:toolbar-compose:2.3.5")
 }
