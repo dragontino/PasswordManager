@@ -105,7 +105,6 @@ dependencies {
     implementation(Dependencies.Compose.animation)
     implementation(Dependencies.Compose.placeholder)
     implementation(Dependencies.Compose.constraintLayout)
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 
     debugImplementation(Dependencies.Compose.uiTooling)
 
