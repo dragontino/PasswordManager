@@ -11,7 +11,7 @@ plugins {
 android {
     namespace = "com.security.passwordmanager"
     compileSdk = 33
-    buildToolsVersion = "33.0.3"
+    buildToolsVersion = "30.0.3"
 
     defaultConfig {
         applicationId = "com.security.passwordmanager"
