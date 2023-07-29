@@ -21,15 +21,13 @@
             android:textColor="@android:color/darker_gray"
             android:textSize="15sp"
             android:gravity="center"
+            android:inputType="text"
             android:hint="@string/account_hint"
             android:text="@string/account"
-            android:inputType="none"
-            android:selectAllOnFocus="true"
-            android:textIsSelectable="true"
-            android:clickable="false"
-            android:enabled="false"
-            android:focusable="false"
+            android:focusable="true"
+            android:nextFocusDown="@id/edit_text_login"
             android:cursorVisible="false"
+            android:enabled="false"
             android:autofillHints="@string/account_hint" />
 
         <Button
@@ -70,7 +68,7 @@
         tools:ignore="TextFields" />
 
     <Button
-        android:id="@+id/subtitle"
+        android:id="@+id/show_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/show_password"

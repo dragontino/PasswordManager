@@ -9,13 +9,22 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.Window;
 
 import androidx.annotation.DrawableRes;
+import androidx.annotation.IntDef;
+import androidx.annotation.StringDef;
 import androidx.appcompat.app.ActionBar;
 
 import com.security.passwordmanager.databases.PasswordBaseHelper;
 import com.security.passwordmanager.databases.PasswordDBSchema.SupportTable;
 import com.security.passwordmanager.databases.SupportCursorWrapper;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 public class Support {
+
+    @StringDef({LIGHT_THEME, DARK_THEME})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface ThemeDef {}
 
     public static final String LIGHT_THEME = "LIGHT";
     public static final String DARK_THEME = "DARK";
@@ -56,11 +65,11 @@ public class Support {
         updateColors();
     }
 
-    public String getTheme() {
+    public @ThemeDef String getTheme() {
         return mSettings.getTheme();
     }
 
-    public void setTheme(String theme) {
+    public void setTheme(@ThemeDef String theme) {
         mSettings.setTheme(theme);
         updateColors();
         updateSettings(mSettings);

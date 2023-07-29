@@ -39,19 +39,21 @@ public class DataLab {
         mDatabase.insert(DataTable.NAME, null, values);
     }
 
+    //Удаляет только 1 запись в бд
     public void deleteData(Data data) {
         mDatabase.delete(
                 DataTable.NAME,
-                DataTable.Cols.URL + " = ?",
-                new String[]{data.getAddress()}
+                DataTable.Cols.URL + " = ? and " + DataTable.Cols.LOGIN + " = ?",
+                new String[]{ data.getAddress(), mCryptographer.encrypt(data.getLogin()) }
                 );
     }
 
-    public void deleteData(String address, String login) {
+    //удаляет несколько записей в бд (по url)
+    public void deleteData(String address) {
         mDatabase.delete(
                 DataTable.NAME,
-                DataTable.Cols.URL + " = ? and " + DataTable.Cols.LOGIN + " = ?",
-                new String[]{address, mCryptographer.encrypt(login)}
+                DataTable.Cols.URL + " = ?",
+                new String[]{address}
         );
     }
 
@@ -65,7 +67,7 @@ public class DataLab {
         while (!cursorWrapper.isAfterLast()) {
             Data data = cursorWrapper.getData().decrypt(mCryptographer);
             if (!contains(dataList, data))
-                dataList.add(cursorWrapper.getData());
+                addSortedValue(dataList, data);
             cursorWrapper.moveToNext();
         }
         cursorWrapper.close();
@@ -129,10 +131,19 @@ public class DataLab {
                 );
     }
 
+    //добавляет новое значение в массив (массив уже отсортирован)
+    private void addSortedValue(List<Data> list, Data value) {
+        for (int i = 0; i < list.size(); i++)
+            if (list.get(i).compareTo(value) > 0) {
+                list.add(i, value);
+                return;
+            }
+        list.add(value);
+    }
 
     private boolean contains(List<Data> dataList, Data data) {
         for (Data d : dataList) {
-            if (data.equals(d))
+            if (data.getAddress().equals(d.getAddress()))
                 return true;
         }
         return false;

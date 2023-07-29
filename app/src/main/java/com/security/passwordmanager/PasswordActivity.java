@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,10 +19,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,31 +33,31 @@ public class PasswordActivity extends AppCompatActivity {
 
     private static final String EXTRA_ADDRESS = "extra_address";
 
-    private String login_saved;
-
     private Support support;
     private RecyclerView recyclerView;
     private AccountAdapter adapter;
     private DataLab mDataLab;
+    private BottomSheet mBottomSheet;
+
     private String address;
 
     private List<Data> accountList;
 
-    ActivityResultLauncher<Data> launcher = registerForActivityResult(
-            new PasswordInfoActivity.InfoContract(
-                    PasswordInfoActivity.TYPE_ACCOUNT),
-            result -> {
-                if (result == null) return;
-
-                if (result.equals(PasswordInfoActivity.ACTION_RENAME))
-                    login_saved = result;
-                else if (result.equals(PasswordInfoActivity.ACTION_DELETE)) {
-                    accountList = mDataLab.getAccountList(address);
-                    if (accountList.size() == 0) finish();
-                }
-
-                adapter.notifyDataSetChanged();
-            });
+//    ActivityResultLauncher<Data> launcher = registerForActivityResult(
+//            new PasswordInfoActivity.InfoContract(
+//                    PasswordInfoActivity.TYPE_ACCOUNT),
+//            result -> {
+//                if (result == null) return;
+//
+//                if (result.equals(PasswordInfoActivity.ACTION_RENAME))
+//                    login_saved = result;
+//                else if (result.equals(PasswordInfoActivity.ACTION_DELETE)) {
+//                    accountList = mDataLab.getAccountList(address);
+//                    if (accountList.size() == 0) finish();
+//                }
+//
+//                adapter.notifyDataSetChanged();
+//            });
 
     private EditText url;
     private EditText name;
@@ -78,6 +77,8 @@ public class PasswordActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.account_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mDataLab = DataLab.get(this);
+
+        mBottomSheet = new BottomSheet(this);
 
         url = findViewById(R.id.url);
         name = findViewById(R.id.name);
@@ -148,6 +149,8 @@ public class PasswordActivity extends AppCompatActivity {
         accountList = mDataLab.getAccountList(address);
         if (accountList.size() == 0)
             accountList.add(new Data());
+
+        name.setNextFocusDownId(R.id.edit_text_login);
     }
 
     @Override
@@ -233,9 +236,8 @@ public class PasswordActivity extends AppCompatActivity {
             return true;
         }
         else if (item.getItemId() == R.id.menu_item_delete) {
-            for (int i = 0; i < accountList.size(); i++) {
-                mDataLab.deleteData(accountList.get(i));
-            }
+            for (int i = 0; i < accountList.size(); i++)
+                mDataLab.deleteData(accountList.get(i).getAddress());
             finish();
             return true;
         }
@@ -289,9 +291,11 @@ public class PasswordActivity extends AppCompatActivity {
 
         private Data data;
 
-        private final Button subtitle;
+        private final Button showPassword;
         private boolean isPasswordVisible;
         private int position;
+
+        private @StringRes int renamingText;
 
         public AccountHolder(@NonNull View itemView) {
             super(itemView);
@@ -299,26 +303,11 @@ public class PasswordActivity extends AppCompatActivity {
             edit_name = itemView.findViewById(R.id.edit_name_of_account);
             login = itemView.findViewById(R.id.edit_text_login);
             password = itemView.findViewById(R.id.edit_text_password);
-            subtitle = itemView.findViewById(R.id.subtitle);
+            showPassword = itemView.findViewById(R.id.show_password);
             comment = itemView.findViewById(R.id.edit_text_comment);
             isPasswordVisible = false;
+            renamingText = R.string.rename_account;
 
-//            launcher = registerForActivityResult(
-//                    new PasswordInfoActivity.InfoContract(
-//                            PasswordInfoActivity.TYPE_ACCOUNT),
-//                    result -> {
-//                        switch (result) {
-//                            case PasswordInfoActivity.ACTION_RENAME:
-//                                changeBlockHead();
-//                                break;
-//                            case PasswordInfoActivity.ACTION_DELETE:
-//                                accountList.remove(position);
-//                                adapter.notifyDataSetChanged();
-//                                break;
-//                        }
-//                    });
-
-//            subtitle.setOnClickListener(this);
             edit_name.setOnClickListener(this);
         }
 
@@ -335,10 +324,10 @@ public class PasswordActivity extends AppCompatActivity {
             else
                 name_of_account.setText(data.getNameAccount());
 
-            if (data.getLogin().equals(login_saved)) {
-                changeBlockHead();
-                login_saved = null;
-            }
+//            if (data.getLogin().equals(login_saved)) {
+//                changeBlockHead();
+//                login_saved = null;
+//            }
 
             login.setBackgroundResource(support.getBackgroundRes());
             password.setBackgroundResource(support.getBackgroundRes());
@@ -353,7 +342,7 @@ public class PasswordActivity extends AppCompatActivity {
             login.setTextColor(support.getFontColor());
             password.setTextColor(support.getFontColor());
             comment.setTextColor(support.getFontColor());
-            subtitle.setTextColor(support.getFontColor());
+            showPassword.setTextColor(support.getFontColor());
 
             if (support.isLightTheme())
                 name_of_account.setTextColor(getColor(android.R.color.darker_gray));
@@ -402,6 +391,17 @@ public class PasswordActivity extends AppCompatActivity {
                         data.setComment(s.toString());
                 }
             });
+
+            name_of_account.setOnKeyListener((v, keyCode, event) -> {
+                if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                    data.setNameAccount(name_of_account.getText().toString());
+                    changeHeading();
+                    renamingText = R.string.rename_account;
+                    mBottomSheet.updateImageAndText(BottomSheet.VIEW_EDIT, renamingText, null);
+                    return true;
+                }
+                return false;
+            });
         }
 
 
@@ -410,12 +410,12 @@ public class PasswordActivity extends AppCompatActivity {
             if (isPasswordVisible) {
                 password.setInputType(InputType.TYPE_CLASS_TEXT);
                 password.setText(data.getPassword());
-                subtitle.setText(R.string.hide_password);
+                showPassword.setText(R.string.hide_password);
             }
             else {
                 password.setInputType(InputType.TYPE_NULL);
                 password.setText(R.string.hidden_password);
-                subtitle.setText(R.string.show_password);
+                showPassword.setText(R.string.show_password);
             }
         }
 
@@ -424,28 +424,45 @@ public class PasswordActivity extends AppCompatActivity {
         public void onClick(View v) {
 //            isPasswordVisible = !isPasswordVisible;
 //            updatePasswordText();
-            if (v.getId() == R.id.edit_name_of_account)
-                launcher.launch(data);
+            if (v.getId() == R.id.edit_name_of_account) {
+                mBottomSheet.updateImageAndText(
+                        new int[]{ renamingText, R.string.delete_account },
+                        new int[]{ R.drawable.ic_outline_edit_24, R.drawable.ic_baseline_delete_24 }
+                );
+
+                mBottomSheet.setOnClickListener(BottomSheet.VIEW_EDIT, v1 -> {
+                    mBottomSheet.stop();
+                    changeHeading();
+                    renamingText = name_of_account.isCursorVisible() ?
+                            R.string.cancel_renaming_account :
+                            R.string.rename_account;
+                });
+
+                mBottomSheet.setOnClickListener(BottomSheet.VIEW_DELETE, v1 -> {
+                    mBottomSheet.stop();
+                    mDataLab.deleteData(data);
+                    accountList = mDataLab.getAccountList(address);
+                    if (accountList.size() == 0) finish();
+
+                    adapter.notifyDataSetChanged();
+                });
+                mBottomSheet.start();
+            }
         }
 
-        private void changeBlockHead() {
-            boolean block = name_of_account.isCursorVisible();
+        private void changeHeading() {
+            boolean blocking = name_of_account.isCursorVisible();
             //true - заблокирует, false - разблокирует
             String full = getString(R.string.account, position);
             String Null = "";
 
-            name_of_account.setClickable(!block);
-            name_of_account.setEnabled(!block);
-            name_of_account.setCursorVisible(!block);
-            name_of_account.setFocusable(!block);
+            name_of_account.setEnabled(!blocking);
+            name_of_account.setCursorVisible(!blocking);
 
-            if (block && name_of_account.getText().length() == 0) {
+            if (blocking && name_of_account.getText().length() == 0)
                 name_of_account.setText(full);
-                name_of_account.setInputType(InputType.TYPE_NULL);
-            } else if (!block && name_of_account.getText().toString().equals(full)) {
+            else if (!blocking && name_of_account.getText().toString().equals(full))
                 name_of_account.setText(Null);
-                name_of_account.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-            }
         }
     }
 }
