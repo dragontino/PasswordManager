@@ -42,7 +42,7 @@
                 android:text="@string/add_account"
                 android:textSize="15sp"
                 android:layout_marginEnd="6dp"
-                android:textAllCaps="false" />
+                android:textAllCaps="false"/>
 
             <Button
                 android:id="@+id/add_card"
@@ -53,7 +53,7 @@
                 android:textAllCaps="false"
                 android:textColor="@color/raspberry"
                 android:textSize="15sp"
-                android:text="@string/add_more_cards" />
+                android:text="@string/add_more_cards"/>
 
         </LinearLayout>
     </LinearLayout>

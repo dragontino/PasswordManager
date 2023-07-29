@@ -4,15 +4,16 @@
 
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
         android:name=".PasswordManagerApplication"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_descriptor"
         android:icon="@mipmap/ic_app_icon"
         android:label="@string/app_name"
         android:theme="@style/Theme.PasswordManager"
-        android:supportsRtl="true"
-        tools:ignore="AllowBackup">
+        android:supportsRtl="true">
         <activity
             android:name=".presentation.view.MainActivity"
             android:exported="true"

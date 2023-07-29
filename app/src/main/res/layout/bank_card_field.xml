@@ -22,7 +22,7 @@
         android:background="@color/data_background_color"
         android:visibility="gone"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content" />
+        android:layout_width="wrap_content"/>
 
     <ImageButton
         android:id="@+id/field_item_button_copy"
@@ -32,6 +32,6 @@
         android:padding="5dp"
         android:backgroundTint="@color/data_background_color"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content" />
+        android:layout_width="wrap_content"/>
 
 </LinearLayout>
