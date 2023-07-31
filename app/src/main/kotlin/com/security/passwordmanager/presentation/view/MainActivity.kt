@@ -1,6 +1,7 @@
 package com.security.passwordmanager.presentation.view
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val factory = (application as PasswordManagerApplication).viewModelFactory
