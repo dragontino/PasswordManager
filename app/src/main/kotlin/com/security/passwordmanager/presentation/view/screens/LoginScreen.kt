@@ -47,14 +47,14 @@ import com.security.passwordmanager.presentation.view.composables.CollapsingTool
 import com.security.passwordmanager.presentation.view.composables.DataTextFieldDefaults
 import com.security.passwordmanager.presentation.view.composables.EditableDataTextField
 import com.security.passwordmanager.presentation.view.composables.FeedbackSheetContent
-import com.security.passwordmanager.presentation.view.composables.ScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.composables.ScrollableToolbarScaffold
 import com.security.passwordmanager.presentation.view.composables.ScrollableToolbarScaffoldDefaults
 import com.security.passwordmanager.presentation.view.composables.TextButton
 import com.security.passwordmanager.presentation.view.composables.ToolbarButton
 import com.security.passwordmanager.presentation.view.composables.ToolbarButtonDefaults
-import com.security.passwordmanager.presentation.view.composables.rememberScrollableScaffoldState
-import com.security.passwordmanager.presentation.view.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.ScrollableScaffoldState
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.rememberScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.navigation.AppScreens
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetDefaults
 import com.security.passwordmanager.presentation.view.theme.ScreenContentAnimation
@@ -77,7 +77,7 @@ internal fun AnimatedVisibilityScope.LoginScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val scaffoldState = rememberScrollableScaffoldState(
-        contentState = rememberScrollState(),
+        scrollState = rememberScrollState(),
         toolbarType = ToolbarType.PinnedToolbar,
         maxToolbarAlpha = 0f
     )
@@ -99,7 +99,8 @@ internal fun AnimatedVisibilityScope.LoginScreen(
         animationSpec = spring(stiffness = Spring.StiffnessLow),
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background.animate())
-            .fillMaxSize()
+            .fillMaxSize(),
+        label = "loading"
     ) {
         when (it) {
             ViewModelState.PreLoading -> LoadingInBox(progress = viewModel.loadingProgress)
@@ -119,7 +120,7 @@ internal fun AnimatedVisibilityScope.LoginScreen(
 @ExperimentalComposeUiApi
 @Composable
 private fun AnimatedVisibilityScope.LoginContentScreen(
-    scaffoldState: ScrollableScaffoldState<ScrollState>,
+    scaffoldState: ScrollableScaffoldState.ScrollContent,
     viewModel: LoginViewModel,
     settings: Settings,
     isDarkTheme: Boolean,
@@ -221,7 +222,8 @@ private fun AnimatedVisibilityScope.LoginContentScreen(
                             animationSpec = tween(
                                 durationMillis = 350,
                                 easing = FastOutSlowInEasing
-                            )
+                            ),
+                            label = "entry"
                         ) { state ->
                             when (state) {
                                 ViewModelState.Ready -> {

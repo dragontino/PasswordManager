@@ -1,4 +1,4 @@
-package com.security.passwordmanager.presentation.view.managment
+package com.security.passwordmanager.presentation.view.composables.managment
 
 class PinnedToolbarState(
     statusBarHeightPx: Int,

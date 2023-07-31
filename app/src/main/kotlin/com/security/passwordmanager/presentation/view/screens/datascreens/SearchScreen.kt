@@ -69,8 +69,8 @@ import com.security.passwordmanager.data.model.settings.Settings
 import com.security.passwordmanager.presentation.model.enums.DataType
 import com.security.passwordmanager.presentation.view.composables.ScrollableToolbarScaffold
 import com.security.passwordmanager.presentation.view.composables.ScrollableToolbarScaffoldDefaults
-import com.security.passwordmanager.presentation.view.composables.rememberScrollableScaffoldState
-import com.security.passwordmanager.presentation.view.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.rememberScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetDefaults
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.SearchScreenAnimation
@@ -92,7 +92,7 @@ internal fun AnimatedVisibilityScope.SearchScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberScrollableScaffoldState(
-        contentState = rememberLazyListState(),
+        lazyListState = rememberLazyListState(),
         toolbarType = ToolbarType.PinnedToolbar,
         maxToolbarAlpha = 0f
     )

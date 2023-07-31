@@ -58,8 +58,8 @@ import com.security.passwordmanager.presentation.view.composables.CollapsingTool
 import com.security.passwordmanager.presentation.view.composables.ScrollableToolbarScaffold
 import com.security.passwordmanager.presentation.view.composables.ToolbarButton
 import com.security.passwordmanager.presentation.view.composables.ToolbarButtonDefaults
-import com.security.passwordmanager.presentation.view.composables.rememberScrollableScaffoldState
-import com.security.passwordmanager.presentation.view.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.rememberScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.navigation.AppScreens
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetDefaults
@@ -90,7 +90,7 @@ internal fun AnimatedVisibilityScope.AllNotesScreen(
     val snackbarHostState = remember(::SnackbarHostState)
     val lazyListState = rememberLazyListState()
     val scaffoldState = rememberScrollableScaffoldState(
-        contentState = lazyListState,
+        lazyListState = lazyListState,
         toolbarType = ToolbarType.ToolbarBelowContent
     )
     val bottomSheetState = rememberModalBottomSheetState(
@@ -138,7 +138,7 @@ internal fun AnimatedVisibilityScope.AllNotesScreen(
     }
 
 
-    scaffoldState.contentState.isScrollingUp().let { scrollUp ->
+    lazyListState.isScrollingUp().let { scrollUp ->
         LaunchedEffect(scrollUp) {
             delay(60)
             viewModel.showFab = scrollUp
@@ -236,7 +236,7 @@ internal fun AnimatedVisibilityScope.AllNotesScreen(
             snackbarHost = snackbarHost,
             floatingActionButton = {
                 AnimatedVisibility(
-                    visible = viewModel.showFab || !scaffoldState.contentState.canScrollForward,
+                    visible = viewModel.showFab || !scaffoldState.canScrollForward,
                     enter = NotesScreenAnimations.ScrollFabAnimation.enter,
                     exit = NotesScreenAnimations.ScrollFabAnimation.exit,
                     modifier = Modifier.animateEnterExit(
@@ -291,6 +291,7 @@ internal fun AnimatedVisibilityScope.AllNotesScreen(
             Crossfade(
                 targetState = viewModel.viewModelState,
                 animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "state",
             ) {
                 when (it) {
                     DataViewModel.DataViewModelState.PreLoading, DataViewModel.DataViewModelState.Loading -> {

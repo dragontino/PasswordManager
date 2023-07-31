@@ -1,4 +1,4 @@
-package com.security.passwordmanager.presentation.view.managment
+package com.security.passwordmanager.presentation.view.composables.managment
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars

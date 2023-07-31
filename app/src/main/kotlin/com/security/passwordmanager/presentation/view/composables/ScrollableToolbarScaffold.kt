@@ -10,7 +10,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +37,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.pullRefreshIndicatorTransform
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.FabPosition
@@ -50,7 +50,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,9 +81,10 @@ import androidx.compose.ui.zIndex
 import com.security.passwordmanager.Loading
 import com.security.passwordmanager.animate
 import com.security.passwordmanager.keyboardAsState
-import com.security.passwordmanager.presentation.view.managment.ToolbarState
-import com.security.passwordmanager.presentation.view.managment.ToolbarType
-import com.security.passwordmanager.presentation.view.managment.rememberToolbarState
+import com.security.passwordmanager.presentation.view.composables.managment.ScrollableScaffoldState
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarState
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.rememberScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
@@ -98,11 +98,11 @@ import kotlin.math.roundToInt
     ExperimentalLayoutApi::class,
 )
 @Composable
-fun <S : ScrollableState> ScrollableToolbarScaffold(
-    state: ScrollableScaffoldState<S>,
+fun ScrollableToolbarScaffold(
+    state: ScrollableScaffoldState,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
-    topBar: @Composable() (CollapsingToolbarScope.() -> Unit) = {},
+    topBar: @Composable (CollapsingToolbarScope.() -> Unit) = {},
     snackbarHost: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
@@ -110,13 +110,12 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
     contentShape: CornerBasedShape = ScrollableToolbarScaffoldDefaults.contentShape,
     refreshing: Boolean = false,
     onRefresh: suspend () -> Unit = {},
-    pullRefreshIndicator: @Composable() (PullRefreshIndicatorScope.(progress: Float) -> Unit) = {},
+    pullRefreshIndicator: @Composable (PullRefreshIndicatorScope.(progress: Float) -> Unit) = {},
     isPullRefreshEnabled: Boolean = true,
     colors: ScrollableScaffoldColors = ScrollableToolbarScaffoldDefaults.colors(),
-    content: @Composable() (ColumnScope.() -> Unit)
+    content: @Composable (ColumnScope.() -> Unit)
 ) {
     val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
 
     val refreshScope = rememberCoroutineScope()
     val toolbarScope = rememberCoroutineScope()
@@ -136,19 +135,24 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
 //    }
 
 
-    fun onPull(pullDelta: Float): Float = when {
-        refreshing || !isPullRefreshEnabled || state.toolbarState.contentScrollProgress < 1 -> 0f
-        else -> {
-            state.toolbarState.contentOffsetPx += pullDelta
-//            val newOffset = (contentOffsetPx + pullDelta).coerceAtLeast(0f)
-//            val dragConsumed = newOffset - contentOffsetPx
-//            contentOffsetPx = newOffset
-            pullDelta
+    fun onPull(pullDelta: Float): Float {
+        println("onPull = $pullDelta")
+        return when {
+            refreshing || !isPullRefreshEnabled || state.toolbarState.contentScrollProgress < 1 -> 0f
+            else -> {
+                state.toolbarState.contentOffsetPx += pullDelta
+                /*val newOffset = (state.toolbarState.contentOffsetPx + pullDelta).coerceAtLeast(0f)
+                val dragConsumed = newOffset - state.toolbarState.contentOffsetPx
+                state.toolbarState.contentOffsetPx = newOffset*/
+                pullDelta
+            }
         }
     }
 
 
     suspend fun onRelease(flingVelocity: Float): Float = with(state.toolbarState) {
+        println("onRelease = $flingVelocity")
+
         if (contentOffsetPx < heightPx)
             return 0f
 
@@ -159,7 +163,7 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
 
         val oldOffset = contentOffsetPx
         animate(
-            initialValue = contentOffsetPx,
+            initialValue = oldOffset,
             targetValue = heightPx,
             initialVelocity = flingVelocity,
             animationSpec = tween(
@@ -192,29 +196,31 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
     val pullRefreshGraphicsLayer = 4f
 
 
-    fun CornerSize.toPx(): Float = toPx(
+    /*fun CornerSize.toPx(): Float = toPx(
         shapeSize = Size(
             width = configuration.screenWidthDp.toFloat(),
             height = configuration.screenHeightDp.toFloat()
         ),
         density = density
-    )
+    )*/
 
 
-    val animatedContentShape = RoundedCornerShape(
-        topStart = when {
+    val animatedContentShape = contentShape.animate(percent = state.toolbarState.contentScrollProgress)
+    /*RoundedCornerShape(
+        topStart = contentShape.topStart.toPx() * state.toolbarState.contentScrollProgress,
+        *//*when {
             state.toolbarState.isVisible -> contentShape.topStart.toPx()
             else -> 0f
-        }.animate(400),
-        topEnd = when {
+        }.animate(400),*//*
+        topEnd = contentShape.topEnd.toPx() * state.
+        *//*when {
             state.toolbarState.isVisible -> contentShape.topEnd.toPx()
             else -> 0f
-        }.animate(400)
-    )
+        }.animate(400)*//*
+    )*/
 
 
     val defaultBorderWidthPx = with(density) { contentBorder.width.toPx() }
-
     var contentBorderWidthPx by rememberSaveable { mutableStateOf(defaultBorderWidthPx) }
 
 
@@ -229,10 +235,15 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val delta = available.y
 
-                with(state) {
-                    toolbarState.scrollTopLimitReached = !contentState.canScrollBackward
+                println("onPreScroll = $delta")
 
-                    if (delta > 0 && !contentState.canScrollBackward || delta < 0) {
+                with(state) {
+                    toolbarState.scrollTopLimitReached = !canScrollBackward
+
+                    if (
+                        delta > 0 && !canScrollBackward ||
+                        delta < 0 && canScrollForward
+                    ) {
                         toolbarState.contentOffsetPx += delta
                     }
 
@@ -244,7 +255,7 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
                     contentBorderWidthPx = defaultBorderWidthPx * toolbarState.contentScrollProgress
 
                     return when {
-                        !contentState.canScrollBackward && toolbarState.contentOffsetPx > 0 -> Offset(x = 0f, y = delta)
+                        !canScrollBackward && toolbarState.contentOffsetPx > 0 -> Offset(x = 0f, y = delta)
                         else -> Offset.Zero
                     }
                 }
@@ -257,9 +268,9 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
                 source: NestedScrollSource
             ): Offset = with(state) {
                 if (
-                    !contentState.canScrollBackward &&
+                    !canScrollBackward &&
                     toolbarState.contentOffsetPx == 0f &&
-                    contentState.canScrollForward
+                    canScrollForward
                 ) {
                     val oldOffset = toolbarState.contentOffsetPx
                     toolbarState.apply {
@@ -450,10 +461,10 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
             Box(
                 Modifier
                     .padding(contentPadding)
-//                    .pullRefresh(
-//                        onPull = ::onPull,
-//                        onRelease = ::onRelease
-//                    )
+                    .pullRefresh(
+                        onPull = ::onPull,
+                        onRelease = ::onRelease
+                    )
                     .nestedScroll(nestedScrollConnection)
             ) {
                 Box(
@@ -569,6 +580,40 @@ fun <S : ScrollableState> ScrollableToolbarScaffold(
 }
 
 
+@Composable
+private fun CornerBasedShape.animate(percent: Float): CornerBasedShape {
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
+
+    fun CornerSize.toPx(): Float = toPx(
+        shapeSize = Size(
+            width = configuration.screenWidthDp.toFloat(),
+            height = configuration.screenHeightDp.toFloat()
+        ),
+        density = density
+    )
+
+
+    return RoundedCornerShape(
+        topStart = topStart.toPx() * percent,
+        /*when {
+            state.toolbarState.isVisible -> contentShape.topStart.toPx()
+            else -> 0f
+        }.animate(400),*/
+        topEnd = topEnd.toPx() * percent,
+        /*when {
+            state.toolbarState.isVisible -> contentShape.topEnd.toPx()
+            else -> 0f
+        }.animate(400)*/
+        bottomStart = bottomStart.toPx() * percent,
+        bottomEnd = bottomEnd.toPx() * percent
+    )
+}
+
+
+
+
+
 object ScrollableToolbarScaffoldDefaults {
     val withoutBorder = BorderStroke(width = 0.dp, color = Color.Transparent)
 
@@ -626,38 +671,6 @@ data class ScrollableScaffoldColors internal constructor(
 )
 
 
-@Stable
-class ScrollableScaffoldState<S : ScrollableState>(
-    val contentState: S,
-    val toolbarState: ToolbarState,
-)
-
-
-@Composable
-fun <S : ScrollableState> rememberScrollableScaffoldState(
-    contentState: S,
-    toolbarState: ToolbarState = rememberToolbarState()
-) = remember {
-    ScrollableScaffoldState(contentState, toolbarState)
-}
-
-
-@Composable
-fun <S : ScrollableState> rememberScrollableScaffoldState(
-    contentState: S,
-    toolbarType: ToolbarType = CollapsingToolbarDefaults.type,
-    initialToolbarHeightDp: Int = CollapsingToolbarDefaults.heightDp,
-    maxToolbarAlpha: Float = CollapsingToolbarDefaults.maxAlpha
-) = rememberScrollableScaffoldState(
-    contentState = contentState,
-    toolbarState = rememberToolbarState(
-        type = toolbarType,
-        initialHeightDp = initialToolbarHeightDp,
-        maxAlpha = maxToolbarAlpha
-    )
-)
-
-
 sealed interface PullRefreshIndicatorScope {
 
     fun onRefresh()
@@ -702,8 +715,9 @@ private class PullRefreshIndicatorScopeImpl(private val onRefresh: () -> Unit) :
 @Composable
 private fun ToolbarScaffoldPreview() {
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
     val scaffoldState = rememberScrollableScaffoldState(
-        contentState = rememberScrollState(),
+        scrollState = scrollState,
         toolbarType = ToolbarType.ToolbarOverContent
     )
 
@@ -725,7 +739,7 @@ private fun ToolbarScaffoldPreview() {
                 state = scaffoldState,
                 contentModifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(scaffoldState.contentState),
+                    .verticalScroll(scrollState),
                 topBar = {
                     CollapsingToolbar(title = "Imagine Dragons")
                 },
@@ -755,10 +769,7 @@ private fun ToolbarScaffoldPreview() {
                 )
             ) {
                 Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scaffoldState.contentState)
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "Sharks",

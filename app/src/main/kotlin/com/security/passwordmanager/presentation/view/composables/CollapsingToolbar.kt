@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import com.security.passwordmanager.presentation.view.managment.ToolbarState
-import com.security.passwordmanager.presentation.view.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarState
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarType
 import com.security.passwordmanager.presentation.view.theme.RaspberryLight
 
 @OptIn(ExperimentalMaterial3Api::class)

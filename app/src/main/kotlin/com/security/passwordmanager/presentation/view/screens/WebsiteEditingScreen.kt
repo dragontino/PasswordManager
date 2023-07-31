@@ -122,8 +122,8 @@ import com.security.passwordmanager.presentation.view.composables.ToolbarButton
 import com.security.passwordmanager.presentation.view.composables.ToolbarButtonDefaults
 import com.security.passwordmanager.presentation.view.composables.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composables.TrailingActions.VisibilityIconButton
-import com.security.passwordmanager.presentation.view.composables.rememberScrollableScaffoldState
-import com.security.passwordmanager.presentation.view.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.rememberScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetDefaults
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.CopyItem
@@ -175,7 +175,7 @@ internal fun AnimatedVisibilityScope.WebsiteEditingScreen(
 
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = startPosition)
     val scaffoldState = rememberScrollableScaffoldState(
-        contentState = listState,
+        lazyListState = listState,
         toolbarType = ToolbarType.ToolbarBelowContent
     )
     val snackbarHostState = remember { SnackbarHostState() }
@@ -331,7 +331,8 @@ internal fun AnimatedVisibilityScope.WebsiteEditingScreen(
                     navigationButton = {
                         Crossfade(
                             targetState = viewModel.isInEdit,
-                            animationSpec = tween(durationMillis = 100, easing = LinearEasing)
+                            animationSpec = tween(durationMillis = 100, easing = LinearEasing),
+                            label = "toolbarButton"
                         ) { edit ->
                             ToolbarButton(
                                 icon = when {
@@ -502,7 +503,8 @@ internal fun AnimatedVisibilityScope.WebsiteEditingScreen(
             Crossfade(
                 targetState = viewModel.state,
                 animationSpec = spring(stiffness = Spring.StiffnessLow),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                label = "content"
             ) { state ->
                 when (state) {
                     State.Loading -> LoadingInBox(
@@ -1056,7 +1058,7 @@ private fun FirstTwoItemsPreview() {
         FirstTwoItems(
             firstItem = {
                 Text(
-                    text = "Адрес",
+                    text = stringResource(R.string.url_address),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onBackground.animate(),
                     modifier = Modifier
@@ -1076,7 +1078,7 @@ private fun FirstTwoItemsPreview() {
                     )
                 ) {
                     Text(
-                        text = "Название сайта",
+                        text = stringResource(R.string.name_website),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground.animate(),
                         modifier = Modifier
@@ -1087,7 +1089,7 @@ private fun FirstTwoItemsPreview() {
                     Spacer(Modifier.size(4.dp))
 
                     CheckboxWithText(
-                        text = "Автозаполнение",
+                        text = stringResource(R.string.autofill_name_website),
                         isChecked = true,
                         onCheckedChange = {},
                     )
