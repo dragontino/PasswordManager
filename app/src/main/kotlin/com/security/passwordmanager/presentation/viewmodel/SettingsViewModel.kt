@@ -36,7 +36,7 @@ class SettingsViewModel(
         Ready
     }
 
-    var viewModelState by mutableStateOf(State.Ready)
+    var state by mutableStateOf(State.Ready)
 
     var settings by mutableStateOf(Settings())
         private set
@@ -111,15 +111,15 @@ class SettingsViewModel(
         viewModelScope.launch {
             repository.getSettings {
                 when (it) {
-                    is Result.Loading -> viewModelState = State.Loading
+                    is Result.Loading -> state = State.Loading
                     is Result.Success -> {
                         settings = it.data
-                        viewModelState = State.Ready
+                        state = State.Ready
                     }
 
                     is Result.Error -> {
                         it.exception.localizedMessage?.let { msg -> Log.e(TAG, msg) }
-                        viewModelState = State.Ready
+                        state = State.Ready
                     }
                 }
             }
@@ -147,10 +147,10 @@ class SettingsViewModel(
                 showDialog = false
                 when (it) {
                     Result.Loading ->
-                        viewModelState = State.Loading
+                        state = State.Loading
 
                     is Result.Error -> {
-                        viewModelState = State.Ready
+                        state = State.Ready
                         usernameInDialog = username
 
                         it.exception.localizedMessage?.let { msg -> Log.e(TAG, msg) }
@@ -159,7 +159,7 @@ class SettingsViewModel(
                     }
 
                     is Result.Success -> {
-                        viewModelState = State.Ready
+                        state = State.Ready
                         username = usernameInDialog
                         resultMessage(context.getString(R.string.change_username_successful))
                     }
@@ -191,10 +191,10 @@ class SettingsViewModel(
         error: (message: String?) -> Unit = {}
     ) {
         viewModelScope.launch {
-            viewModelState = State.Loading
+            state = State.Loading
             delay(100)
             repository.updateSettingsProperty(name, value) {
-                viewModelState = when (it) {
+                state = when (it) {
                     Result.Loading -> State.Loading
                     is Result.Error -> {
                         error(it.exception.localizedMessage)
@@ -214,12 +214,12 @@ class SettingsViewModel(
 
     fun checkAppUpdates(result: (isLatest: Boolean, latestVersionInfo: AppVersionInfo?) -> Unit) {
         viewModelScope.launch {
-            viewModelState = State.Loading
+            state = State.Loading
             delay(150)
             val currentVersion = getAppVersionName()
 
             repository.getCurrentAppVersionInfo { result ->
-                viewModelState = when (result) {
+                state = when (result) {
                     is Result.Loading -> State.Loading
                     is Result.Error -> {
                         Log.e(TAG, result.exception.localizedMessage, result.exception)
@@ -246,10 +246,10 @@ class SettingsViewModel(
         resultAction: (message: String?) -> Unit
     ) {
         viewModelScope.launch {
-            viewModelState = State.Loading
+            state = State.Loading
             delay(150)
             repository.changePassword(oldPassword, newPassword) { result ->
-                viewModelState = when (result) {
+                state = when (result) {
                     Result.Loading -> State.Loading
                     is Result.Error -> {
                         Log.e(TAG, result.exception.localizedMessage, result.exception)

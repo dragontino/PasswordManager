@@ -113,8 +113,8 @@ import com.security.passwordmanager.presentation.view.composables.TextButton
 import com.security.passwordmanager.presentation.view.composables.ToolbarButton
 import com.security.passwordmanager.presentation.view.composables.ToolbarButtonDefaults
 import com.security.passwordmanager.presentation.view.composables.TrailingActions.VisibilityIconButton
-import com.security.passwordmanager.presentation.view.composables.rememberScrollableScaffoldState
-import com.security.passwordmanager.presentation.view.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.rememberScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.navigation.AppScreens
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.Header
@@ -128,6 +128,7 @@ import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.view.theme.ScreenContentAnimation
 import com.security.passwordmanager.presentation.view.theme.ScreenToolbarAnimation
 import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel
+import com.security.passwordmanager.presentation.viewmodel.SettingsViewModel.State
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -144,7 +145,7 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScrollableScaffoldState(
-        contentState = rememberLazyListState(),
+        lazyListState = rememberLazyListState(),
         toolbarType = ToolbarType.ToolbarOverContent
     )
 
@@ -337,7 +338,7 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
                 )
 
                 androidx.compose.animation.AnimatedVisibility(
-                    visible = viewModel.viewModelState == SettingsViewModel.State.Loading,
+                    visible = viewModel.state == State.Loading,
                     enter = fadeIn(
                         animationSpec = tween(durationMillis = 350)
                     ),
@@ -436,6 +437,7 @@ private fun SettingsContentScreen(
                     header = Header(
                         title = stringResource(R.string.beautiful_font)
                     ),
+                    enabled = viewModel.state != State.Loading
                 ) {
                     viewModel.updateSettingsProperty(
                         name = Settings::beautifulFont.name,
@@ -451,7 +453,8 @@ private fun SettingsContentScreen(
                         header = Header(
                             title = stringResource(R.string.dynamic_color),
                             subtitle = stringResource(R.string.dynamic_color_desc)
-                        )
+                        ),
+                        enabled = viewModel.state != State.Loading
                     ) {
                         viewModel.updateSettingsProperty(
                             Settings::dynamicColor.name,
@@ -467,7 +470,8 @@ private fun SettingsContentScreen(
                     header = Header(
                         title = stringResource(R.string.pull_to_refresh),
                         subtitle = stringResource(R.string.pull_to_refresh_desc)
-                    )
+                    ),
+                    enabled = viewModel.state != State.Loading
                 ) {
                     viewModel.updateSettingsProperty(
                         name = Settings::pullToRefresh.name,
@@ -481,7 +485,8 @@ private fun SettingsContentScreen(
                     isChecked = viewModel.settings.loadIcons,
                     header = Header(
                         title = stringResource(R.string.load_icons)
-                    )
+                    ),
+                    enabled = viewModel.state != State.Loading
                 ) {
                     viewModel.updateSettingsProperty(
                         name = Settings::loadIcons.name,
@@ -502,8 +507,10 @@ private fun SettingsContentScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(MaterialTheme.shapes.small)
-                        .clickable { openBottomSheet(themeSheetContent) }
-                        .padding(horizontal = 8.dp, vertical = 16.dp)
+                        .clickable(enabled = viewModel.state != State.Loading) {
+                            openBottomSheet(themeSheetContent)
+                        }
+                        .padding(horizontal = 12.dp, vertical = 16.dp)
                         .fillMaxWidth()
                 ) {
                     Text(
@@ -567,7 +574,7 @@ private fun SettingsContentScreen(
                     textAlign = TextAlign.Start,
                     modifier = Modifier
                         .clip(MaterialTheme.shapes.small)
-                        .clickable {
+                        .clickable(enabled = viewModel.state != State.Loading) {
                             viewModel.checkAppUpdates { isLatest, latestVersionInfo ->
                                 when (latestVersionInfo) {
                                     null -> showSnackbar(
@@ -654,6 +661,7 @@ private fun SwitchItem(
     isChecked: Boolean,
     header: Header,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: (isChecked: Boolean) -> Unit
 ) {
     Row(
@@ -663,6 +671,7 @@ private fun SwitchItem(
             .toggleable(
                 value = isChecked,
                 role = Role.Switch,
+                enabled = enabled,
                 onValueChange = onClick
             )
             .padding(16.dp)
