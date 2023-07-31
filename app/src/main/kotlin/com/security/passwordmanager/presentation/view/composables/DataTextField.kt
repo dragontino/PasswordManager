@@ -15,6 +15,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -59,20 +60,80 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.security.passwordmanager.R
+import com.security.passwordmanager.presentation.view.composables.TrailingActions.CopyIconButton
+import com.security.passwordmanager.presentation.view.composables.TrailingActions.VisibilityIconButton
+import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 
 @Composable
 fun DataTextField(
     text: String,
     heading: String,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingActions: @Composable (RowScope.() -> Unit) = {}
+) {
+    DataTextField(
+        text = TextFieldValue(text),
+        heading = heading,
+        textStyle = textStyle,
+        modifier = modifier,
+        keyboardType = keyboardType,
+        visualTransformation = visualTransformation,
+        trailingActions = trailingActions
+    )
+}
+
+
+
+@Composable
+fun DataTextField(
+    text: AnnotatedString,
+    heading: String,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle(
+        fontSize = 28.sp,
+        fontFamily = FontFamily.Monospace
+    ),
+    keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingActions: @Composable (RowScope.() -> Unit) = {}
+) {
+    DataTextField(
+        text = TextFieldValue(text),
+        heading = heading,
+        textStyle = textStyle,
+        modifier = modifier,
+        keyboardType = keyboardType,
+        visualTransformation = visualTransformation,
+        trailingActions = trailingActions
+    )
+}
+
+
+
+
+
+@Composable
+private fun DataTextField(
+    text: TextFieldValue,
+    heading: String,
+    textStyle: TextStyle,
     modifier: Modifier = Modifier,
     keyboardType: KeyboardType = KeyboardType.Text,
     visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -81,7 +142,7 @@ fun DataTextField(
     TextField(
         value = text,
         onValueChange = {},
-        textStyle = MaterialTheme.typography.bodyMedium,
+        textStyle = textStyle,
         label = {
             Text(
                 text = heading,
@@ -120,9 +181,11 @@ fun DataTextField(
 }
 
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun EditableDataTextField(
+fun EditableDataTextField(
     text: String,
     onTextChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -453,7 +516,6 @@ private fun animateBorderStrokeAsState(
 
 
 
-/*
 @Preview(showBackground = true)
 @Composable
 private fun DataTextFieldPreview() {
@@ -485,4 +547,4 @@ private fun DataTextFieldPreview() {
             )
         }
     }
-}*/
+}

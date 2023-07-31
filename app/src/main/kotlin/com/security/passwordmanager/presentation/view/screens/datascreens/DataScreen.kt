@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.tappableElement
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -80,6 +79,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import com.security.passwordmanager.R
 import com.security.passwordmanager.animate
+import com.security.passwordmanager.colorize
 import com.security.passwordmanager.convertToColor
 import com.security.passwordmanager.data.model.dao.usersdata.Bank
 import com.security.passwordmanager.data.model.dao.usersdata.UsersData
@@ -89,9 +89,9 @@ import com.security.passwordmanager.data.model.dao.usersdatachild.BankCard
 import com.security.passwordmanager.presentation.view.composables.DataTextField
 import com.security.passwordmanager.presentation.view.composables.DataTextFieldDefaults
 import com.security.passwordmanager.presentation.view.composables.DeleteDialog
-import com.security.passwordmanager.presentation.view.composables.ScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.composables.TrailingActions.CopyIconButton
 import com.security.passwordmanager.presentation.view.composables.TrailingActions.VisibilityIconButton
+import com.security.passwordmanager.presentation.view.composables.managment.ScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.navigation.AppScreens
 import com.security.passwordmanager.presentation.view.navigation.BottomSheetContent
 import com.security.passwordmanager.presentation.view.navigation.Header
@@ -100,6 +100,7 @@ import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems
 import com.security.passwordmanager.presentation.view.navigation.ModalSheetItems.EditItem
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.NotesScreenAnimations
+import com.security.passwordmanager.presentation.view.theme.Orange
 import com.security.passwordmanager.presentation.view.theme.PacificFont
 import com.security.passwordmanager.presentation.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.presentation.viewmodel.DataViewModel
@@ -109,7 +110,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun <D : UsersData> DataScreen(
-    scaffoldState: ScrollableScaffoldState<LazyListState>,
+    scaffoldState: ScrollableScaffoldState.LazyListContent,
     viewModel: DataViewModel<D>,
     showBottomSheet: () -> Unit,
     hideBottomSheet: () -> Unit,
@@ -577,6 +578,9 @@ private fun Account(
             DataTextField(
                 text = account.login,
                 heading = stringResource(R.string.login),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    fontFamily = FontFamily.Monospace
+                )
             ) {
                 CopyIconButton {
                     copyText(account.login)
@@ -584,8 +588,17 @@ private fun Account(
             }
 
             DataTextField(
-                text = account.password,
+                text = account.password.colorize { char ->
+                    when {
+                        char.isDigit() -> Color.Blue
+                        char in "!@#\$%^&*—_+=;:.,/?\'\"\\|`~()[]{}<>" -> Orange
+                        else -> Color.Unspecified
+                    }
+                },
                 heading = stringResource(R.string.password),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    fontFamily = FontFamily.Monospace
+                ),
                 keyboardType = KeyboardType.Password,
                 visualTransformation = DataTextFieldDefaults
                     .passwordVisualTransformation(isPasswordVisible)

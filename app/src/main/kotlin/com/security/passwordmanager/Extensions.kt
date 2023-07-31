@@ -37,6 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -109,7 +112,8 @@ fun Context.checkNetworkConnection(): Boolean {
 fun Color.animate(durationMillis: Int = 600): Color =
     animateColorAsState(
         targetValue = this,
-        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing)
+        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing),
+        label = "colorAnimation"
     ).value
 
 
@@ -117,7 +121,8 @@ fun Color.animate(durationMillis: Int = 600): Color =
 fun Float.animate(durationMillis: Int = 600): Float =
     animateFloatAsState(
         targetValue = this,
-        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing)
+        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing),
+        label = "floatAnimation"
     ).value
 
 
@@ -125,7 +130,8 @@ fun Float.animate(durationMillis: Int = 600): Float =
 fun Dp.animate(durationMillis: Int = 600): Dp =
     animateDpAsState(
         targetValue = this,
-        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing)
+        animationSpec = tween(durationMillis, easing = FastOutSlowInEasing),
+        label = "dpAnimation"
     ).value
 
 
@@ -249,5 +255,14 @@ fun String.convertToColor(): Color {
     val sum = this.fold(0) { acc, c -> acc + c.code }
     return Color(0xFF000000 + sum % 0xFFFFFF).run {
         copy(red = 1 - red, green = 1 - green, blue = 1 - blue)
+    }
+}
+
+
+inline fun String.colorize(charColor: (Char) -> Color) = buildAnnotatedString {
+    this@colorize.forEach { char ->
+        withStyle(SpanStyle(color = charColor(char))) {
+            append(char)
+        }
     }
 }

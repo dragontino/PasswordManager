@@ -79,8 +79,8 @@ import com.security.passwordmanager.presentation.view.composables.ScrollableTool
 import com.security.passwordmanager.presentation.view.composables.TextButton
 import com.security.passwordmanager.presentation.view.composables.ToolbarButton
 import com.security.passwordmanager.presentation.view.composables.ToolbarButtonDefaults
-import com.security.passwordmanager.presentation.view.composables.rememberScrollableScaffoldState
-import com.security.passwordmanager.presentation.view.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.ToolbarType
+import com.security.passwordmanager.presentation.view.composables.managment.rememberScrollableScaffoldState
 import com.security.passwordmanager.presentation.view.theme.DarkerGray
 import com.security.passwordmanager.presentation.view.theme.ScreenContentAnimation
 import com.security.passwordmanager.presentation.view.theme.ScreenToolbarAnimation
@@ -97,7 +97,7 @@ fun AnimatedVisibilityScope.PasswordGenerationScreen(
 ) {
     val scrollState = rememberScrollState()
     val scaffoldState = rememberScrollableScaffoldState(
-        contentState = scrollState,
+        scrollState = scrollState,
         toolbarType = ToolbarType.PinnedToolbar
     )
     val snackbarHostState = remember { SnackbarHostState() }

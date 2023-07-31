@@ -6,10 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.security.passwordmanager.colorize
 import com.security.passwordmanager.data.Result
 import com.security.passwordmanager.data.repository.PasswordGenerationRepository
 import com.security.passwordmanager.presentation.view.theme.Orange
@@ -17,8 +16,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class PasswordGenerationViewModel(private val repository: PasswordGenerationRepository) :
-    ViewModel() {
+class PasswordGenerationViewModel(
+    private val repository: PasswordGenerationRepository
+) : ViewModel() {
 
     companion object {
         private const val specialSymbols = "!@#\$%^&*—_+=;:.,/?\'\"\\|`~()[]{}<>"
@@ -103,26 +103,15 @@ class PasswordGenerationViewModel(private val repository: PasswordGenerationRepo
             is Result.Success -> result.data
         }
 
-        colorizedPassword = buildAnnotatedString {
-            append(password)
-
-            for (i in password.indices) {
-                val char = password[i]
-
+        colorizedPassword = when (result) {
+            is Result.Success -> password.colorize { char ->
                 when {
-                    char.isDigit() -> addStyle(
-                        style = SpanStyle(color = DigitColor),
-                        start = i,
-                        end = i + 1
-                    )
-
-                    char in specialCharacters -> addStyle(
-                        style = SpanStyle(color = SpecialSymbolColor),
-                        start = i,
-                        end = i + 1
-                    )
+                    char.isDigit() -> DigitColor
+                    char in specialSymbols -> SpecialSymbolColor
+                    else -> Color.Unspecified
                 }
             }
+            else -> AnnotatedString("")
         }
 
         state = State.Ready
