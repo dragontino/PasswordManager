@@ -379,24 +379,6 @@ class WebsiteViewModel @AssistedInject constructor(
     }
 
 
-    private fun Website.applyLogo(callback: (Website) -> Unit) {
-        viewModelScope.launch {
-            getWebsiteLogoUseCase
-                .getWebsiteLogo(address)
-                .getOrNull()
-                ?.let { callback(copy(logoUrl = it)) }
-                ?: callback(this@applyLogo)
-        }
-    }
-
-
-    private fun insertWebsite(website: Website, newId: (Result<String>) -> Unit) {
-        viewModelScope.launch {
-            entityUseCase.insertEntity(website, newId)
-        }
-    }
-
-
     @AssistedFactory
     interface Factory {
         fun create(id: String): WebsiteViewModel
