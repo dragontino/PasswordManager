@@ -97,10 +97,3 @@ val Typography = Typography(
         letterSpacing = 0.sp
     )
 )
-
-
-val Typography.beautifulStyleSmall: TextStyle
-    get() = TextStyle(
-        fontFamily = FontFamily(HarrowFont),
-        fontSize = 20.sp
-    )

@@ -2,12 +2,15 @@ package com.security.passwordmanager.domain.model
 
 import com.security.passwordmanager.domain.model.entity.EntityType
 
-sealed class PasswordManagerException(override val message: String? = null) : Exception(message)
+sealed class PasswordManagerException(override val message: String? = null) : Exception(message) {
+    protected fun readResolve(): Any = Exception(message)
+}
 
 sealed interface EmailException
 sealed interface PasswordException
 
 data object UserNotLoggedException : PasswordManagerException()
+
 data object IncorrectEmailException : PasswordManagerException(), EmailException
 data object InvalidEmailException : PasswordManagerException(), EmailException
 data class IncorrectPasswordException(
