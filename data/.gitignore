@@ -1,0 +1,5 @@
+/build
+proguard-rules.pro
+consumer-rules.pro
+google-services.json
+/src/main/kotlin/com/security/passwordmanager/data/CryptoManager.kt

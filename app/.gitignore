@@ -1,5 +1,4 @@
 /build
-src/main/kotlin/com/security/passwordmanager/data/CryptoManager.kt
-src/main/kotlin/com/security/passwordmanager/data/UID.kt
-google-services.json
+../data/google-services.json
+local.properties
 proguard-rules.pro

@@ -7,3 +7,6 @@ navEditor.xml
 assetWizardSettings.xml
 workspace.xml
 kotlinScripting.xml
+/appInsightsSettings.xml
+/deploymentTargetDropDown.xml
+/migrations.xml

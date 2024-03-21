@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":domain")
+include(":data")
 include(":app")
 
 
