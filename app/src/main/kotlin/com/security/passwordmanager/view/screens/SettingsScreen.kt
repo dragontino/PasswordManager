@@ -96,7 +96,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.AppVersionInfo
 import com.security.passwordmanager.domain.model.ColorDesign
 import com.security.passwordmanager.domain.model.isValidPassword

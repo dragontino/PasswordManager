@@ -1,7 +1,7 @@
 package com.security.passwordmanager.model
 
 import android.content.Context
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.Account
 import com.security.passwordmanager.domain.model.BankCard
 import com.security.passwordmanager.domain.model.ColorDesign

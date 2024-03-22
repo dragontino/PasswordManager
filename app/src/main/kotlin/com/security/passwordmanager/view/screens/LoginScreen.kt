@@ -80,7 +80,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.util.LoadingInBox
 import com.security.passwordmanager.util.animate
 import com.security.passwordmanager.util.getActivity

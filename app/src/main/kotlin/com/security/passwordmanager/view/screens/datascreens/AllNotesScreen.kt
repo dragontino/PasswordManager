@@ -48,7 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.entity.EntityType
 import com.security.passwordmanager.util.LoadingInBox
 import com.security.passwordmanager.util.animate

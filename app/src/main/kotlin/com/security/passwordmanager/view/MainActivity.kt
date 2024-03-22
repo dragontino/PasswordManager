@@ -36,7 +36,6 @@ class MainActivity : ComponentActivity() {
         }
 
         mainViewModel = viewModels<MainViewModel> { factory }.value
-
         setContent {
             PasswordManagerTheme(mainViewModel.settings) { isDarkTheme ->
                 val style = when {
@@ -44,6 +43,7 @@ class MainActivity : ComponentActivity() {
                         scrim = Color.TRANSPARENT,
                         darkScrim = Color.TRANSPARENT
                     )
+
                     else -> SystemBarStyle.dark(Color.TRANSPARENT)
                 }
 

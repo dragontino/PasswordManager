@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.util.animate
 import com.security.passwordmanager.view.composables.TextButton
 import com.security.passwordmanager.view.theme.PasswordManagerTheme

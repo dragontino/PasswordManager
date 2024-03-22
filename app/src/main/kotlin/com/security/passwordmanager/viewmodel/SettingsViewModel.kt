@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.BuildConfig
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.AppVersionInfo
 import com.security.passwordmanager.domain.model.ColorDesign
 import com.security.passwordmanager.domain.model.ExceptionMessage
