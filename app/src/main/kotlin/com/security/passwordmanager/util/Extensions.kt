@@ -26,10 +26,6 @@ fun <D : Enum<*>> Bundle?.getEnum(key: String, defaultValue: D): D =
     }
 
 
-fun <E> List<E>.slice(fromIndex: Int = 0, toIndex: Int = size) =
-    slice(fromIndex..<toIndex)
-
-
 fun Context.getActivity(): AppCompatActivity? = when (this) {
     is AppCompatActivity -> this
     is ContextWrapper -> baseContext.getActivity()

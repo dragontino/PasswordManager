@@ -79,6 +79,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.UrlAnnotation
@@ -310,11 +311,13 @@ internal fun AnimatedVisibilityScope.SettingsScreen(
                     imageVector = Icons.Outlined.ArrowCircleLeft,
                     contentDescription = "return",
                     tint = MaterialTheme.colorScheme.onBackground.reversed,
-                    modifier = Modifier.graphicsLayer(
-                        alpha = pullToRefreshState.progress,
-                        scaleY = pullToRefreshState.progress,
-                        scaleX = pullToRefreshState.progress
-                    ).fillMaxSize()
+                    modifier = Modifier
+                        .graphicsLayer(
+                            alpha = pullToRefreshState.progress,
+                            scaleY = pullToRefreshState.progress,
+                            scaleX = pullToRefreshState.progress
+                        )
+                        .fillMaxSize()
                 )
             }
         },
@@ -867,6 +870,7 @@ private fun CheckAppUpdatesBottomSheet(
                     .padding(16.dp)
             )
 
+            // TODO: 21.03.2024 переделать
             ClickableText(
                 text = buildAnnotatedString {
                     when {
@@ -874,20 +878,19 @@ private fun CheckAppUpdatesBottomSheet(
                             append(stringResource(R.string.current_app_version_is_latest))
                         }
                         else -> {
-                            append(stringResource(R.string.update_available), " ")
-
-                            withStyle(
-                                SpanStyle(
-                                    fontFamily = when {
-                                        useBeautifulFont -> FontFamily(PacificFont)
-                                        else -> MaterialTheme.typography.titleMedium.fontFamily
-                                    }
-                                )
-                            ) {
-                                append(latestVersionInfo.name)
-                            }
-
                             append(
+                                stringResource(
+                                    R.string.update_available,
+                                    AnnotatedString(
+                                        text = latestVersionInfo.name,
+                                        spanStyle = SpanStyle(
+                                            fontFamily = when {
+                                                useBeautifulFont -> FontFamily(PacificFont)
+                                                else -> MaterialTheme.typography.titleMedium.fontFamily
+                                            }
+                                        )
+                                    ),
+                                ),
                                 "\n",
                                 stringResource(R.string.downloading_update_instructions),
                                 "\n"

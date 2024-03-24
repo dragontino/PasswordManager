@@ -58,10 +58,10 @@ import androidx.compose.ui.unit.sp
 import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.util.LoadingInBox
 import com.security.passwordmanager.util.animate
-import com.security.passwordmanager.view.composables.scaffold.toolbar.rememberAppBarState
 import com.security.passwordmanager.view.composables.scaffold.CollapsingToolbarScaffold
 import com.security.passwordmanager.view.composables.scaffold.CollapsingToolbarScaffoldDefaults
 import com.security.passwordmanager.view.composables.scaffold.toolbar.CollapsingAppBarDefaults
+import com.security.passwordmanager.view.composables.scaffold.toolbar.rememberAppBarState
 import com.security.passwordmanager.view.theme.AnyScreenAnimation
 import com.security.passwordmanager.view.theme.PasswordManagerTheme
 import com.security.passwordmanager.view.theme.SearchBarAnimation
