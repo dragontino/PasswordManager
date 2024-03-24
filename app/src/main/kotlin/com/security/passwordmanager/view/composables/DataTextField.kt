@@ -446,7 +446,7 @@ object TrailingActions {
                 else -> Icons.Outlined.Visibility
             },
             modifier = modifier,
-            contentDescription = stringResource(R.string.show_password)
+            contentDescription = "Show password"
         ) {
             changeVisibility(!visible)
         }

@@ -38,8 +38,8 @@ class ExceptionMessageImpl(private val context: Context) : ExceptionMessage {
     override fun getMessage(exception: PasswordManagerException): String = when (exception) {
         is UserNotLoggedException -> context.getString(R.string.user_not_authenticated_exception)
         is IncorrectEmailException -> context.getString(R.string.incorrect_email)
-        is InvalidEmailException -> context.getString(R.string.invalid_email)
-        is IncorrectPasswordException -> context.getString(R.string.incorrect_password)
+        is InvalidEmailException -> context.getString(R.string.invalid_email_exception)
+        is IncorrectPasswordException -> context.getString(R.string.invalid_password)
         is UserDisabledException -> context.getString(R.string.user_disabled_exception)
         is TooManyRequestsException -> context.getString(R.string.too_many_requests_exception)
         is ConnectionFailedException -> context.getString(R.string.failed_to_connect_to_server)

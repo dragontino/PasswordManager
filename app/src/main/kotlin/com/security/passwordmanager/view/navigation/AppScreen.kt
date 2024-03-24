@@ -64,7 +64,7 @@ sealed class HomeScreen : AppScreen {
 
     data object AllNotes : HomeScreen(), NavigationDrawerItem {
         override val childRoute = "all"
-        override val titleRes = R.string.all_notes
+        override val titleRes = R.string.all_entries
         override val icon = Icons.AutoMirrored.Outlined.ListAlt
 
         fun createUrl(): String = baseRoute
@@ -164,7 +164,7 @@ data object SettingsScreen : AppScreen, NavigationDrawerItem {
 data object PasswordGenerationScreen : AppScreen, NavigationDrawerItem {
     override val baseRoute = "generation"
     override val icon = Icons.Outlined.AutoFixHigh
-    override val titleRes = R.string.password_generation
+    override val titleRes = R.string.password_generator
 
     fun createUrl(): String = baseRoute
 }

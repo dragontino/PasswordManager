@@ -400,7 +400,7 @@ private fun PasswordLengthSelectionDialog(
         },
         dismissButton = {
             TextButton(
-                text = stringResource(R.string.cancel_action),
+                text = stringResource(R.string.cancel),
                 textColor = MaterialTheme.colorScheme.primary.animate(),
                 onClick = onCancel
             )

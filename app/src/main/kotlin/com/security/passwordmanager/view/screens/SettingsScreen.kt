@@ -1043,7 +1043,7 @@ private fun ChangingPasswordBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(
-                    text = stringResource(R.string.cancel_action),
+                    text = stringResource(R.string.cancel),
                     textColor = MaterialTheme.colorScheme.secondary,
                     onClick = onDismiss
                 )

@@ -136,7 +136,7 @@ internal fun AnimatedVisibilityScope.AllNotesScreen(
         ModalBottomSheet(
             state = bottomSheetState,
             onClose = { showMainBottomSheet = false },
-            title = stringResource(R.string.new_note),
+            title = stringResource(R.string.new_record),
             beautifulDesign = true,
         ) {
             IconTextItem(

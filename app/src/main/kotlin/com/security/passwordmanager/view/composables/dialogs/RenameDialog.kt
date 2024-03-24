@@ -65,7 +65,7 @@ class RenameDialog(
             },
             dismissButton = {
                 TextButton(
-                    text = stringResource(R.string.cancel_action),
+                    text = stringResource(R.string.cancel),
                     textColor = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         shadow = Shadow(

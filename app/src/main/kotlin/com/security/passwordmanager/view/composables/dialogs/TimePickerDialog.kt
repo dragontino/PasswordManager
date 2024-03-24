@@ -174,7 +174,7 @@ class TimePickerDialog(
                         modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
                         TextButton(
-                            text = stringResource(R.string.cancel),
+                            text = stringResource(R.string.cancellation),
                             textColor = MaterialTheme.colorScheme.onBackground,
                             onClick = onCloseState.value
                         )

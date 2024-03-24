@@ -46,7 +46,7 @@ class ConfirmChangeDialog(
             },
             dismissButton = {
                 TextButton(
-                    text = stringResource(R.string.cancel_action),
+                    text = stringResource(R.string.cancel),
                     textColor = MaterialTheme.colorScheme.primary,
                     onClick = onDismissState.value
                 )

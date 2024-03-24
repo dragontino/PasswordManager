@@ -447,7 +447,7 @@ private fun DataHeader(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                    contentDescription = stringResource(R.string.more_info),
+                    contentDescription = "More info",
                     tint = LocalContentColor.current,
                     modifier = Modifier
                         .rotate(arrowRotation.value)
