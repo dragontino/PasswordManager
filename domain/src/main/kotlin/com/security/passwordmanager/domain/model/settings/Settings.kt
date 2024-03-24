@@ -1,10 +1,10 @@
 package com.security.passwordmanager.domain.model.settings
 
-import com.security.passwordmanager.domain.model.ColorDesign
+import com.security.passwordmanager.domain.model.ColorScheme
 import com.security.passwordmanager.domain.model.Time
 
 data class Settings(
-    val colorDesign: ColorDesign = ColorDesign.System,
+    val colorScheme: ColorScheme = ColorScheme.System,
     val sunriseTime: Time = Time.defaultSunriseTime,
     val sunsetTime: Time = Time.defaultSunsetTime,
     val beautifulFont: Boolean = true,

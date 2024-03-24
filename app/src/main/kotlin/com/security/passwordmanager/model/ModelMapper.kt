@@ -4,11 +4,11 @@ import android.content.Context
 import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.Account
 import com.security.passwordmanager.domain.model.BankCard
-import com.security.passwordmanager.domain.model.ColorDesign
-import com.security.passwordmanager.domain.model.ColorDesign.Auto
-import com.security.passwordmanager.domain.model.ColorDesign.Dark
-import com.security.passwordmanager.domain.model.ColorDesign.Light
-import com.security.passwordmanager.domain.model.ColorDesign.System
+import com.security.passwordmanager.domain.model.ColorScheme
+import com.security.passwordmanager.domain.model.ColorScheme.Auto
+import com.security.passwordmanager.domain.model.ColorScheme.Dark
+import com.security.passwordmanager.domain.model.ColorScheme.Light
+import com.security.passwordmanager.domain.model.ColorScheme.System
 import com.security.passwordmanager.domain.model.UID
 import com.security.passwordmanager.domain.model.UserData
 import com.security.passwordmanager.domain.model.entity.Bank
@@ -129,8 +129,8 @@ data object BankMapper : EntityMapper<Bank> {
 
 
 
-data object ColorDesignMapper {
-    fun ColorDesign.title(context: Context): String = when (this) {
+data object ColorSchemeMapper {
+    fun ColorScheme.title(context: Context): String = when (this) {
         Light -> context.getString(R.string.light_theme)
         Dark -> context.getString(R.string.dark_theme)
         System -> context.getString(R.string.system_theme)
@@ -141,7 +141,7 @@ data object ColorDesignMapper {
 
 data object EntityTypeMapper {
     fun EntityType.tableTitle(context: Context): String = when (this) {
-        EntityType.All -> context.getString(R.string.all_notes)
+        EntityType.All -> context.getString(R.string.all_entries)
         EntityType.Website -> context.getString(R.string.website_table_name)
         EntityType.Bank -> context.getString(R.string.bank_table_name)
     }

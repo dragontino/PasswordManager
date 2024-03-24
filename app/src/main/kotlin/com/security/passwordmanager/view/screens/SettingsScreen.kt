@@ -98,10 +98,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.AppVersionInfo
-import com.security.passwordmanager.domain.model.ColorDesign
+import com.security.passwordmanager.domain.model.ColorScheme
 import com.security.passwordmanager.domain.model.isValidPassword
 import com.security.passwordmanager.domain.model.settings.Settings
-import com.security.passwordmanager.model.ColorDesignMapper.title
+import com.security.passwordmanager.model.ColorSchemeMapper.title
 import com.security.passwordmanager.model.Header
 import com.security.passwordmanager.util.LoadingInBox
 import com.security.passwordmanager.util.animate
@@ -373,15 +373,15 @@ private fun SettingsContentScreen(
 
     if (showThemeBottomSheet.value) {
         ThemeBottomSheet(
-            currentDesign = viewModel.settings.colorDesign,
+            currentDesign = viewModel.settings.colorScheme,
             updateDesign = {
                 viewModel.updateSettingsProperty(
-                    property = Settings::colorDesign,
+                    property = Settings::colorScheme,
                     value = it
                 )
             },
             onClose = { showThemeBottomSheet.value = false },
-            showTimes = viewModel.settings.colorDesign == ColorDesign.Auto
+            showTimes = viewModel.settings.colorScheme == ColorScheme.Auto
         ) {
             HorizontalDivider()
 
@@ -535,7 +535,7 @@ private fun SettingsContentScreen(
                             ) {
                                 append(
                                     text = viewModel.constructThemeText(
-                                        currentTheme = viewModel.settings.colorDesign,
+                                        currentTheme = viewModel.settings.colorScheme,
                                         isDark = isDarkTheme,
                                         context = context
                                     )
@@ -711,19 +711,19 @@ private fun SwitchItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThemeBottomSheet(
-    currentDesign: ColorDesign,
-    updateDesign: (newDesign: ColorDesign) -> Unit,
+    currentDesign: ColorScheme,
+    updateDesign: (newDesign: ColorScheme) -> Unit,
     onClose: () -> Unit,
     showTimes: Boolean,
     times: @Composable (ColumnScope.() -> Unit),
 ) {
     ModalBottomSheet(onClose = onClose) {
-        ColorDesign.entries.forEach { design ->
+        ColorScheme.entries.forEach { design ->
             TextItem(
                 text = design.title(LocalContext.current),
                 selected = design == currentDesign,
                 onClick = {
-                    if (design != ColorDesign.Auto) onClose()
+                    if (design != ColorScheme.Auto) onClose()
                     updateDesign(design)
                 }
             )

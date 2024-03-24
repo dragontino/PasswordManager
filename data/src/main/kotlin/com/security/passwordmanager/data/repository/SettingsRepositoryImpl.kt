@@ -10,7 +10,7 @@ import com.security.passwordmanager.data.CryptoManager
 import com.security.passwordmanager.data.util.checkNetworkConnection
 import com.security.passwordmanager.domain.model.AppVersionInfo
 import com.security.passwordmanager.domain.model.ChangeUsernameException
-import com.security.passwordmanager.domain.model.ColorDesign
+import com.security.passwordmanager.domain.model.ColorScheme
 import com.security.passwordmanager.domain.model.InformationNotFoundException
 import com.security.passwordmanager.domain.model.InternetConnectionLostException
 import com.security.passwordmanager.domain.model.SettingsNotFoundException
@@ -219,7 +219,7 @@ class SettingsRepositoryImpl(
 
 
     private fun Settings.encrypt(userId: String) = EncryptedSettings(
-        colorDesign = colorDesign.encrypt(userId),
+        colorScheme = colorScheme.encrypt(userId),
         sunriseTime = sunsetTime.encrypt(userId),
         sunsetTime = sunsetTime.encrypt(userId),
         beautifulFont = beautifulFont.encrypt(userId),
@@ -238,7 +238,7 @@ class SettingsRepositoryImpl(
 
 
         return Settings(
-            colorDesign = colorDesign.decrypt(userId) { ColorDesign.valueOf(it) },
+            colorScheme = colorScheme.decrypt(userId) { ColorScheme.valueOf(it) },
             sunriseTime = sunriseTime.decrypt(userId) { Time(it) },
             sunsetTime = sunsetTime.decrypt(userId) { Time(it) },
             beautifulFont = beautifulFont.decrypt(userId, ::toBoolean),

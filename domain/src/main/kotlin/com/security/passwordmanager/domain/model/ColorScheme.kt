@@ -1,6 +1,6 @@
 package com.security.passwordmanager.domain.model
 
-enum class ColorDesign {
+enum class ColorScheme {
     Light,
     Dark,
     System,

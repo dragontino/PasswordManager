@@ -10,14 +10,14 @@ import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.BuildConfig
 import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.AppVersionInfo
-import com.security.passwordmanager.domain.model.ColorDesign
+import com.security.passwordmanager.domain.model.ColorScheme
 import com.security.passwordmanager.domain.model.ExceptionMessage
 import com.security.passwordmanager.domain.model.settings.Settings
 import com.security.passwordmanager.domain.usecase.GetAppVersionInfoUseCase
 import com.security.passwordmanager.domain.usecase.LoginUseCase
 import com.security.passwordmanager.domain.usecase.SettingsUseCase
 import com.security.passwordmanager.domain.usecase.UsernameUseCase
-import com.security.passwordmanager.model.ColorDesignMapper.title
+import com.security.passwordmanager.model.ColorSchemeMapper.title
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -69,14 +69,14 @@ class SettingsViewModel @Inject constructor(
 
 
     fun constructThemeText(
-        currentTheme: ColorDesign,
+        currentTheme: ColorScheme,
         isDark: Boolean,
         context: Context
     ) = buildString {
         append(currentTheme.title(context).lowercase())
 
         when (currentTheme) {
-            ColorDesign.System, ColorDesign.Auto -> {
+            ColorScheme.System, ColorScheme.Auto -> {
                 val textToAppend = when {
                     isDark -> context.getString(R.string.dark_theme)
                     else -> context.getString(R.string.light_theme)
