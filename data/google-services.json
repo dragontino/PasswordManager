@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:70095700047:android:b9feab2fc4a70856856a3a",
         "android_client_info": {
-          "package_name": "com.security.passwordmanager"
+          "package_name": "com.security.passwordmanager.data"
         }
       },
       "oauth_client": [
