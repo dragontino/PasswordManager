@@ -1,6 +1,6 @@
 object Dependencies {
     object Compose {
-        const val bom = "androidx.compose:compose-bom:2024.02.02"
+        const val bom = "androidx.compose:compose-bom:2024.03.00"
         const val ui = "androidx.compose.ui:ui"
         const val tooling = "androidx.compose.ui:ui-tooling"
         const val toolingPreview = "androidx.compose.ui:ui-tooling-preview"
@@ -14,9 +14,9 @@ object Dependencies {
         const val navigation = "androidx.navigation:navigation-compose:2.7.7"
         const val activity = "androidx.activity:activity-compose:1.8.2"
         const val viewModel = "androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0"
-        const val jUnit = "androidx.compose.ui:ui-test-junit4:1.6.2"
+        const val jUnit = "androidx.compose.ui:ui-test-junit4:1.6.4"
         const val constraintLayout = "androidx.constraintlayout:constraintlayout-compose:1.0.1"
-        const val coil = "io.coil-kt:coil-compose:2.4.0"
+        const val coil = "io.coil-kt:coil-compose:2.6.0"
     }
 
 
@@ -30,7 +30,7 @@ object Dependencies {
 
 
     data object Firebase {
-        const val bom = "com.google.firebase:firebase-bom:32.7.2"
+        const val bom = "com.google.firebase:firebase-bom:32.7.4"
         const val analytics = "com.google.firebase:firebase-analytics-ktx"
         const val auth = "com.google.firebase:firebase-auth-ktx"
         const val database = "com.google.firebase:firebase-database-ktx"
@@ -40,7 +40,7 @@ object Dependencies {
 
 
     object Retrofit {
-        private const val version = "2.9.0"
+        private const val version = "2.10.0"
         const val retrofit = "com.squareup.retrofit2:retrofit:$version"
         const val gsonConverter = "com.squareup.retrofit2:converter-gson:$version"
         const val scalarisConverter = "com.squareup.retrofit2:converter-scalars:$version"
@@ -53,12 +53,6 @@ object Dependencies {
         const val liveData = "androidx.lifecycle:lifecycle-livedata-ktx:$version"
         const val viewModel = "androidx.lifecycle:lifecycle-viewmodel-ktx:$version"
         const val runtime = "androidx.lifecycle:lifecycle-runtime-ktx:$version"
-    }
-
-
-    enum class Coroutines(val path: String) {
-        Android("org.jetbrains.kotlinx:kotlinx-coroutines-android"),
-        Core("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     }
 
     object Dagger {

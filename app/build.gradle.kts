@@ -117,8 +117,6 @@ dependencies {
     implementation(Dependencies.Dagger.dagger)
     ksp(Dependencies.Dagger.compiler)
 
-    implementation("com.google.code.gson:gson:2.10.1")
-
 
     // UI Tests
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -126,7 +124,7 @@ dependencies {
     androidTestImplementation(Dependencies.Compose.jUnit)
     testImplementation("org.testng:testng:7.8.0")
 
-    Dependencies.Coroutines.values().forEach {
-        api(it.path)
-    }
+    //Coroutines
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-android")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }

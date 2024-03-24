@@ -473,7 +473,7 @@ private fun WebsiteContent(
                             readOnly = viewModel.settings.autofill &&
                                     viewModel.needUpdateWebsiteName &&
                                     viewModel.website.name.isBlank(),
-                            label = stringResource(R.string.name_website),
+                            label = stringResource(R.string.title_website),
                             error = viewModel.showErrors && viewModel
                                 .website
                                 .errorNameMessage
@@ -1019,7 +1019,7 @@ private fun FirstTwoItemsPreview() {
             secondItem = {
                 Column {
                     Text(
-                        text = stringResource(R.string.name_website),
+                        text = stringResource(R.string.title_website),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground.animate(),
                         modifier = Modifier
