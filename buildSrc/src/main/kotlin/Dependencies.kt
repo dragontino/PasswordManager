@@ -35,6 +35,7 @@ object Dependencies {
         const val auth = "com.google.firebase:firebase-auth"
         const val database = "com.google.firebase:firebase-database"
         const val core = "com.google.firebase:firebase-core:21.1.1"
+        const val appCheck = "com.google.firebase:firebase-appcheck-playintegrity"
         const val functions = "com.google.firebase:firebase-functions"
     }
 

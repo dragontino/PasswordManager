@@ -108,6 +108,7 @@ dependencies {
     implementation(Dependencies.Firebase.database)
     implementation(Dependencies.Firebase.core)
     implementation(Dependencies.Firebase.auth)
+    implementation(Dependencies.Firebase.appCheck)
     implementation(Dependencies.Firebase.functions)
 
     //Retrofit
