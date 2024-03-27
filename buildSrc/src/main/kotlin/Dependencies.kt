@@ -31,9 +31,9 @@ object Dependencies {
 
     data object Firebase {
         const val bom = "com.google.firebase:firebase-bom:32.7.4"
-        const val analytics = "com.google.firebase:firebase-analytics-ktx"
-        const val auth = "com.google.firebase:firebase-auth-ktx"
-        const val database = "com.google.firebase:firebase-database-ktx"
+        const val analytics = "com.google.firebase:firebase-analytics"
+        const val auth = "com.google.firebase:firebase-auth"
+        const val database = "com.google.firebase:firebase-database"
         const val core = "com.google.firebase:firebase-core:21.1.1"
         const val functions = "com.google.firebase:firebase-functions"
     }

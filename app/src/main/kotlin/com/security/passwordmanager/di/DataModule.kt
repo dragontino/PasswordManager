@@ -1,11 +1,11 @@
 package com.security.passwordmanager.di
 
 import android.content.Context
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.auth
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.database.database
 import com.security.passwordmanager.data.AppPreferences
 import com.security.passwordmanager.data.CryptoManager
 import com.security.passwordmanager.data.repository.EntityRepositoryImpl
