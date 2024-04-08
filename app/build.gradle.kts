@@ -6,8 +6,8 @@ plugins {
 
 
 val appVersionName by extra("7.0.0")
-val appVersionDate by extra("25/02/2024")
-val debugVersionExt by extra("beta3")
+val appVersionDate by extra("30/03/2024")
+val debugVersionExt by extra("beta10")
 
 
 android {
@@ -60,7 +60,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.10"
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
 
     packaging {
@@ -123,9 +123,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(Dependencies.Compose.jUnit)
-    testImplementation("org.testng:testng:7.8.0")
+    testImplementation("org.testng:testng:7.9.0")
 
     //Coroutines
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-android")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 }
