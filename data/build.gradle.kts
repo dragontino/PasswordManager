@@ -57,4 +57,13 @@ dependencies {
     implementation(Dependencies.Firebase.core)
     implementation(Dependencies.Firebase.appCheck)
     implementation(Dependencies.Firebase.functions)
+
+    // Encryption
+    implementation("com.yandex.cloud:kms-provider-tink:2.6") {
+        exclude(group = "io.grpc")
+    }
+    implementation("io.grpc:grpc-okhttp:1.62.2")
+    implementation("io.grpc:grpc-stub:1.62.2")
+    implementation("io.grpc:grpc-netty-shaded:1.21.0")
+    implementation("io.grpc:grpc-protobuf:1.62.2")
 }

@@ -1,7 +1,4 @@
-package com.security.passwordmanager.domain.model.settings
-
-import com.security.passwordmanager.domain.model.ColorScheme
-import com.security.passwordmanager.domain.model.Time
+package com.security.passwordmanager.domain.model
 
 data class Settings(
     val colorScheme: ColorScheme = ColorScheme.System,

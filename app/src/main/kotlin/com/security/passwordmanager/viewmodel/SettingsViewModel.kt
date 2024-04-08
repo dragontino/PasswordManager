@@ -12,7 +12,7 @@ import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.AppVersionInfo
 import com.security.passwordmanager.domain.model.ColorScheme
 import com.security.passwordmanager.domain.model.ExceptionMessage
-import com.security.passwordmanager.domain.model.settings.Settings
+import com.security.passwordmanager.domain.model.Settings
 import com.security.passwordmanager.domain.usecase.GetAppVersionInfoUseCase
 import com.security.passwordmanager.domain.usecase.LoginUseCase
 import com.security.passwordmanager.domain.usecase.SettingsUseCase

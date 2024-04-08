@@ -7,7 +7,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
 import com.security.passwordmanager.data.AppPreferences
-import com.security.passwordmanager.data.CryptoManager
 import com.security.passwordmanager.data.util.checkNetworkConnection
 import com.security.passwordmanager.domain.model.ChangePasswordException
 import com.security.passwordmanager.domain.model.ChangeUsernameException
@@ -18,7 +17,7 @@ import com.security.passwordmanager.domain.model.SignInException
 import com.security.passwordmanager.domain.model.SignUpCredentials
 import com.security.passwordmanager.domain.model.SignUpException
 import com.security.passwordmanager.domain.model.UserEmailCheckException
-import com.security.passwordmanager.domain.model.UserNotLoggedException
+import com.security.passwordmanager.domain.model.UserNotAuthenticatedException
 import com.security.passwordmanager.domain.repository.LoginRepository
 
 /**
@@ -26,11 +25,10 @@ import com.security.passwordmanager.domain.repository.LoginRepository
  * maintains an in-memory cache of login status and user credentials information.
  */
 class LoginRepositoryImpl(
-    auth: FirebaseAuth,
-    database: FirebaseDatabase,
-    cryptoManager: CryptoManager,
+    override val auth: FirebaseAuth,
+    override val database: FirebaseDatabase,
     private val preferences: AppPreferences
-) : FirebaseEncryptedRepository(auth, database, cryptoManager), LoginRepository {
+) : LoginRepository, FirebaseRepository {
 
     override val userEmail: String get() = preferences.email
 
@@ -138,7 +136,7 @@ class LoginRepositoryImpl(
 
         when {
             currentUser == null || email == null -> {
-                return resultAction(Result.failure(UserNotLoggedException))
+                return resultAction(Result.failure(UserNotAuthenticatedException))
             }
             !context.checkNetworkConnection() -> {
                 return resultAction(Result.failure(InternetConnectionLostException))

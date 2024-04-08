@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import com.security.passwordmanager.domain.model.settings.Settings
+import com.security.passwordmanager.domain.model.Settings
 import com.security.passwordmanager.domain.usecase.SettingsUseCase
 import com.security.passwordmanager.view.navigation.AppScreen
 import com.security.passwordmanager.view.navigation.HomeScreen

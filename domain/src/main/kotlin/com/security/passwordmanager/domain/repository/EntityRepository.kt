@@ -1,5 +1,6 @@
 package com.security.passwordmanager.domain.repository
 
+import com.security.passwordmanager.domain.model.EncryptionHelper
 import com.security.passwordmanager.domain.model.IconSite
 import com.security.passwordmanager.domain.model.entity.DatabaseEntity
 import com.security.passwordmanager.domain.model.entity.EntityType
@@ -22,14 +23,14 @@ interface EntityRepository {
      * @param id идентификатор записи в таблице, данные которой нужно обновить
      * @param entityType тип данных, в зависимости от которого определяется, к какой таблице обращаться
      * @param updatesMap словарь, ключами которого являются имена полей класса, а значениями – новые значения этих полей
-     * @param encryptValue лямбда функция, шифрующая каждое значение, переданное в [updatesMap]
+     * @param encryptAction лямбда функция, шифрующая каждое значение, переданное в [updatesMap]
      * @param resultAction результат выполнения
      */
-    suspend fun updateEntity(
+    suspend fun <V : Any> updateEntity(
         id: String,
         entityType: EntityType,
-        updatesMap: Map<String, Any?>,
-        encryptValue: (value: Any, encrypt: Encrypt) -> Any,
+        updatesMap: Map<String, V?>,
+        encryptAction: (value: V, encrypt: EncryptionHelper) -> V?,
         resultAction: (Result<Unit>) -> Unit
     )
 

@@ -1,7 +1,7 @@
 package com.security.passwordmanager.domain.repository
 
 import com.security.passwordmanager.domain.model.AppVersionInfo
-import com.security.passwordmanager.domain.model.settings.Settings
+import com.security.passwordmanager.domain.model.Settings
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {

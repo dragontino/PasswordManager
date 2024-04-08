@@ -1,10 +1,10 @@
 package com.security.passwordmanager.domain.model
 
-import com.security.passwordmanager.domain.util.Encrypt
+import android.content.res.Resources
 
 interface UserData {
-    fun isEmpty(): Boolean
     operator fun contains(query: String): Boolean
-    fun encrypt(encryption: Encrypt): UserData
-    fun decrypt(decryption: Encrypt): UserData
+    fun encrypt(encryption: EncryptionHelper): UserData?
+    fun decrypt(decryption: EncryptionHelper): UserData?
+    fun convertToString(resources: Resources): String
 }

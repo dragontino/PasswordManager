@@ -6,20 +6,20 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.security.passwordmanager.data.CryptoManager
+import com.security.passwordmanager.data.crypto.CryptoManager
+import com.security.passwordmanager.data.model.SettingsDB
 import com.security.passwordmanager.data.util.checkNetworkConnection
 import com.security.passwordmanager.domain.model.AppVersionInfo
 import com.security.passwordmanager.domain.model.ChangeUsernameException
-import com.security.passwordmanager.domain.model.ColorScheme
+import com.security.passwordmanager.domain.model.DecryptionException
+import com.security.passwordmanager.domain.model.EncryptionException
 import com.security.passwordmanager.domain.model.InformationNotFoundException
 import com.security.passwordmanager.domain.model.InternetConnectionLostException
+import com.security.passwordmanager.domain.model.Settings
 import com.security.passwordmanager.domain.model.SettingsNotFoundException
-import com.security.passwordmanager.domain.model.Time
 import com.security.passwordmanager.domain.model.UpdateSettingsException
-import com.security.passwordmanager.domain.model.UserNotLoggedException
+import com.security.passwordmanager.domain.model.UserNotAuthenticatedException
 import com.security.passwordmanager.domain.model.UsernameNotFoundException
-import com.security.passwordmanager.domain.model.settings.EncryptedSettings
-import com.security.passwordmanager.domain.model.settings.Settings
 import com.security.passwordmanager.domain.repository.SettingsRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
@@ -28,26 +28,30 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class SettingsRepositoryImpl(
-    auth: FirebaseAuth,
-    database: FirebaseDatabase,
+    override val auth: FirebaseAuth,
+    override val database: FirebaseDatabase,
     cryptoManager: CryptoManager
-) : FirebaseEncryptedRepository(auth, database, cryptoManager), SettingsRepository {
+) : SettingsRepository, FirebaseRepository, EncryptionRepository(cryptoManager) {
     private companion object {
-        const val SettingsReference = "Settings"
-        const val VersionInfoReference = "appVersion"
+        const val SETTINGS_REFERENCE = "Settings"
+        const val VERSION_INFO_REFERENCE = "appVersion"
     }
 
     override suspend fun addSettings(settings: Settings, resultAction: (Result<Unit>) -> Unit) {
         val userId = currentUser?.uid
-            ?: return resultAction(Result.failure(UserNotLoggedException))
+            ?: return resultAction(Result.failure(UserNotAuthenticatedException))
 
         if (!context.checkNetworkConnection()) {
             return resultAction(Result.failure(InternetConnectionLostException))
         }
 
+        val encryptedSettings = SettingsDB(settings)
+            .encrypt(EncryptionHelperImpl(userId, SETTINGS_REFERENCE))
+            ?: return resultAction(Result.failure(EncryptionException))
+
         getDatabaseReference(userId)
-            .child(SettingsReference)
-            .setValue(settings.encrypt(userId))
+            .child(SETTINGS_REFERENCE)
+            .setValue(encryptedSettings)
             .addOnSuccessListener {
                 resultAction(Result.success(Unit))
             }
@@ -63,15 +67,17 @@ class SettingsRepositoryImpl(
         resultAction: (Result<Unit>) -> Unit
     ) {
         val uid = currentUser?.uid
-            ?: return resultAction(Result.failure(UserNotLoggedException))
-
+            ?: return resultAction(Result.failure(UserNotAuthenticatedException))
         if (!context.checkNetworkConnection()) {
             return resultAction(Result.failure(InternetConnectionLostException))
         }
 
+        val encryptionHelper = EncryptionHelperImpl(uid, SETTINGS_REFERENCE)
+        val encryptedValue = encryptionHelper.encrypt(value = value.toString(), valueName = name)
+
         getDatabaseReference(uid)
-            .child(SettingsReference)
-            .updateChildren(mapOf(name to value.encrypt(uid)))
+            .child(SETTINGS_REFERENCE)
+            .updateChildren(mapOf(name to encryptedValue))
             .addOnSuccessListener {
                 resultAction(Result.success(Unit))
             }
@@ -92,7 +98,7 @@ class SettingsRepositoryImpl(
 
         if (uid == null) {
             awaitClose {
-                trySendBlocking(Result.failure(UserNotLoggedException))
+                trySendBlocking(Result.failure(UserNotAuthenticatedException))
             }
             return@callbackFlow
         }
@@ -100,14 +106,23 @@ class SettingsRepositoryImpl(
 
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val encryptedSettings = snapshot.getValue(EncryptedSettings::class.java)
+                val encryptedSettings = snapshot.getValue(SettingsDB::class.java)
 
-                when (val value = encryptedSettings?.decrypt(uid)) {
-                    null -> trySendBlocking(Result.failure(SettingsNotFoundException))
-                    else -> trySendBlocking(Result.success(value))
-                        .onFailure {
-                            Result.failure<Settings>(Exception(it).map())
-                        }
+                if (encryptedSettings == null) {
+                    trySendBlocking(Result.failure(SettingsNotFoundException))
+                    return
+                }
+
+                val settings = encryptedSettings
+                    .decrypt(EncryptionHelperImpl(uid, SETTINGS_REFERENCE))
+                    ?.mapToSettings()
+
+                val result = settings
+                    ?.let(Result.Companion::success)
+                    ?: Result.failure(DecryptionException)
+
+                trySendBlocking(result).onFailure {
+                    Result.failure<Settings>(Exception(it).map())
                 }
             }
 
@@ -117,11 +132,11 @@ class SettingsRepositoryImpl(
         }
 
         getDatabaseReference(uid)
-            .child(SettingsReference)
+            .child(SETTINGS_REFERENCE)
             .addValueEventListener(listener)
 
         awaitClose {
-            getDatabaseReference(uid).child(SettingsReference).removeEventListener(listener)
+            getDatabaseReference(uid).child(SETTINGS_REFERENCE).removeEventListener(listener)
         }
     }
 
@@ -132,24 +147,31 @@ class SettingsRepositoryImpl(
         }
 
         val uid = currentUser?.uid
-            ?: return resultAction(Result.failure(UserNotLoggedException))
+            ?: return resultAction(Result.failure(UserNotAuthenticatedException))
+
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val encryptedSettings = snapshot.getValue(SettingsDB::class.java)
+                    ?: return resultAction(Result.failure(SettingsNotFoundException))
+
+                val settings = encryptedSettings
+                    .decrypt(EncryptionHelperImpl(uid, SETTINGS_REFERENCE))
+                    ?.mapToSettings()
+
+                when (settings) {
+                    null -> resultAction(Result.failure(DecryptionException))
+                    else -> resultAction(Result.success(settings))
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                resultAction(Result.failure(error.toException().map()))
+            }
+        }
 
         getDatabaseReference(uid)
-            .child(SettingsReference)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val encryptedSettings = snapshot.getValue(EncryptedSettings::class.java)
-
-                    when (val settings = encryptedSettings?.decrypt(uid)) {
-                        null -> resultAction(Result.failure(SettingsNotFoundException))
-                        else -> resultAction(Result.success(settings))
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    resultAction(Result.failure(error.toException().map()))
-                }
-            })
+            .child(SETTINGS_REFERENCE)
+            .addListenerForSingleValueEvent(listener)
     }
 
 
@@ -157,7 +179,7 @@ class SettingsRepositoryImpl(
         val currentUser = auth.currentUser
         when {
             currentUser == null -> {
-                resultAction(Result.failure(UserNotLoggedException))
+                resultAction(Result.failure(UserNotAuthenticatedException))
             }
             !context.checkNetworkConnection() -> {
                 resultAction(Result.failure(InternetConnectionLostException))
@@ -183,7 +205,7 @@ class SettingsRepositoryImpl(
 
 
     override fun getUsername(): Result<String> {
-        val user = currentUser ?: return Result.failure(UserNotLoggedException)
+        val user = currentUser ?: return Result.failure(UserNotAuthenticatedException)
 
         val username = user.displayName.takeIf { !it.isNullOrBlank() }
         val email = user.email.takeIf { !it.isNullOrBlank() }
@@ -195,14 +217,12 @@ class SettingsRepositoryImpl(
 
 
 
-    override suspend fun getAppVersionInfo(
-        resultAction: (Result<AppVersionInfo>) -> Unit
-    ) {
+    override suspend fun getAppVersionInfo(resultAction: (Result<AppVersionInfo>) -> Unit) {
         if (!context.checkNetworkConnection()) {
             return resultAction(Result.failure(InternetConnectionLostException))
         }
 
-        getDatabaseReference(VersionInfoReference)
+        getDatabaseReference(VERSION_INFO_REFERENCE)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     when (val versionInfo = snapshot.getValue(AppVersionInfo::class.java)) {
@@ -215,37 +235,5 @@ class SettingsRepositoryImpl(
                     resultAction(Result.failure(error.toException().map()))
                 }
             })
-    }
-
-
-    private fun Settings.encrypt(userId: String) = EncryptedSettings(
-        colorScheme = colorScheme.encrypt(userId),
-        sunriseTime = sunsetTime.encrypt(userId),
-        sunsetTime = sunsetTime.encrypt(userId),
-        beautifulFont = beautifulFont.encrypt(userId),
-        autofill = autofill.encrypt(userId),
-        dynamicColor = dynamicColor.encrypt(userId),
-        pullToRefresh = pullToRefresh.encrypt(userId),
-        loadIcons = loadIcons.encrypt(userId),
-    )
-
-
-    private fun EncryptedSettings.decrypt(userId: String): Settings {
-        fun toBoolean(string: String) = when (string) {
-            "true" -> true
-            else -> false
-        }
-
-
-        return Settings(
-            colorScheme = colorScheme.decrypt(userId) { ColorScheme.valueOf(it) },
-            sunriseTime = sunriseTime.decrypt(userId) { Time(it) },
-            sunsetTime = sunsetTime.decrypt(userId) { Time(it) },
-            beautifulFont = beautifulFont.decrypt(userId, ::toBoolean),
-            autofill = autofill.decrypt(userId, ::toBoolean),
-            dynamicColor = dynamicColor.decrypt(userId, ::toBoolean),
-            pullToRefresh = pullToRefresh.decrypt(userId, ::toBoolean),
-            loadIcons = loadIcons.decrypt(userId, ::toBoolean),
-        )
     }
 }

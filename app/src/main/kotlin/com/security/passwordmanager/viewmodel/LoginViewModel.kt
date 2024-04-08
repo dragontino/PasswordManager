@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.security.passwordmanager.domain.model.EmailException
 import com.security.passwordmanager.domain.model.ExceptionMessage
 import com.security.passwordmanager.domain.model.PasswordException
-import com.security.passwordmanager.domain.model.settings.Settings
+import com.security.passwordmanager.domain.model.Settings
 import com.security.passwordmanager.domain.usecase.LoginUseCase
 import com.security.passwordmanager.domain.usecase.SettingsUseCase
 import com.security.passwordmanager.model.EntryComposable

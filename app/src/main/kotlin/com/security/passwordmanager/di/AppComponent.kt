@@ -1,6 +1,7 @@
 package com.security.passwordmanager.di
 
 
+import com.security.passwordmanager.domain.repository.KmsRepository
 import com.security.passwordmanager.viewmodel.AllNotesViewModel
 import com.security.passwordmanager.viewmodel.LoginViewModel
 import com.security.passwordmanager.viewmodel.MainViewModel
@@ -28,4 +29,6 @@ interface AppComponent {
     fun websiteViewModel(): WebsiteViewModel.Factory
 
     fun passwordGenerationViewModel(): PasswordGenerationViewModel
+
+    fun kmsRepository(): KmsRepository
 }

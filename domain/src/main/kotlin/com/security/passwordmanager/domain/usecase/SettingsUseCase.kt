@@ -2,7 +2,7 @@ package com.security.passwordmanager.domain.usecase
 
 import android.util.Log
 import com.security.passwordmanager.domain.model.SettingsNotFoundException
-import com.security.passwordmanager.domain.model.settings.Settings
+import com.security.passwordmanager.domain.model.Settings
 import com.security.passwordmanager.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi

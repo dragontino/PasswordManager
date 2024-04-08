@@ -7,13 +7,15 @@ import com.google.firebase.auth.auth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
 import com.security.passwordmanager.data.AppPreferences
-import com.security.passwordmanager.data.CryptoManager
+import com.security.passwordmanager.data.crypto.CryptoManager
 import com.security.passwordmanager.data.repository.EntityRepositoryImpl
+import com.security.passwordmanager.data.repository.KmsRepositoryImpl
 import com.security.passwordmanager.data.repository.LoginRepositoryImpl
 import com.security.passwordmanager.data.repository.PasswordGenerationRepositoryImpl
 import com.security.passwordmanager.data.repository.SettingsRepositoryImpl
 import com.security.passwordmanager.data.retrofit.RetrofitService
 import com.security.passwordmanager.domain.repository.EntityRepository
+import com.security.passwordmanager.domain.repository.KmsRepository
 import com.security.passwordmanager.domain.repository.LoginRepository
 import com.security.passwordmanager.domain.repository.PasswordGenerationRepository
 import com.security.passwordmanager.domain.repository.SettingsRepository
@@ -30,13 +32,11 @@ class DataModule(private val context: Context) {
     fun provideLoginRepository(
         auth: FirebaseAuth,
         database: FirebaseDatabase,
-        cryptoManager: CryptoManager,
         preferences: AppPreferences
     ): LoginRepository {
         return LoginRepositoryImpl(
             auth = auth,
             database = database,
-            cryptoManager = cryptoManager,
             preferences = preferences
         )
     }
@@ -71,6 +71,17 @@ class DataModule(private val context: Context) {
             cryptoManager = cryptoManager,
             retrofitService = retrofitService
         )
+    }
+
+
+    @Singleton
+    @Provides
+    fun provideKmsRepository(
+        auth: FirebaseAuth,
+        database: FirebaseDatabase,
+        cryptoManager: CryptoManager
+    ): KmsRepository {
+        return KmsRepositoryImpl(auth, database, cryptoManager)
     }
 
 
