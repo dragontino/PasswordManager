@@ -11,9 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.security.passwordmanager.domain.model.ColorScheme
-import com.security.passwordmanager.domain.model.settings.Settings
-import com.security.passwordmanager.domain.model.toCalendar
-import java.util.Date
+import com.security.passwordmanager.domain.model.Settings
+import com.security.passwordmanager.domain.model.asTime
+import java.time.LocalTime
 
 private val darkColorScheme = darkColorScheme(
     primary = RaspberryDark,
@@ -62,18 +62,18 @@ fun PasswordManagerTheme(
     settings: Settings,
     content: @Composable (isDarkTheme: Boolean) -> Unit,
 ) {
-    val startDate = settings.sunriseTime.toCalendar().time
-    val endDate = settings.sunsetTime.toCalendar().time
+    val startTime = settings.sunriseTime
+    val endTime = settings.sunsetTime
 
     val isDarkTheme = when (settings.colorScheme) {
         ColorScheme.Light -> false
         ColorScheme.Dark -> true
         ColorScheme.System -> isSystemInDarkTheme()
         ColorScheme.Auto -> {
-            val date = Date(System.currentTimeMillis())
+            val nowTime = LocalTime.now().asTime()
             when {
-                startDate <= endDate -> date !in startDate..endDate
-                else -> date in endDate..startDate
+                startTime <= endTime -> nowTime !in startTime..endTime
+                else -> nowTime in endTime..startTime
             }
         }
     }
