@@ -5,11 +5,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
+import com.security.passwordmanager.domain.model.Account
 import com.security.passwordmanager.domain.model.UID
 
 class ComposableAccount(
-    override var uid: UID = UID(),
+    override val uid: UID = UID(),
     name: String = "",
     login: String = "",
     password: String = "",
@@ -34,7 +35,7 @@ class ComposableAccount(
 
 
     override fun mapToUserData() =
-        com.security.passwordmanager.domain.model.Account(name, login, password, comment)
+        Account(name, login, password, comment)
 
     override val haveErrors: Boolean
         get() =

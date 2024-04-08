@@ -5,7 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.entity.Website
 
 class ComposableWebsite(
@@ -33,12 +33,12 @@ class ComposableWebsite(
     override val updatedProperties = mutableStateMapOf<String, Pair<String, String>>()
 
 
-    override fun mapToUserData() =
-        Website(
-            address,
-            name,
-            logoUrl,
-            accounts.associate { it.uid.toString() to it.mapToUserData() })
+    override fun mapToUserData() = Website(
+        address = address,
+        name = name,
+        logoUrl = logoUrl,
+        accounts = accounts.associate { it.uid.toString() to it.mapToUserData() }
+    )
 
 
     override val haveErrors: Boolean
@@ -51,7 +51,7 @@ class ComposableWebsite(
         errorAddressMessage = when {
             address.isBlank() -> context.getString(R.string.empty_url)
             address.length > MaxUrlLength ->
-                context.getString(R.string.too_long_url, MaxUrlLength)
+                context.resources.getQuantityString(R.plurals.too_long_url, MaxUrlLength)
 
             else -> ""
         }

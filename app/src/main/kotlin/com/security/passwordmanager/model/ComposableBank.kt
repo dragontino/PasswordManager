@@ -28,8 +28,8 @@ class ComposableBank(
     override fun mapToUserData() = Bank(
         name,
         address,
-        cards.associate { it.uid to it.mapToUserData() },
-        accounts.associate { it.uid to it.mapToUserData() }
+        cards.associate { it.uid.toString() to it.mapToUserData() },
+        accounts.associate { it.uid.toString() to it.mapToUserData() }
     )
 
     override val haveErrors: Boolean
