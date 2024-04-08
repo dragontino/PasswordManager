@@ -5,6 +5,7 @@ interface ExceptionMessage {
 
     fun getMessage(throwable: Throwable): String? = when (throwable) {
         is PasswordManagerException -> getMessage(throwable)
+        is Exception -> throwable.localizedMessage
         else -> null
     }
 }
