@@ -17,7 +17,6 @@ import com.security.passwordmanager.domain.usecase.GetAppVersionInfoUseCase
 import com.security.passwordmanager.domain.usecase.LoginUseCase
 import com.security.passwordmanager.domain.usecase.SettingsUseCase
 import com.security.passwordmanager.domain.usecase.UsernameUseCase
-import com.security.passwordmanager.model.ColorSchemeMapper.title
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -73,13 +72,13 @@ class SettingsViewModel @Inject constructor(
         isDark: Boolean,
         context: Context
     ) = buildString {
-        append(currentTheme.title(context).lowercase())
+        append(context.getString(currentTheme.titleRes).lowercase())
 
         when (currentTheme) {
             ColorScheme.System, ColorScheme.Auto -> {
                 val textToAppend = when {
-                    isDark -> context.getString(R.string.dark_theme)
-                    else -> context.getString(R.string.light_theme)
+                    isDark -> context.getString(R.string.dark_scheme)
+                    else -> context.getString(R.string.light_scheme)
                 }
 
                 append(" ", context.getString(R.string.now, textToAppend).lowercase())

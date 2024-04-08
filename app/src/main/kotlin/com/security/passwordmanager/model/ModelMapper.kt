@@ -126,30 +126,3 @@ data object BankMapper : EntityMapper<Bank> {
         accounts = accounts.map { it.value.mapToComposable(it.key) }
     )
 }
-
-
-
-data object ColorSchemeMapper {
-    fun ColorScheme.title(context: Context): String = when (this) {
-        Light -> context.getString(R.string.light_theme)
-        Dark -> context.getString(R.string.dark_theme)
-        System -> context.getString(R.string.system_theme)
-        Auto -> context.getString(R.string.auto_theme)
-    }
-}
-
-
-data object EntityTypeMapper {
-    fun EntityType.tableTitle(context: Context): String = when (this) {
-        EntityType.All -> context.getString(R.string.all_entries)
-        EntityType.Website -> context.getString(R.string.website_table_name)
-        EntityType.Bank -> context.getString(R.string.bank_table_name)
-    }
-}
-
-
-
-fun DatabaseEntity.convertToString(context: Context): String = when(this) {
-    is Bank -> this.convertToString(context)
-    is Website -> this.convertToString(context)
-}
