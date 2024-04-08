@@ -2,6 +2,7 @@ package com.security.passwordmanager.viewmodel
 
 import android.content.Context
 import android.content.Intent
+import android.webkit.URLUtil
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.MaterialTheme
@@ -12,20 +13,16 @@ import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
-import com.security.passwordmanager.R
-import com.security.passwordmanager.data.util.isValidUrl
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.Account
 import com.security.passwordmanager.domain.model.BankCard
 import com.security.passwordmanager.domain.model.ExceptionMessage
+import com.security.passwordmanager.domain.model.Settings
 import com.security.passwordmanager.domain.model.UserData
 import com.security.passwordmanager.domain.model.entity.DatabaseEntity
 import com.security.passwordmanager.domain.model.entity.EntityType
-import com.security.passwordmanager.domain.model.settings.Settings
 import com.security.passwordmanager.domain.usecase.EntityUseCase
 import com.security.passwordmanager.domain.usecase.SettingsUseCase
-import com.security.passwordmanager.model.AccountMapper.convertToString
-import com.security.passwordmanager.model.BankCardMapper.convertToString
-import com.security.passwordmanager.model.convertToString
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -37,14 +34,14 @@ abstract class EntityViewModel<D : DatabaseEntity>(
     protected val exceptionMessage: ExceptionMessage
 ) : EventsViewModel() {
 
-    protected val _listState = mutableStateOf(ListState.Loading)
-    val listState = derivedStateOf { _listState.value }
+    protected val innerListState = mutableStateOf(ListState.Loading)
+    val listState = derivedStateOf { innerListState.value }
 
     private val _settings = mutableStateOf(Settings())
     val settings = derivedStateOf { _settings.value }
 
-    protected val _entities = mutableStateOf<Map<String, D>>(mapOf())
-    val entities = derivedStateOf { _entities.value }
+    protected val innerEntities = mutableStateOf<Map<String, D>>(mapOf())
+    val entities = derivedStateOf { innerEntities.value }
 
     val openedItemId = mutableStateOf<String?>(null)
 
@@ -71,7 +68,7 @@ abstract class EntityViewModel<D : DatabaseEntity>(
         }
 
         return when {
-            urlString.isValidUrl() -> Intent(Intent.ACTION_VIEW, urlString.toUri())
+            URLUtil.isValidUrl(urlString) -> Intent(Intent.ACTION_VIEW, urlString.toUri())
             else -> null
         }
     }
@@ -83,18 +80,18 @@ abstract class EntityViewModel<D : DatabaseEntity>(
         success: () -> Unit
     ) {
         viewModelScope.launch {
-            _listState.value = ListState.Loading
+            innerListState.value = ListState.Loading
 
             entityUseCase.deleteEntity(
                 id = id,
                 type = entityType,
                 error = {
                     exceptionMessage.getMessage(it)?.let(::showSnackbar)
-                    _listState.value = ListState.Stable
+                    innerListState.value = ListState.Stable
                 },
                 success = {
                     success()
-                    _listState.value = when {
+                    innerListState.value = when {
                         entities.value.isEmpty() -> ListState.Empty
                         else -> ListState.Stable
                     }
@@ -109,14 +106,14 @@ abstract class EntityViewModel<D : DatabaseEntity>(
         context: Context,
         clipboardManager: ClipboardManager
     ) {
-        _listState.value = ListState.Loading
+        innerListState.value = ListState.Loading
         viewModelScope.launch {
             try {
                 clipboardManager.setText(AnnotatedString(text))
-                _listState.value = ListState.Stable
+                innerListState.value = ListState.Stable
                 showSnackbar(context.getString(R.string.copy_text_successful))
             } catch (exception: RuntimeException) {
-                _listState.value = ListState.Stable
+                innerListState.value = ListState.Stable
                 showSnackbar(context.getString(
                         R.string.copy_text_exception,
                         exception.localizedMessage
@@ -132,9 +129,9 @@ abstract class EntityViewModel<D : DatabaseEntity>(
         clipboardManager: ClipboardManager
     ) {
         val dataString = when (data) {
-            is Account -> data.convertToString(context)
-            is BankCard -> data.convertToString(context)
-            else -> (data as DatabaseEntity).convertToString(context)
+            is Account -> data.convertToString(context.resources)
+            is BankCard -> data.convertToString(context.resources)
+            else -> (data as DatabaseEntity).convertToString(context.resources)
         }
         copyText(dataString, context, clipboardManager)
     }

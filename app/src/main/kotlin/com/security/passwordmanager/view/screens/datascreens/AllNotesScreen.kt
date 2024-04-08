@@ -55,6 +55,7 @@ import com.security.passwordmanager.util.animate
 import com.security.passwordmanager.util.getActivity
 import com.security.passwordmanager.util.reversed
 import com.security.passwordmanager.util.scrollingUpState
+import com.security.passwordmanager.view.composables.managment.ScreenEvents
 import com.security.passwordmanager.view.composables.scaffold.CollapsingToolbarScaffold
 import com.security.passwordmanager.view.composables.scaffold.DpShape
 import com.security.passwordmanager.view.composables.scaffold.ToolbarButton
@@ -97,7 +98,7 @@ internal fun AnimatedVisibilityScope.AllNotesScreen(
 
     val showSnackbar = remember {
         fun(message: String) {
-            scope.launch { snackbarHostState.showSnackbar(message) }
+            scope.launch { snackbarHostState.showSnackbar(message = message, withDismissAction = true) }
         }
     }
 
@@ -110,6 +111,20 @@ internal fun AnimatedVisibilityScope.AllNotesScreen(
 
     LaunchedEffect(topBarState.isVisible) {
         isDarkStatusBarIcons(!topBarState.isVisible && !isDarkTheme)
+    }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.eventsFlow.collect { event ->
+            when (event) {
+                is ScreenEvents.Navigate -> {
+                    (event.args as? String)
+                        ?.let(navigateTo)
+                        ?: context.getActivity()?.finish()
+                }
+                is ScreenEvents.ShowSnackbar -> showSnackbar(event.message)
+                else -> {}
+            }
+        }
     }
 
 
@@ -277,9 +292,6 @@ internal fun AnimatedVisibilityScope.AllNotesScreen(
                         contentState = contentState,
                         topBarState = topBarState,
                         viewModel = viewModel,
-                        navigateTo = navigateTo,
-                        popBackStack = { context.getActivity()?.finish() },
-                        showSnackbar = showSnackbar,
                         modifier = Modifier.fillMaxSize()
                     )
                 }

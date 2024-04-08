@@ -30,7 +30,7 @@ class SearchViewModel @AssistedInject constructor(
         snapshotFlow { query.value }
             .onEach {
                 delay(50)
-                _listState.value = ListState.Loading
+                innerListState.value = ListState.Loading
                 delay(300)
 
                 entityUseCase.getEntities(
@@ -38,16 +38,16 @@ class SearchViewModel @AssistedInject constructor(
                     query = it,
                     error = { exception ->
                         exceptionMessage.getMessage(exception)?.let(::showSnackbar)
-                        _listState.value = ListState.Stable
+                        innerListState.value = ListState.Stable
                     },
                     success = { value ->
-                        _entities.value = value
+                        innerEntities.value = value
                         openedItemId.value = when (value.size) {
                             1 -> value.keys.firstOrNull()
                             else -> null
                         }
 
-                        _listState.value = when {
+                        innerListState.value = when {
                             value.isEmpty() -> ListState.Empty
                             else -> ListState.Stable
                         }
@@ -59,7 +59,7 @@ class SearchViewModel @AssistedInject constructor(
 
 
     suspend fun refreshData() {
-        _listState.value = ListState.Loading
+        innerListState.value = ListState.Loading
         delay(100)
 
         entityUseCase.getEntities(
@@ -67,11 +67,11 @@ class SearchViewModel @AssistedInject constructor(
             query = query.value,
             error = {
                 exceptionMessage.getMessage(it)?.let(::showSnackbar)
-                _listState.value = ListState.Stable
+                innerListState.value = ListState.Stable
             },
             success = {
-                _entities.value = it
-                _listState.value = when {
+                innerEntities.value = it
+                innerListState.value = when {
                     it.isEmpty() -> ListState.Empty
                     else -> ListState.Stable
                 }

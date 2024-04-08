@@ -96,13 +96,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.security.passwordmanager.domain.model.isValidPassword
 import androidx.compose.ui.unit.sp
 import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.AppVersionInfo
 import com.security.passwordmanager.domain.model.ColorScheme
-import com.security.passwordmanager.domain.model.isValidPassword
-import com.security.passwordmanager.domain.model.settings.Settings
-import com.security.passwordmanager.model.ColorSchemeMapper.title
+import com.security.passwordmanager.domain.model.Settings
 import com.security.passwordmanager.model.Header
 import com.security.passwordmanager.util.LoadingInBox
 import com.security.passwordmanager.util.animate
@@ -375,9 +374,9 @@ private fun SettingsContentScreen(
     val showThemeBottomSheet = rememberSaveable { mutableStateOf(false) }
 
     if (showThemeBottomSheet.value) {
-        ThemeBottomSheet(
-            currentDesign = viewModel.settings.colorScheme,
-            updateDesign = {
+        SchemeBottomSheet(
+            currentScheme = viewModel.settings.colorScheme,
+            updateScheme = {
                 viewModel.updateSettingsProperty(
                     property = Settings::colorScheme,
                     value = it
@@ -713,21 +712,23 @@ private fun SwitchItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ThemeBottomSheet(
-    currentDesign: ColorScheme,
-    updateDesign: (newDesign: ColorScheme) -> Unit,
+private fun SchemeBottomSheet(
+    currentScheme: ColorScheme,
+    updateScheme: (newScheme: ColorScheme) -> Unit,
     onClose: () -> Unit,
     showTimes: Boolean,
     times: @Composable (ColumnScope.() -> Unit),
 ) {
+    val context = LocalContext.current
+
     ModalBottomSheet(onClose = onClose) {
         ColorScheme.entries.forEach { design ->
             TextItem(
-                text = design.title(LocalContext.current),
-                selected = design == currentDesign,
+                text = context.getString(design.titleRes),
+                selected = design == currentScheme,
                 onClick = {
                     if (design != ColorScheme.Auto) onClose()
-                    updateDesign(design)
+                    updateScheme(design)
                 }
             )
         }

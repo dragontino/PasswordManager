@@ -9,7 +9,7 @@ interface AuthCredentials {
     fun check(): Result<Unit> = when {
         !email.isValidEmail() -> Result.failure(InvalidEmailException)
         password.isBlank() -> Result.failure(EmptyPasswordException)
-        password.length < CredentialDefaults.minLength -> Result.failure(PasswordLengthException)
+        password.length < CredentialDefaults.MIN_LENGTH -> Result.failure(PasswordLengthException)
         else -> Result.success(Unit)
     }
 }
@@ -32,9 +32,9 @@ fun String.isValidEmail() =
 
 
 fun String.isValidPassword() =
-    isNotBlank() && length >= CredentialDefaults.minLength
+    isNotBlank() && length >= CredentialDefaults.MIN_LENGTH
 
 
 private object CredentialDefaults {
-    const val minLength = 7
+    const val MIN_LENGTH = 7
 }

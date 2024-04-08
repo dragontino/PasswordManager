@@ -8,23 +8,21 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.viewModelScope
-import com.security.passwordmanager.R
+import com.security.passwordmanager.domain.R
 import com.security.passwordmanager.domain.model.Account
 import com.security.passwordmanager.domain.model.ExceptionMessage
+import com.security.passwordmanager.domain.model.Settings
 import com.security.passwordmanager.domain.model.UID
 import com.security.passwordmanager.domain.model.entity.EntityType
 import com.security.passwordmanager.domain.model.entity.Website
-import com.security.passwordmanager.domain.model.settings.Settings
 import com.security.passwordmanager.domain.usecase.EntityUseCase
 import com.security.passwordmanager.domain.usecase.GetWebsiteDomainNameUseCase
 import com.security.passwordmanager.domain.usecase.GetWebsiteLogoUseCase
 import com.security.passwordmanager.domain.usecase.SettingsUseCase
-import com.security.passwordmanager.domain.util.Encrypt
 import com.security.passwordmanager.model.ChildStatus
 import com.security.passwordmanager.model.ComposableWebsite
 import com.security.passwordmanager.model.WebsiteMapper.mapToComposable
 import com.security.passwordmanager.model.contains
-import com.security.passwordmanager.model.convertToString
 import com.security.passwordmanager.view.composables.dialogs.ConfirmExitDialog
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -75,6 +73,11 @@ class WebsiteViewModel @AssistedInject constructor(
 
         snapshotFlow { id }
             .map {
+                if (it.isBlank()) {
+                    state = ViewModelState.Ready
+                    return@map
+                }
+
                 state = ViewModelState.Loading
                 delay(300)
 
@@ -83,6 +86,7 @@ class WebsiteViewModel @AssistedInject constructor(
                     type = EntityType.Website,
                     error = { throwable ->
                         exceptionMessage.getMessage(throwable)?.let(::showSnackbar)
+                        state = ViewModelState.Ready
                     },
                     success = { entity ->
                         website = (entity as Website).mapToComposable()
@@ -271,14 +275,10 @@ class WebsiteViewModel @AssistedInject constructor(
                 id = existingWebsiteId ?: websiteId,
                 type = EntityType.Website,
                 updatesMap = websiteUpdates + accountsUpdates,
-                encryptValue = { value: Any, encryption: Encrypt ->
+                encryptValue = { value, encryption ->
                     when (value) {
-                        is Account -> {
-                            value.encrypt(encryption)
-                            value
-                        }
-
-                        is String -> encryption(value)
+                        is Account -> value.encrypt(encryption)
+                        is String -> encryption.encrypt(value, "")
                         else -> value
                     }
                 },
@@ -360,10 +360,12 @@ class WebsiteViewModel @AssistedInject constructor(
                 showSnackbar(context.getString(R.string.copy_text_successful))
             } catch (exception: RuntimeException) {
                 state = ViewModelState.Ready
-                showSnackbar(context.getString(
+                showSnackbar(
+                    context.getString(
                         R.string.copy_text_exception,
                         exception.localizedMessage,
-                    ))
+                    ),
+                )
             }
         }
     }
@@ -374,7 +376,7 @@ class WebsiteViewModel @AssistedInject constructor(
         clipboardManager: ClipboardManager,
         website: Website = this.website.mapToUserData()
     ) {
-        val dataString = website.convertToString(context)
+        val dataString = website.convertToString(context.resources)
         copyText(dataString, context, clipboardManager)
     }
 

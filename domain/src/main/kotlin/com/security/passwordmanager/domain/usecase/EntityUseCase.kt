@@ -1,14 +1,15 @@
 package com.security.passwordmanager.domain.usecase
 
 import android.util.Log
+import com.security.passwordmanager.domain.model.EncryptionHelper
 import com.security.passwordmanager.domain.model.entity.DatabaseEntity
 import com.security.passwordmanager.domain.model.entity.EntityType
 import com.security.passwordmanager.domain.repository.EntityRepository
-import com.security.passwordmanager.domain.util.Encrypt
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration
 
 class EntityUseCase(
     private val repository: EntityRepository,
@@ -31,11 +32,11 @@ class EntityUseCase(
     }
 
 
-    suspend fun updateEntity(
+    suspend fun <V : Any> updateEntity(
         id: String,
         type: EntityType,
-        updatesMap: Map<String, Any?>,
-        encryptValue: (value: Any, Encrypt) -> Any,
+        updatesMap: Map<String, V?>,
+        encryptValue: (value: V, EncryptionHelper) -> V?,
         resultAction: (Result<Unit>) -> Unit
     ) = withContext(dispatcher) {
         repository.updateEntity(id,  type, updatesMap, encryptValue) { result ->
@@ -51,12 +52,18 @@ class EntityUseCase(
         error: (Throwable) -> Unit,
         success: (DatabaseEntity) -> Unit
     ) = withContext(dispatcher) {
-        repository.getEntityRecordById(id, type) { result ->
-            result.exceptionOrNull()?.let {
-                Log.e(TAG, it.localizedMessage, it)
-                error(it)
+        try {
+            withTimeout(Duration.parse("10s")) {
+                repository.getEntityRecordById(id, type) { result ->
+                    result.exceptionOrNull()?.let {
+                        Log.e(TAG, it.localizedMessage, it)
+                        error(it)
+                    }
+                    result.getOrNull()?.let(success)
+                }
             }
-            result.getOrNull()?.let(success)
+        } catch (e: TimeoutCancellationException) {
+            error(e)
         }
     }
 
